@@ -12,5 +12,6 @@
 #include <stdlib.h>
 #include "utils.h"
 
+void read_and_send_to_kernel(FILE*, int);
 
 #endif /* CONSOLA_H_ */
