@@ -43,6 +43,7 @@ int main(int argc, char* argv[]) {
 		log_debug(logger, "Se ha abierto el archivo de instrucciones con exito.");
 	}
 
+	//TODO: check
 	kernel_socket = crear_conexion(ip,port);
 
 	// TODO

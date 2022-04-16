@@ -15,7 +15,7 @@
 
 void crear_logger(){
 
-	if((logger = log_create("./consola.log","Consola",1,LOG_LEVEL_TRACE)) == NULL){
+	if((logger = log_create("./cfg/consola.log","Consola",1,LOG_LEVEL_TRACE)) == NULL){
 		puts("No se ha podido crear el archivo de log.\nTerminando ejecucion.");
 		exit(1);
 	}
@@ -27,7 +27,7 @@ t_config* cargar_config(){
 
 	t_config* config;
 
-	if((config = config_create("./consola.config")) == NULL){
+	if((config = config_create("./cfg/consola.config")) == NULL){
 		log_error(logger, "No se ha podido leer el archivo de config. \nFinalizando Ejecucion.");
 		exit(2);
 	}
