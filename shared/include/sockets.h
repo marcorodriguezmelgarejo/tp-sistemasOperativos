@@ -43,6 +43,8 @@ bool sockets_conectar_como_cliente(char *, char*, int*, t_log*);
 
 bool sockets_abrir_servidor(const char *, int, int*, t_log*);
 
+bool sockets_esperar_cliente(int, int*, t_log*);
+
 bool sockets_enviar_string(int, char *, t_log*);
 
 bool sockets_recibir_string(int, char *, t_log*);
