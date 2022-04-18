@@ -7,20 +7,46 @@
 #include <sys/types.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
-
+#include <sys/wait.h>
+#include <signal.h>
 #include <arpa/inet.h>
 
 #include <commons/log.h>
 #include <stdbool.h>
 
-void *_get_in_addr(struct sockaddr *);
+// Funciones privadas
 
-bool conectar_socket_como_cliente(int, char*, int*, t_log*);
+void *_sockets_get_in_addr(struct sockaddr *sa);
 
-bool enviar_string(int, char *, t_log*);
+void _sockets_sigchld_handler(int);
 
-bool recibir_string(int, char *, t_log*);
+// Funciones publicas
 
-void cerrar_socket(int);
+/*
+    ACLARACIONES:
+
+    el argumento t_log* puede ser NULL para darle a entender que no hay logger
+    
+    sockets_enviar_dato() y sockets_recibir_dato() no se pueden usar para structs o strings
+
+    en el argumento data_size se debe pasar el sizeof del tipo de dato a enviar/recibir
+
+    devuelven true en caso de exito, false en error (Utilizar <stdbool.h>)
+
+*/
+
+bool sockets_conectar_como_cliente(char *, char*, int*, t_log*);
+
+bool sockets_abrir_servidor(const char *, int, int*, t_log*);
+
+bool sockets_enviar_string(int, char *, t_log*);
+
+bool sockets_recibir_string(int, char *, t_log*);
+
+bool sockets_enviar_dato(int, void*, size_t, t_log*);
+
+bool sockets_recibir_dato(int, void*, size_t, t_log*);
+
+void sockets_cerrar(int);
 
 #define MAXDATASIZE 100 // maxima cantidad de bytes que se pueden leer de una llamada
