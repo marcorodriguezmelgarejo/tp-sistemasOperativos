@@ -128,7 +128,7 @@ bool sockets_abrir_servidor(const char *port, int backlog, int* sockfd_pointer, 
         return false;
     }
 
-    if (logger != NULL)log_info(logger, "Escuchando conexiones entrantes...");
+    if (logger != NULL)log_info(logger, "Escuchando conexiones entrantes en puerto %s...", port);
 
     return true;
 }
@@ -245,12 +245,4 @@ bool sockets_recibir_dato(int sockfd, void* data_pointer, size_t data_size, t_lo
 
 void sockets_cerrar(int sockfd){
     close(sockfd);
-}
-
-int main(){
-    int x = 0;
-
-    printf("Hola");
-
-    return 0;
 }

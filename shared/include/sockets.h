@@ -1,3 +1,7 @@
+
+#ifndef SOCKETS_H_
+#define SOCKETS_H_
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -49,4 +53,4 @@ bool sockets_recibir_dato(int, void*, size_t, t_log*);
 
 void sockets_cerrar(int);
 
-#define MAXDATASIZE 100 // maxima cantidad de bytes que se pueden leer de una llamada
+#endif
