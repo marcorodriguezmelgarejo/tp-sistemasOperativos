@@ -1,1 +1,83 @@
 
+[DEBUG] 20:11:24:692 Consola/(9856:9856): Se ha creado el archivo de log con exito.
+
+[DEBUG] 20:11:24:697 Consola/(9856:9856): Se ha leido el archivo de config con exito.
+[ERROR] 20:11:24:698 Consola/(9856:9856): No se ha ingresado la cantidad de parametros correcta. Terminando ejecucion.
+[DEBUG] 20:20:29:732 Consola/(10767:10767): Se ha creado el archivo de log con exito.
+
+[DEBUG] 20:20:29:735 Consola/(10767:10767): Se ha leido el archivo de config con exito.
+[INFO] 20:20:29:735 Consola/(10767:10767): Leyendo valor de IP_KERNEL
+[INFO] 20:20:29:735 Consola/(10767:10767): IP_KERNEL: 127.0.0.1
+[INFO] 20:20:29:735 Consola/(10767:10767): Leyendo valor de PUERTO_KERNEL
+[INFO] 20:20:29:735 Consola/(10767:10767): PUERTO_KERNEL: 8000
+[INFO] 20:20:29:736 Consola/(10767:10767): Se han ingresado 2 parametros.
+[INFO] 20:20:29:736 Consola/(10767:10767): Filepath [Parametro 1]
+[INFO] 20:20:29:736 Consola/(10767:10767): hola
+[INFO] 20:20:29:736 Consola/(10767:10767): Tamanio memoria [Parametro 2]
+[INFO] 20:20:29:736 Consola/(10767:10767): chau
+[ERROR] 20:20:29:736 Consola/(10767:10767): Error al abrir el archivo de instrucciones. Terminando ejecucion.
+[DEBUG] 21:10:47:226 Consola/(12674:12674): Se ha creado el archivo de log con exito.
+
+[DEBUG] 21:10:47:228 Consola/(12674:12674): Se ha leido el archivo de config con exito.
+[ERROR] 21:10:47:228 Consola/(12674:12674): No se ha ingresado la cantidad de parametros correcta. Terminando ejecucion.
+[DEBUG] 21:11:05:445 Consola/(12685:12685): Se ha creado el archivo de log con exito.
+
+[DEBUG] 21:11:05:445 Consola/(12685:12685): Se ha leido el archivo de config con exito.
+[INFO] 21:11:05:446 Consola/(12685:12685): Leyendo valor de IP_KERNEL
+[INFO] 21:11:05:446 Consola/(12685:12685): IP_KERNEL: 127.0.0.1
+[INFO] 21:11:05:446 Consola/(12685:12685): Leyendo valor de PUERTO_KERNEL
+[INFO] 21:11:05:446 Consola/(12685:12685): PUERTO_KERNEL: 8000
+[INFO] 21:11:05:446 Consola/(12685:12685): Se han ingresado 2 parametros.
+[INFO] 21:11:05:446 Consola/(12685:12685): Filepath [Parametro 1]
+[INFO] 21:11:05:446 Consola/(12685:12685): hola
+[INFO] 21:11:05:447 Consola/(12685:12685): Tamanio memoria [Parametro 2]
+[INFO] 21:11:05:447 Consola/(12685:12685): chau
+[ERROR] 21:11:05:447 Consola/(12685:12685): Error al abrir el archivo de instrucciones. Terminando ejecucion.
+[DEBUG] 21:29:31:571 Consola/(13983:13983): Se ha creado el archivo de log con exito.
+
+[DEBUG] 21:29:31:575 Consola/(13983:13983): Se ha leido el archivo de config con exito.
+[ERROR] 21:29:31:575 Consola/(13983:13983): No se ha ingresado la cantidad de parametros correcta. Terminando ejecucion.
+[DEBUG] 21:30:48:239 Consola/(14150:14150): Se ha creado el archivo de log con exito.
+
+[ERROR] 21:30:48:247 Consola/(14150:14150): No se ha ingresado la cantidad de parametros correcta. Terminando ejecucion.
+[DEBUG] 21:31:16:033 Consola/(14176:14176): Se ha creado el archivo de log con exito.
+
+[INFO] 21:31:16:034 Consola/(14176:14176): Leyendo valor de IP_KERNEL
+[INFO] 21:31:16:038 Consola/(14176:14176): IP_KERNEL: 127.0.0.1
+[INFO] 21:31:16:038 Consola/(14176:14176): Leyendo valor de PUERTO_KERNEL
+[INFO] 21:31:16:038 Consola/(14176:14176): PUERTO_KERNEL: 8000
+[DEBUG] 21:31:16:038 Consola/(14176:14176): Se ha leido el archivo de config con exito.
+[INFO] 21:31:16:038 Consola/(14176:14176): Se han ingresado 2 parametros.
+[INFO] 21:31:16:038 Consola/(14176:14176): Filepath [Parametro 1]
+[INFO] 21:31:16:038 Consola/(14176:14176): hola
+[INFO] 21:31:16:038 Consola/(14176:14176): Tamanio memoria [Parametro 2]
+[INFO] 21:31:16:038 Consola/(14176:14176): chau
+[ERROR] 21:31:16:038 Consola/(14176:14176): Error al abrir el archivo de instrucciones. Terminando ejecucion.
+[DEBUG] 21:44:26:890 Consola/(15029:15029): Se ha creado el archivo de log con exito.
+
+[ERROR] 21:44:26:890 Consola/(15029:15029): Uso: consola path tamanio
+[DEBUG] 21:44:41:057 Consola/(15039:15039): Se ha creado el archivo de log con exito.
+
+[INFO] 21:44:41:058 Consola/(15039:15039): Leyendo valor de IP_KERNEL
+[INFO] 21:44:41:058 Consola/(15039:15039): IP_KERNEL: 127.0.0.1
+[INFO] 21:44:41:058 Consola/(15039:15039): Leyendo valor de PUERTO_KERNEL
+[INFO] 21:44:41:058 Consola/(15039:15039): PUERTO_KERNEL: 8000
+[DEBUG] 21:44:41:058 Consola/(15039:15039): Se ha leido el archivo de config con exito.
+[INFO] 21:44:41:058 Consola/(15039:15039): Se han ingresado 2 parametros.
+[INFO] 21:44:41:058 Consola/(15039:15039): Filepath = hola
+[INFO] 21:44:41:059 Consola/(15039:15039): Tamanio memoria = chau
+[ERROR] 21:44:41:059 Consola/(15039:15039): Error al abrir el archivo de instrucciones. Terminando ejecucion.
+[DEBUG] 21:48:09:594 Consola/(15251:15251): Se ha creado el archivo de log con exito.
+
+[ERROR] 21:48:09:595 Consola/(15251:15251): Uso: consola path tamanio
+[DEBUG] 21:48:10:869 Consola/(15253:15253): Se ha creado el archivo de log con exito.
+
+[INFO] 21:48:10:869 Consola/(15253:15253): Leyendo valor de IP_KERNEL
+[INFO] 21:48:10:870 Consola/(15253:15253): IP_KERNEL: 127.0.0.1
+[INFO] 21:48:10:870 Consola/(15253:15253): Leyendo valor de PUERTO_KERNEL
+[INFO] 21:48:10:870 Consola/(15253:15253): PUERTO_KERNEL: 8000
+[DEBUG] 21:48:10:870 Consola/(15253:15253): Se ha leido el archivo de config con exito.
+[INFO] 21:48:10:870 Consola/(15253:15253): Se han ingresado 2 parametros:
+[INFO] 21:48:10:870 Consola/(15253:15253): Filepath = "hola"
+[INFO] 21:48:10:870 Consola/(15253:15253): Tamanio memoria = chau
+[ERROR] 21:48:10:871 Consola/(15253:15253): Error al abrir el archivo de instrucciones. Terminando ejecucion.

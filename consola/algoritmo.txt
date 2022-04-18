@@ -1,0 +1,12 @@
+
+chequear arg de entrada
+
+crear log
+
+cargar config
+
+parsear instrucciones 
+
+abrir cliente de socket con kernel y mandarle instrucciones
+
+esperar hasta mensaje de finalizacion del kernel y salir

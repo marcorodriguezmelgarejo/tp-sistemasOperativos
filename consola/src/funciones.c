@@ -1,19 +1,8 @@
-/*
- * utils.c
- *
- *  Created on: 14 abr. 2022
- *      Author: utnso
- *
- *      Error codes:
- *      1 -> No se pudo crear el log
- *      2 -> No se pudo leer la config
- *      3 -> No se encontro el valor de IP_KERNEL
- *      4 -> No se encontro el valor de PUERTO_KERNEL
- */
+#include "funciones.h"
 
-#include "utils.h"
+t_log* crear_logger(){
 
-void crear_logger(){
+	t_log* logger = NULL;
 
 	if((logger = log_create("./cfg/consola.log","Consola",1,LOG_LEVEL_TRACE)) == NULL){
 		puts("No se ha podido crear el archivo de log.\nTerminando ejecucion.");
@@ -21,9 +10,11 @@ void crear_logger(){
 	}
 
 	log_debug(logger, "Se ha creado el archivo de log con exito.\n");
+
+	return logger;
 }
 
-t_config* cargar_config(){
+void cargar_config(char ** ip, char** port, t_log* logger){
 
 	t_config* config;
 
@@ -32,11 +23,15 @@ t_config* cargar_config(){
 		exit(2);
 	}
 
+	*ip = leer_valor_config(config, "IP_KERNEL", logger);
+	*port = leer_valor_config(config, "PUERTO_KERNEL", logger);
+
 	log_debug(logger, "Se ha leido el archivo de config con exito.");
-	return config;
+
+	config_destroy(config);
 }
 
-char* leer_valor_config(t_config* config, char* value){
+char* leer_valor_config(t_config* config, char* value, t_log* logger){
 
 	char* reading = string_new();
 	string_append(&reading, "Leyendo valor de ");
@@ -64,6 +59,20 @@ char* leer_valor_config(t_config* config, char* value){
 	return return_value;
 }
 
+FILE* abrir_archivo_instrucciones(char * path, t_log* logger){
+
+	FILE *file_instrucciones = fopen(path,"r");
+
+	if(file_instrucciones == NULL){
+		log_error(logger, "Error al abrir el archivo de instrucciones. Terminando ejecucion.");
+		exit(6);
+	} else {
+		log_debug(logger, "Se ha abierto el archivo de instrucciones con exito.");
+	}
+
+	return file_instrucciones;
+}
+
 int crear_conexion(char *ip, char* puerto)
 {
 	struct addrinfo hints;
@@ -86,7 +95,33 @@ int crear_conexion(char *ip, char* puerto)
 	return socket_cliente;
 }
 
-void finalizar_programa(){
+void read_and_send_to_kernel(FILE* file, int socket, t_log* logger){
+
+	char* line = string_new();
+	size_t size = 0;
+	int i = 1;
+
+	while(getline(&line, &size, file) != -1){
+		if(line[strlen(line)-1] == '\n'){
+			line[strlen(line)-1] = '\0';
+		}
+		char* msg = string_new();
+		char* nro = string_new();
+		sprintf(nro,"%d",i);
+		string_append(&msg,"Instruccion numero ");
+		string_append(&msg,nro);
+		log_info(logger,msg);
+		log_info(logger,line);
+		i++;
+		//TODO
+		// enviar_instruccion(socket, line);
+		// int response_code = wait_for_response()
+		// if(response_code != 1) exit(7); -> significaria error
+
+	}
+}
+
+void finalizar_programa(int kernel_socket, t_log* logger){
 	close(kernel_socket);
 	log_destroy(logger);
 }
