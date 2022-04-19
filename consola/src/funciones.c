@@ -6,7 +6,7 @@ t_log* crear_logger(){
 
 	if((logger = log_create("./cfg/consola.log","Consola",1,LOG_LEVEL_TRACE)) == NULL){
 		puts("No se ha podido crear el archivo de log.\nTerminando ejecucion.");
-		exit(1);
+		salir_error(1, NULL, NULL);
 	}
 
 	log_debug(logger, "Se ha creado el archivo de log con exito.\n");
@@ -14,49 +14,32 @@ t_log* crear_logger(){
 	return logger;
 }
 
-void cargar_config(char ** ip, char** port, t_log* logger){
+void cargar_config(char *ip, char* port, t_log* logger){
 
 	t_config* config;
 
 	if((config = config_create("./cfg/consola.config")) == NULL){
 		log_error(logger, "No se ha podido leer el archivo de config. \nFinalizando Ejecucion.");
-		exit(2);
+		salir_error(2, logger, NULL);
 	}
 
-	*ip = leer_valor_config(config, "IP_KERNEL", logger);
-	*port = leer_valor_config(config, "PUERTO_KERNEL", logger);
+	leer_valor_config(config, "IP_KERNEL", ip, logger);
+	leer_valor_config(config, "PUERTO_KERNEL", port, logger);
 
 	log_debug(logger, "Se ha leido el archivo de config con exito.");
 
 	config_destroy(config);
 }
 
-char* leer_valor_config(t_config* config, char* value, t_log* logger){
-
-	char* reading = string_new();
-	string_append(&reading, "Leyendo valor de ");
-	string_append(&reading, value);
-	log_info(logger, reading);
-
-	char* return_value = string_new();
+void leer_valor_config(t_config* config, char* value, char* return_value, t_log* logger){
+	
 	if (config_has_property(config, value)){
-		return_value = config_get_string_value(config, value);
-		char* string = string_new();
-		string_append(&string, value);
-		string_append(&string, ": ");
-		string_append(&string ,return_value);
-		log_info(logger, string);
+		strcpy(return_value, config_get_string_value(config, value));
+		log_info(logger, "%s: %s", value, return_value);
 	} else {
-		log_error(logger, "No se encontro valor de IP_KERNEL. Finalizando ejecucion.");
-		char* string = string_new();
-		string_append(&string, "No se encontro valor de ");
-		string_append(&string, value);
-		string_append(&string, ". Finalizando ejecucion.");
-		log_error(logger, string);
-		exit(3);
+		log_error(logger, "No se encontro el valor de %s. Finalizando ejecucion.", value);
+		salir_error(3, logger, NULL);
 	}
-
-	return return_value;
 }
 
 FILE* abrir_archivo_instrucciones(char * path, t_log* logger){
@@ -65,7 +48,7 @@ FILE* abrir_archivo_instrucciones(char * path, t_log* logger){
 
 	if(file_instrucciones == NULL){
 		log_error(logger, "Error al abrir el archivo de instrucciones. Terminando ejecucion.");
-		exit(6);
+		salir_error(6, logger, NULL);
 	} else {
 		log_debug(logger, "Se ha abierto el archivo de instrucciones con exito.");
 	}
@@ -73,55 +56,69 @@ FILE* abrir_archivo_instrucciones(char * path, t_log* logger){
 	return file_instrucciones;
 }
 
-int crear_conexion(char *ip, char* puerto)
-{
-	struct addrinfo hints;
-	struct addrinfo *server_info;
-
-	memset(&hints, 0, sizeof(hints));
-	hints.ai_family = AF_UNSPEC;
-	hints.ai_socktype = SOCK_STREAM;
-	hints.ai_flags = AI_PASSIVE;
-
-	getaddrinfo(ip, puerto, &hints, &server_info);
-
-	int socket_cliente = socket(server_info->ai_family, server_info->ai_socktype, server_info->ai_protocol);
-
-	if(connect(socket_cliente, server_info->ai_addr, server_info->ai_addrlen) == -1)
-		printf("error");
-
-	freeaddrinfo(server_info);
-
-	return socket_cliente;
-}
-
-void read_and_send_to_kernel(FILE* file, int socket, t_log* logger){
+void enviar_instrucciones(FILE* file, int socket, t_log* logger){
 
 	char* line = string_new();
 	size_t size = 0;
 	int i = 1;
 
 	while(getline(&line, &size, file) != -1){
+		
 		if(line[strlen(line)-1] == '\n'){
 			line[strlen(line)-1] = '\0';
 		}
-		char* msg = string_new();
-		char* nro = string_new();
-		sprintf(nro,"%d",i);
-		string_append(&msg,"Instruccion numero ");
-		string_append(&msg,nro);
-		log_info(logger,msg);
-		log_info(logger,line);
+
+		log_info(logger,"Instruccion numero %d: ", i);
+		log_info(logger,"%s", line);
+		
+		if (sockets_enviar_string(socket, "INSTRUCCION", logger) == false){
+			log_error(logger, "Error al comunicarse con kernel. Finalizando...");
+			salir_error(7, logger, &socket);
+		}
+
+		if (sockets_enviar_string(socket, line, logger) == false){
+			log_error(logger, "Error al comunicarse con kernel. Finalizando...");
+			salir_error(7, logger, &socket);
+		}
 		i++;
+
 		//TODO
-		// enviar_instruccion(socket, line);
 		// int response_code = wait_for_response()
 		// if(response_code != 1) exit(7); -> significaria error
 
 	}
 }
 
+void enviar_tamanio(unsigned int tamanio, int socket, t_log* logger){
+	
+	if (sockets_enviar_string(socket, "TAMANIO", logger) == false){
+		log_error(logger, "Error al comunicarse con kernel. Finalizando...");
+		salir_error(7, logger, &socket);
+	}
+
+	if (sockets_enviar_dato(socket, &tamanio, sizeof(unsigned int), logger) == false){
+		log_error(logger, "Error al comunicarse con kernel. Finalizando...");
+		salir_error(7, logger, &socket);
+	}
+}
+
+void esperar_finalizacion(int socket, t_log* logger){
+
+	char msg = 0;
+
+	if (sockets_recibir_dato(socket, &msg, sizeof(char), logger) == false){
+		log_error(logger, "Error al comunicarse con kernel. Finalizando...");
+		salir_error(7, logger, &socket);
+	}
+}
+
 void finalizar_programa(int kernel_socket, t_log* logger){
-	close(kernel_socket);
+	sockets_cerrar(kernel_socket);
 	log_destroy(logger);
+}
+
+void salir_error(int error_code, t_log* logger, int* kernel_socket_pointer){
+	if (kernel_socket_pointer != NULL) sockets_cerrar(*kernel_socket_pointer);
+	if (logger != NULL) log_destroy(logger);
+	exit(error_code);
 }

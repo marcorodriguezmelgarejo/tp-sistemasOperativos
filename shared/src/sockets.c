@@ -133,7 +133,7 @@ bool sockets_abrir_servidor(const char *port, int backlog, int* sockfd_pointer, 
     return true;
 }
 
-bool esperar_cliente(int sockfd, int* new_fd_pointer, t_log* logger){
+bool sockets_esperar_cliente(int sockfd, int* new_fd_pointer, t_log* logger){
 
     struct sockaddr_storage their_addr;
     char s[INET6_ADDRSTRLEN];
