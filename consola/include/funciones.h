@@ -36,7 +36,7 @@ FILE* abrir_archivo_instrucciones(char *, t_log*);
 
 void enviar_instrucciones(FILE*, int, t_log*);
 
-void enviar_tamanio(unsigned int, int, t_log*);
+void enviar_tamanio(unsigned long, int, t_log*);
 
 void esperar_finalizacion(int, t_log*);
 

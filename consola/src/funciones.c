@@ -58,18 +58,14 @@ FILE* abrir_archivo_instrucciones(char * path, t_log* logger){
 
 void enviar_instrucciones(FILE* file, int socket, t_log* logger){
 
-	char* line = string_new();
-	size_t size = 0;
+	char line[MAX_STRING_SIZE];
 	int i = 1;
 
-	while(getline(&line, &size, file) != -1){
+	while(fgets(line, MAX_STRING_SIZE, file) != NULL){
 		
-		if(line[strlen(line)-1] == '\n'){
-			line[strlen(line)-1] = '\0';
-		}
+		line[strcspn(line, "\n")] = '\0';
 
-		log_info(logger,"Instruccion numero %d: ", i);
-		log_info(logger,"%s", line);
+		log_info(logger,"Instruccion numero %d: %s", i, line);
 		
 		if (sockets_enviar_string(socket, "INSTRUCCION", logger) == false){
 			log_error(logger, "Error al comunicarse con kernel. Finalizando...");
@@ -87,16 +83,18 @@ void enviar_instrucciones(FILE* file, int socket, t_log* logger){
 		// if(response_code != 1) exit(7); -> significaria error
 
 	}
+
+	log_info(logger, "Se han enviado con exito las instrucciones al kernel");
 }
 
-void enviar_tamanio(unsigned int tamanio, int socket, t_log* logger){
+void enviar_tamanio(unsigned long tamanio, int socket, t_log* logger){
 	
 	if (sockets_enviar_string(socket, "TAMANIO", logger) == false){
 		log_error(logger, "Error al comunicarse con kernel. Finalizando...");
 		salir_error(7, logger, &socket);
 	}
 
-	if (sockets_enviar_dato(socket, &tamanio, sizeof(unsigned int), logger) == false){
+	if (sockets_enviar_dato(socket, &tamanio, sizeof(unsigned long), logger) == false){
 		log_error(logger, "Error al comunicarse con kernel. Finalizando...");
 		salir_error(7, logger, &socket);
 	}
@@ -106,10 +104,13 @@ void esperar_finalizacion(int socket, t_log* logger){
 
 	char msg = 0;
 
+	log_info(logger, "Esperando mensaje de finalizacion por parte del kernel...");
+
 	if (sockets_recibir_dato(socket, &msg, sizeof(char), logger) == false){
 		log_error(logger, "Error al comunicarse con kernel. Finalizando...");
 		salir_error(7, logger, &socket);
 	}
+
 }
 
 void finalizar_programa(int kernel_socket, t_log* logger){

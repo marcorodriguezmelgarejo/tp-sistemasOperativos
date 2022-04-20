@@ -38,7 +38,7 @@ int main(int argc, char* argv[]) {
 	// roto el modulo del otro lado.
 
 	enviar_instrucciones(file_instrucciones, kernel_socket, logger);
-	enviar_tamanio((unsigned int) argv[2], kernel_socket, logger);
+	enviar_tamanio(strtoul(argv[2], NULL, 10), kernel_socket, logger);
 
 	esperar_finalizacion(kernel_socket, logger);
 

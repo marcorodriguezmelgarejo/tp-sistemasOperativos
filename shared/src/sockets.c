@@ -42,6 +42,7 @@ bool sockets_conectar_como_cliente(char *port, char* ip, int* sockfd_pointer ,t_
 
     if (p == NULL) {
         if (logger != NULL) log_error(logger, "Fallo al conectar al servidor");
+        freeaddrinfo(servinfo);
         return false;
     }
 

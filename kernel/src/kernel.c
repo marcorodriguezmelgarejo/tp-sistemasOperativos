@@ -30,6 +30,8 @@ int main()
 
     unsigned int tamanio_proceso = 0;
 
+    int enviar = OK_MESSAGE;
+
     t_log * logger = crear_logger();
 
     sockets_abrir_servidor("8000", 5, &sockfd, logger);
@@ -43,11 +45,13 @@ int main()
             printf("Instruccion recibida: %s\n", buf);
         }
         else{
-            sockets_recibir_dato(new_fd, &tamanio_proceso, sizeof(unsigned int), logger);
-            printf("Tamanio de proceso recibido: %d\n", tamanio_proceso);
+            sockets_recibir_dato(new_fd, &tamanio_proceso, sizeof(unsigned long), logger);
+            printf("Tamanio de proceso recibido: %u\n", tamanio_proceso);
         }
     }
     while(strcmp(instruccion_o_tamanio, "TAMANIO") != 0);
+
+    sockets_enviar_dato(new_fd, &enviar, sizeof(int), logger);
 
     sockets_cerrar(new_fd);
     sockets_cerrar(sockfd);
