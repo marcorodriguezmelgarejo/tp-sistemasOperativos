@@ -1,8 +1,5 @@
 #include "kernel.h"
 
-//IMPORTANTE:
-//ESTE ARCHIVO ES (POR AHORA) SOLO PARA TESTEAR LA CONSOLA
-
 t_log* crear_logger(){
 
 	t_log* logger = NULL;
@@ -12,49 +9,72 @@ t_log* crear_logger(){
 		exit(1);
 	}
 
-	log_debug(logger, "Se ha creado el archivo de log con exito.\n");
+	log_debug(logger, "Se ha creado el archivo de log con exito.");
 
 	return logger;
 }
 
+void escuchar_nuevas_consolas(t_log* logger){
 
-int main()
-{
+    char buf[100];
+
     int sockfd = 0;
 
     int new_fd = 0;
 
-    char buf[100];
+    char instruccion_o_tamanio[12];
 
-    char instruccion_o_tamanio[20];
-
-    unsigned int tamanio_proceso = 0;
+    unsigned long tamanio_proceso = 0;
 
     int enviar = OK_MESSAGE;
 
+    sockets_abrir_servidor("8000", CONSOLA_BACKLOG, &sockfd, logger);
+
+    while(1){
+        sockets_esperar_cliente(sockfd, &new_fd, logger);
+
+        do{
+            sockets_recibir_string(new_fd, instruccion_o_tamanio, logger);
+            if (strcmp(instruccion_o_tamanio, "INSTRUCCION") == 0){
+                sockets_recibir_string(new_fd, buf, logger);
+                log_debug(logger, "Instruccion recibida: %s", buf);
+            }
+            else{
+                sockets_recibir_dato(new_fd, &tamanio_proceso, sizeof(unsigned long), logger);
+                log_debug(logger, "Tamanio de proceso recibido: %u", tamanio_proceso);
+            }
+        }
+        while(strcmp(instruccion_o_tamanio, "TAMANIO") != 0);
+    }
+}
+
+int main()
+{
+    //crear diccionario que mapee pid de un pcb con el sock_fd de la consola que creó el proceso
+    //crear lista de pcb
+    //crear cola de new
+
+    //inicializar un pcb por cada consola nueva y guardar instrucciones y tamanio
+    //guardar el pcb en la cola de new
+
+    //crear funcion que finalice la conexion con una consola pasandole el pid como parametro
+
+    //crear funcion para salir del kernel cerrando los sockets, loggers, haciendo frees y todo eso
+
     t_log * logger = crear_logger();
 
-    sockets_abrir_servidor("8000", 5, &sockfd, logger);
+    switch(fork()){
 
-    sockets_esperar_cliente(sockfd, &new_fd, logger);
+        case -1:
+        log_error(logger, "Anduvo mal el fork(). Finalizando...");
+        exit(ERROR_STATUS);
 
-    do{
-        sockets_recibir_string(new_fd, instruccion_o_tamanio, logger);
-        if (strcmp(instruccion_o_tamanio, "INSTRUCCION") == 0){
-            sockets_recibir_string(new_fd, buf, logger);
-            printf("Instruccion recibida: %s\n", buf);
-        }
-        else{
-            sockets_recibir_dato(new_fd, &tamanio_proceso, sizeof(unsigned long), logger);
-            printf("Tamanio de proceso recibido: %u\n", tamanio_proceso);
-        }
+        case 0: // proceso hijo
+        escuchar_nuevas_consolas(logger);
+
+        default: // proceso padre
+            while(1){continue;}
     }
-    while(strcmp(instruccion_o_tamanio, "TAMANIO") != 0);
-
-    sockets_enviar_dato(new_fd, &enviar, sizeof(int), logger);
-
-    sockets_cerrar(new_fd);
-    sockets_cerrar(sockfd);
 
     log_destroy(logger);
 
