@@ -21,7 +21,7 @@ bool sockets_conectar_como_cliente(char *port, char* ip, int* sockfd_pointer ,t_
     hints.ai_socktype = SOCK_STREAM;
 
     if ((rv = getaddrinfo(ip, port, &hints, &servinfo)) != 0) {
-        if (logger != NULL) log_error(logger, "getaddrinfo: %s\n", gai_strerror(rv));
+        if (logger != NULL) log_error(logger, "getaddrinfo: %s", gai_strerror(rv));
         return false;
     }
 
@@ -51,7 +51,7 @@ bool sockets_conectar_como_cliente(char *port, char* ip, int* sockfd_pointer ,t_
 
     freeaddrinfo(servinfo);
     
-    if (logger != NULL)log_info(logger, "Conectandose a %s\n", s);
+    if (logger != NULL)log_info(logger, "Conectandose a %s", s);
 
     *sockfd_pointer = sockfd;
 
@@ -82,7 +82,7 @@ bool sockets_abrir_servidor(const char *port, int backlog, int* sockfd_pointer, 
     hints.ai_flags = AI_PASSIVE; // use my IP
 
     if ((rv = getaddrinfo(NULL, port, &hints, &servinfo)) != 0) {
-        if (logger != NULL) log_error(logger, "getaddrinfo: %s\n", gai_strerror(rv));
+        if (logger != NULL) log_error(logger, "getaddrinfo: %s", gai_strerror(rv));
         return false;
     }
 
@@ -95,7 +95,7 @@ bool sockets_abrir_servidor(const char *port, int backlog, int* sockfd_pointer, 
 
         if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &yes,
                 sizeof(int)) == -1) {
-            if (logger != NULL)log_error(logger, "Error al abrir servidor: %s\n", strerror(errno));
+            if (logger != NULL)log_error(logger, "Error al abrir servidor: %s", strerror(errno));
             return false;
         }
 
@@ -110,12 +110,12 @@ bool sockets_abrir_servidor(const char *port, int backlog, int* sockfd_pointer, 
     freeaddrinfo(servinfo); // all done with this structure
 
     if (p == NULL)  {
-        if (logger != NULL)log_error(logger, "Error al hacer bind: %s\n", strerror(errno));
+        if (logger != NULL)log_error(logger, "Error al hacer bind: %s", strerror(errno));
             return false;
     }
 
     if (listen(sockfd, backlog) == -1) {
-        if (logger != NULL)log_error(logger, "Error al hacer listen: %s\n", strerror(errno));
+        if (logger != NULL)log_error(logger, "Error al hacer listen: %s", strerror(errno));
             return false;
     }
 
@@ -125,7 +125,7 @@ bool sockets_abrir_servidor(const char *port, int backlog, int* sockfd_pointer, 
     sigemptyset(&sa.sa_mask);
     sa.sa_flags = SA_RESTART;
     if (sigaction(SIGCHLD, &sa, NULL) == -1) {
-        if (logger != NULL)log_error(logger, "Error en sigaction(): %s\n", strerror(errno));
+        if (logger != NULL)log_error(logger, "Error en sigaction(): %s", strerror(errno));
         return false;
     }
 
@@ -144,7 +144,7 @@ bool sockets_esperar_cliente(int sockfd, int* new_fd_pointer, t_log* logger){
     new_fd = accept(sockfd, (struct sockaddr *)&their_addr, &sin_size);
 
     if (new_fd == -1) {
-        if (logger != NULL) log_error(logger, "Error en accept(): %s\n", strerror(errno));
+        if (logger != NULL) log_error(logger, "Error en accept(): %s", strerror(errno));
         return false;
     }
 
@@ -179,7 +179,7 @@ bool sockets_enviar_string(int sockfd, char * str, t_log* logger){
 
    	if ( ( numbytes = send(sockfd, buffer, buffer_size, 0) ) == -1 )
     {
-        if (logger != NULL)log_error(logger, "Error al enviar string: %s\n", strerror(errno));
+        if (logger != NULL)log_error(logger, "Error al enviar string: %s", strerror(errno));
         return false;
     }
 
@@ -197,13 +197,13 @@ bool sockets_recibir_string(int sockfd, char * buffer, t_log* logger){
 
     if ((numbytes = recv( sockfd , &buflen, sizeof(size_t),  0 )) == -1  )//recibe largo de string
     {
-        if (logger != NULL)log_error(logger, "Error al recibir string: %s\n", strerror(errno));
+        if (logger != NULL)log_error(logger, "Error al recibir string: %s", strerror(errno));
         return false;
     }
 
     if ((numbytes = recv(sockfd, buffer, buflen, 0)) == -1  )//recibo el string
     {
-        if (logger != NULL)log_error(logger, "Error al recibir string: %s\n", strerror(errno));
+        if (logger != NULL)log_error(logger, "Error al recibir string: %s", strerror(errno));
         return false;
     }
 
@@ -220,7 +220,7 @@ bool sockets_enviar_dato(int sockfd, void* data_pointer, size_t data_size, t_log
 
     if ( ( numbytes = send(sockfd, data_pointer, data_size, 0) ) == -1 )
     {
-        if (logger != NULL)log_error(logger, "Error al enviar dato: %s\n", strerror(errno));
+        if (logger != NULL)log_error(logger, "Error al enviar dato: %s", strerror(errno));
         return false;
     }
 
@@ -236,7 +236,7 @@ bool sockets_recibir_dato(int sockfd, void* data_pointer, size_t data_size, t_lo
 
     if ( ( numbytes = recv(sockfd, data_pointer, data_size, 0) ) == -1 )
     {
-        if (logger != NULL)log_error(logger, "Error al recibir dato: %s\n", strerror(errno));
+        if (logger != NULL)log_error(logger, "Error al recibir dato: %s", strerror(errno));
         return false;
     }
 

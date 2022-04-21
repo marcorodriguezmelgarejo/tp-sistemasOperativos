@@ -15,16 +15,10 @@
 
 #include "../../shared/include/sockets.h"
 
-/*
- *      Error codes:
- *      1 -> No se pudo crear el log
- *      2 -> No se pudo leer la config
- *      3 -> No se encontro el valor de IP_KERNEL
- *      4 -> No se encontro el valor de PUERTO_KERNEL
- *      5 -> Error al conectar con kernel
-*/
-
 #define MAX_STRING_SIZE 100
+
+#define SUCCESS_STATUS 0
+#define ERROR_STATUS 1
 
 t_log* crear_logger();
 
@@ -42,6 +36,6 @@ void esperar_finalizacion(int, t_log*);
 
 void finalizar_programa(int, t_log*);
 
-void salir_error(int, t_log*, int*);
+void salir_error(t_log*, int*);
 
 #endif /* FUNCIONES_H_ */
