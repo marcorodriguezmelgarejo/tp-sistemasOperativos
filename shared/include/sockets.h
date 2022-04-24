@@ -18,9 +18,6 @@
 #include <commons/log.h>
 #include <stdbool.h>
 
-#define OK_MESSAGE 0
-#define ERROR_MESSAGE 1
-
 // Funciones privadas
 
 void *_sockets_get_in_addr(struct sockaddr *sa);

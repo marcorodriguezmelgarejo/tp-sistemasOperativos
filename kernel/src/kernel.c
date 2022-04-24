@@ -1,8 +1,6 @@
 #include "kernel.h"
 
-t_log* crear_logger(){
-
-	t_log* logger = NULL;
+void crear_logger(void){
 
 	if((logger = log_create("./cfg/kernel.log","Consola",1,LOG_LEVEL_TRACE)) == NULL){
 		puts("No se ha podido crear el archivo de log.\nTerminando ejecucion.");
@@ -10,13 +8,11 @@ t_log* crear_logger(){
 	}
 
 	log_debug(logger, "Se ha creado el archivo de log con exito.");
-
-	return logger;
 }
 
-void escuchar_nuevas_consolas(t_log* logger){
+void * escuchar_nuevas_consolas(void * arg){
 
-    char buf[100];
+    char buffer[100];
 
     int sockfd = 0;
 
@@ -24,9 +20,9 @@ void escuchar_nuevas_consolas(t_log* logger){
 
     char instruccion_o_tamanio[12];
 
-    unsigned long tamanio_proceso = 0;
+    uint32_t tamanio_proceso = 0;
 
-    int enviar = OK_MESSAGE;
+    queue_clean(instrucciones_buffer);
 
     sockets_abrir_servidor("8000", CONSOLA_BACKLOG, &sockfd, logger);
 
@@ -36,45 +32,84 @@ void escuchar_nuevas_consolas(t_log* logger){
         do{
             sockets_recibir_string(new_fd, instruccion_o_tamanio, logger);
             if (strcmp(instruccion_o_tamanio, "INSTRUCCION") == 0){
-                sockets_recibir_string(new_fd, buf, logger);
-                log_debug(logger, "Instruccion recibida: %s", buf);
+                sockets_recibir_string(new_fd, buffer, logger);
+                log_debug(logger, "Instruccion recibida: %s", buffer);
+                queue_push(instrucciones_buffer, buffer);
             }
             else{
-                sockets_recibir_dato(new_fd, &tamanio_proceso, sizeof(unsigned long), logger);
+                sockets_recibir_dato(new_fd, &tamanio_proceso, sizeof (uint32_t), logger);
                 log_debug(logger, "Tamanio de proceso recibido: %u", tamanio_proceso);
             }
         }
         while(strcmp(instruccion_o_tamanio, "TAMANIO") != 0);
+
+        dictionary_put(pid_to_socket, "1", &new_fd); //hacer esto en generar_pcb()
+
+        generar_pcb();
     }
+
+    return NULL;
 }
 
-int main()
+void generar_pcb(void){
+    //implementar
+    return;
+}
+
+void finalizar_conexion_consola(uint32_t pid){
+
+    int * socket_pointer = NULL;
+
+    char pid_string[12];
+
+    uint32_t dummy = DUMMY_VALUE;
+
+    sprintf(pid_string, "%d", pid);
+
+    if ((socket_pointer = dictionary_get(pid_to_socket, pid_string)) == NULL){
+        log_error(logger, "No se encontró el socket correspondiente al pid %u", pid);
+        return;
+    }
+
+    if (sockets_enviar_dato(*socket_pointer, &dummy, sizeof(uint32_t), logger) == false){
+	    log_error(logger, "Error al comunicarse con consola pid %u", pid);
+    }
+
+    sockets_cerrar(*socket_pointer);
+
+    log_info(logger, "Se cerró la conexion con consola pid %u", pid);
+}
+
+void inicializar_estructuras(void){
+
+    pid_to_socket = dictionary_create();
+
+    instrucciones_buffer = queue_create();
+
+    crear_logger();
+}
+
+int main(void)
 {
-    //crear diccionario que mapee pid de un pcb con el sock_fd de la consola que creó el proceso
     //crear lista de pcb
     //crear cola de new
 
     //inicializar un pcb por cada consola nueva y guardar instrucciones y tamanio
     //guardar el pcb en la cola de new
 
-    //crear funcion que finalice la conexion con una consola pasandole el pid como parametro
-
     //crear funcion para salir del kernel cerrando los sockets, loggers, haciendo frees y todo eso
 
-    t_log * logger = crear_logger();
+    pthread_t h1;
 
-    switch(fork()){
+    inicializar_estructuras();
 
-        case -1:
-        log_error(logger, "Anduvo mal el fork(). Finalizando...");
-        exit(ERROR_STATUS);
+    pthread_create(&h1, NULL, escuchar_nuevas_consolas, NULL);
 
-        case 0: // proceso hijo
-        escuchar_nuevas_consolas(logger);
+    sleep(8);
 
-        default: // proceso padre
-            while(1){continue;}
-    }
+    finalizar_conexion_consola(1);
+
+    sleep(60);
 
     log_destroy(logger);
 
