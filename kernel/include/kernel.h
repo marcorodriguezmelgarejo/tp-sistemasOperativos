@@ -1,10 +1,15 @@
+#ifndef KERNEL_H_
+#define KERNEL_H_
+
 #include <stdio.h>
+#include <string.h>
 #include <commons/log.h>
 #include <commons/collections/dictionary.h>
 #include <commons/collections/queue.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <pthread.h>
+#include <signal.h>
 
 #include "../../shared/include/sockets.h"
 #include "../../shared/include/protocolos.h"
@@ -23,6 +28,8 @@
 t_log * logger;
 t_dictionary * pid_to_socket; //mapea pid (tiene que ser un string) de un proceso al socket de la consola correspondiente
 
+int socket_server = 0;
+
 char *IP_MEMORIA;
 char *PUERTO_MEMORIA;
 char *IP_CPU;
@@ -30,7 +37,7 @@ char *PUERTO_CPU_DISPATCH;
 char *PUERTO_CPU_INTERRUPT;
 char *PUERTO_ESCUCHA;
 char *ALGORITMO_PLANIFICACION; //"FIFO" o "SRT"
-int32_t ESTIMACION_INICIAL;
+int32_t ESTIMACION_INICIAL = 10000; //inicializo solo para testear
 float ALFA;
 int32_t GRADO_MULTIPROGRAMACION;
 int32_t TIEMPO_MAXIMO_BLOQUEADO;
@@ -50,8 +57,13 @@ pcb_t* proceso_ejec;
 
 // *FUNCIONES*
 
+void manejar_sigint(int);
 void crear_logger(void);
 void * escuchar_nuevas_consolas(void *);
 void finalizar_conexion_consola(int32_t);
 void inicializar_estructuras(void);
+void agregar_instruccion_a_lista(char **, char*);
+void generar_pcb(char *, int32_t, int);
 pcb_t* alocar_memoria_todos_pcb(void);
+void liberar_memoria(void);
+#endif

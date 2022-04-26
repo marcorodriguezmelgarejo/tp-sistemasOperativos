@@ -16,7 +16,7 @@ typedef struct pcb_t{
     int32_t pid;
     int32_t tamanio;
     int32_t program_counter;
-    char ** lista_instrucciones;
+    char * lista_instrucciones; //instrucciones separadas por un \n
     int32_t tabla_paginas;
     int32_t estimacion_rafaga;
 } pcb_t;
