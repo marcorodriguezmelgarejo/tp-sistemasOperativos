@@ -4,7 +4,7 @@ t_log* crear_logger(){
 
 	t_log* logger = NULL;
 
-	if((logger = log_create("./cfg/consola.log","Consola",1,LOG_LEVEL_TRACE)) == NULL){
+	if((logger = log_create("./cfg/consola.log","consola_log",1,LOG_LEVEL_TRACE)) == NULL){
 		puts("No se ha podido crear el archivo de log.\nTerminando ejecucion.");
 		salir_error(NULL, NULL);
 	}
@@ -83,14 +83,14 @@ void enviar_instrucciones(FILE* file, int socket, t_log* logger){
 	log_info(logger, "Se han enviado con exito las instrucciones al kernel");
 }
 
-void enviar_tamanio(uint32_t tamanio, int socket, t_log* logger){
+void enviar_tamanio(int32_t tamanio, int socket, t_log* logger){
 	
 	if (sockets_enviar_string(socket, "TAMANIO", logger) == false){
 		log_error(logger, "Error al comunicarse con kernel. Finalizando...");
 		salir_error(logger, &socket);
 	}
 
-	if (sockets_enviar_dato(socket, &tamanio, sizeof(uint32_t), logger) == false){
+	if (sockets_enviar_dato(socket, &tamanio, sizeof(int32_t), logger) == false){
 		log_error(logger, "Error al comunicarse con kernel. Finalizando...");
 		salir_error(logger, &socket);
 	}
@@ -98,11 +98,11 @@ void enviar_tamanio(uint32_t tamanio, int socket, t_log* logger){
 
 void esperar_finalizacion(int socket, t_log* logger){
 
-	uint32_t msg = 0;
+	int32_t msg = 0;
 
 	log_info(logger, "Esperando mensaje de finalizacion por parte del kernel...");
 
-	if (sockets_recibir_dato(socket, &msg, sizeof(uint32_t), logger) == false){
+	if (sockets_recibir_dato(socket, &msg, sizeof(int32_t), logger) == false){
 		log_error(logger, "Error al comunicarse con kernel. Finalizando...");
 		salir_error(logger, &socket);
 	}

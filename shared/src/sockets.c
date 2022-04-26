@@ -159,11 +159,11 @@ bool sockets_esperar_cliente(int sockfd, int* new_fd_pointer, t_log* logger){
 
 bool sockets_enviar_string(int sockfd, char * str, t_log* logger){
     
-    //los primeros sizeof(size_t) bytes corresponden al largo de la string
+    //los primeros 4 bytes (int32_t) corresponden al largo de la string
     
 	int numbytes = 0;
 
-    unsigned int buffer_size = strlen(str) + sizeof(size_t);
+    unsigned int buffer_size = strlen(str) + sizeof(int32_t);
 
     void * buffer = malloc(buffer_size);
 
@@ -172,10 +172,10 @@ bool sockets_enviar_string(int sockfd, char * str, t_log* logger){
         return false;
     }
     
-    size_t length_str = strlen(str);
+    int32_t length_str = strlen(str);
 
-	memcpy(buffer, &length_str, sizeof(size_t));
-    memcpy(buffer + sizeof(size_t), str, strlen(str));
+	memcpy(buffer, &length_str, sizeof(int32_t));
+    memcpy(buffer + sizeof(int32_t), str, strlen(str));
 
    	if ( ( numbytes = send(sockfd, buffer, buffer_size, 0) ) == -1 )
     {
@@ -191,11 +191,11 @@ bool sockets_enviar_string(int sockfd, char * str, t_log* logger){
 
 bool sockets_recibir_string(int sockfd, char * buffer, t_log* logger){
 
-    size_t buflen = 0;
+    int32_t buflen = 0;
 
     int numbytes = 0;
 
-    if ((numbytes = recv( sockfd , &buflen, sizeof(size_t),  0 )) == -1  )//recibe largo de string
+    if ((numbytes = recv( sockfd , &buflen, sizeof(int32_t),  0 )) == -1  )//recibe largo de string
     {
         if (logger != NULL)log_error(logger, "Error al recibir string: %s", strerror(errno));
         return false;

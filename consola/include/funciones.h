@@ -32,7 +32,7 @@ FILE* abrir_archivo_instrucciones(char *, t_log*);
 
 void enviar_instrucciones(FILE*, int, t_log*);
 
-void enviar_tamanio(uint32_t, int, t_log*);
+void enviar_tamanio(int32_t, int, t_log*);
 
 void esperar_finalizacion(int, t_log*);
 

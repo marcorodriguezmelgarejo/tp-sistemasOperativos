@@ -30,7 +30,7 @@ int main(int argc, char* argv[]) {
 	enviar_instrucciones(file_instrucciones, kernel_socket, logger);
 	fclose(file_instrucciones);
 
-	enviar_tamanio((uint32_t) atoi(argv[2]), kernel_socket, logger);
+	enviar_tamanio((int32_t) atoi(argv[2]), kernel_socket, logger);
 
 	esperar_finalizacion(kernel_socket, logger);
 
