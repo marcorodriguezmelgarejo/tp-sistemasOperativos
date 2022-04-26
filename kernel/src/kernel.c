@@ -12,24 +12,24 @@ void crear_logger(void){
 
 void * escuchar_nuevas_consolas(void * arg){
 
-    char buffer[100];
+    char buffer[MAX_INSTRUCCION_SIZE];
     int socket_server = 0;
     int socket_consola = 0;
     char instruccion_o_tamanio[12];
     int32_t tamanio_proceso = 0;
-    t_queue* instrucciones_buffer = queue_create();
+    char **instrucciones_buffer = NULL; //matriz para guardar las instrucciones
 
     sockets_abrir_servidor("8000", CONSOLA_BACKLOG, &socket_server, logger);
 
     while(1){
         sockets_esperar_cliente(socket_server, &socket_consola, logger);
-        queue_clean(instrucciones_buffer);
+
         do{
             sockets_recibir_string(socket_consola, instruccion_o_tamanio, logger);
             if (strcmp(instruccion_o_tamanio, "INSTRUCCION") == 0){
                 sockets_recibir_string(socket_consola, buffer, logger);
                 log_debug(logger, "Instruccion recibida: %s", buffer);
-                queue_push(instrucciones_buffer, buffer);
+                //TODO: agregar instruccion a instrucciones_buffer
             }
             else{
                 sockets_recibir_dato(socket_consola, &tamanio_proceso, sizeof (int32_t), logger);
@@ -39,20 +39,24 @@ void * escuchar_nuevas_consolas(void * arg){
         while(strcmp(instruccion_o_tamanio, "TAMANIO") != 0);
 
         generar_pcb(instrucciones_buffer, tamanio_proceso, socket_consola);
+        //TODO: limpiar instrucciones_buffer
     }
 
     return NULL;
 }
 
-void generar_pcb(t_queue* instrucciones_buffer, int32_t tamanio_proceso, int socket){
+void generar_pcb(char **instrucciones_buffer, int32_t tamanio_proceso, int socket){
 
     char pid_string[12];
+    char buffer[MAX_INSTRUCCION_SIZE];
+
+    pcb_t * pcb_pointer = alocar_memoria_todos_pcb();
 
     pcb_t pcb_nuevo = {
     contador_pid,
     tamanio_proceso,
     0,
-    list_create(),
+    alocar_memoria_lista_instrucciones(),
     -1,
     ESTIMACION_INICIAL,
     };
@@ -60,12 +64,44 @@ void generar_pcb(t_queue* instrucciones_buffer, int32_t tamanio_proceso, int soc
     //TODO:
     //guardar instrucciones del instrucciones_buffer a la lista de instrucciones del pcb
 
-    queue_push(cola_new, &pcb_nuevo);
+    *pcb_pointer = pcb_nuevo;
+
+    queue_push(cola_new, pcb_pointer);
 
     sprintf(pid_string, "%d", contador_pid); //para pasar de int a string (para usarse como key del diccionario 'pid_to_socket')
     dictionary_put(pid_to_socket, pid_string, &socket);
 
     contador_pid++;
+}
+
+char ** alocar_memoria_lista_instrucciones(void);
+
+void liberar_memoria(){
+    if (todos_pcb != NULL) free(todos_pcb);
+}
+
+pcb_t * alocar_memoria_todos_pcb(void){
+    /*
+        Devuelve un puntero a un area de memoria donde guardar un pcb
+    */
+
+    //si nunca se aloco memoria
+    if (todos_pcb_length == 0){
+        if((todos_pcb = (pcb_t *) malloc(sizeof (pcb_t)) == NULL)){
+            log_error(logger, "Fallo al hacer malloc para 'todos_pcb'");
+            return NULL;
+        }
+    }
+    else{
+        if((todos_pcb = (pcb_t *) realloc(todos_pcb, sizeof (pcb_t) * (todos_pcb_length + 1)) == NULL)){
+            log_error(logger, "Fallo al hacer realloc para 'todos_pcb'");
+            return NULL;
+        }
+    }
+
+    todos_pcb_length++;
+
+    return todos_pcb + todos_pcb_length - 1;
 }
 
 void finalizar_conexion_consola(int32_t pid){
@@ -107,16 +143,11 @@ void inicializar_estructuras(void){
 }
 
 void cargar_config(void){
-    //TODO:
-    //implementar
+    //TODO:implementar
     return;
 }
 
-int main(void)
-{
-    //TODO:
-    //crear funcion para salir del kernel cerrando los sockets, loggers, haciendo frees y todo eso
-
+void probar_conexion_consola(void){
     pthread_t h1;
 
     inicializar_estructuras();
@@ -132,6 +163,13 @@ int main(void)
     sleep(60);
 
     log_destroy(logger);
+}
+
+int main(void)
+{
+    //TODO: crear funcion para salir del kernel cerrando los sockets, loggers, haciendo frees y todo eso
+
+    probar_conexion_consola();
 
     return 0;
 }

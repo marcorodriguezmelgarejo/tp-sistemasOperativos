@@ -35,8 +35,11 @@ float ALFA;
 int32_t GRADO_MULTIPROGRAMACION;
 int32_t TIEMPO_MAXIMO_BLOQUEADO;
 
-int32_t contador_pid; //Es para determinar el pid del proximo proceso nuevo
+int32_t contador_pid = 0; //Es para determinar el pid del proximo proceso nuevo
+pcb_t* todos_pcb = NULL; //Aca se guardan todos los pcb que esten presentes usando malloc
+int32_t todos_pcb_length = 0; //cuantos pcb se estan guardando en todos_pcb
 
+//En estas listas y colas se guardan direcciones de pcb en array_pcb, no el pcb en si
 t_queue* cola_new;
 t_queue* cola_ready;
 t_list* lista_bloqueado;
@@ -51,3 +54,4 @@ void crear_logger(void);
 void * escuchar_nuevas_consolas(void *);
 void finalizar_conexion_consola(int32_t);
 void inicializar_estructuras(void);
+pcb_t* alocar_memoria_todos_pcb(void);
