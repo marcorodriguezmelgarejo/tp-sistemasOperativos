@@ -19,34 +19,61 @@ void manejar_sigint(int signal){
     printf("Finalizando...\n");
 }
 
-void * escuchar_nuevas_consolas(void * arg){
+void *gestionar_dispatch(void *arg){
     /*
-        Gestiona la conexion con nuevas consolas
+        Abre un servidor y escucha a la espera de mensajes del CPU
+    */
+
+    int temp_socket = 0;
+    char io_o_exit[5];
+    pcb_t pcb_buffer;
+
+    sockets_abrir_servidor(PUERTO_CPU_DISPATCH, CONSOLA_BACKLOG, &temp_socket, logger);
+
+    sockets_esperar_cliente(dispatch_socket, &dispatch_socket, logger);
+
+    sockets_cerrar(temp_socket); //cierro el servidor porque no espero mas clientes
+
+    while(1){
+
+        //recibe la razon del mensaje (si el proceso se fue a i/o o llego a instruccion "EXIT")
+        sockets_recibir_string(dispatch_socket, io_o_exit, logger);
+
+        //sockets_recibir_pcb(dispatch_socket, &pcb_buffer, logger);
+    }
+
+}
+
+void *gestionar_nuevas_consolas(void * arg){
+    /*
+        Abre un servidor y escucha nuevas conexiones de consolas
     */
 
     char buffer[MAX_INSTRUCCION_SIZE];
-    int socket_consola = 0;
+    int socket_consola_actual = 0;
     char instruccion_o_tamanio[12];
     int32_t tamanio_proceso = 0;
     char *lista_instrucciones = NULL;
 
+    sockets_abrir_servidor(PUERTO_ESCUCHA, CONSOLA_BACKLOG, &consolas_socket, logger);
+
     while(1){
-        sockets_esperar_cliente(socket_server, &socket_consola, logger);
+        sockets_esperar_cliente(consolas_socket, &socket_consola_actual, logger);
 
         do{
-            sockets_recibir_string(socket_consola, instruccion_o_tamanio, logger);
+            sockets_recibir_string(socket_consola_actual, instruccion_o_tamanio, logger);
 
             if (strcmp(instruccion_o_tamanio, "INSTRUCCION") == 0){
-                sockets_recibir_string(socket_consola, buffer, logger);
+                sockets_recibir_string(socket_consola_actual, buffer, logger);
                 agregar_instruccion_a_lista(&lista_instrucciones, buffer);
             }
             else{
-                sockets_recibir_dato(socket_consola, &tamanio_proceso, sizeof (int32_t), logger);
+                sockets_recibir_dato(socket_consola_actual, &tamanio_proceso, sizeof (int32_t), logger);
             }
         }
         while(strcmp(instruccion_o_tamanio, "TAMANIO") != 0);
 
-        generar_pcb(lista_instrucciones, tamanio_proceso, socket_consola);
+        generar_pcb(lista_instrucciones, tamanio_proceso, socket_consola_actual);
         lista_instrucciones = NULL;
     }
 
@@ -108,6 +135,8 @@ void liberar_memoria(void){
 
     int i = 0;
 
+    log_info(logger, "Liberando memoria...");
+
     if (todos_pcb != NULL){
 
         //libero todas las listas de instrucciones de los pcb
@@ -117,8 +146,6 @@ void liberar_memoria(void){
 
         free(todos_pcb);
     }
-
-    sockets_cerrar(socket_server);
 
     dictionary_destroy(pid_to_socket);
     
@@ -198,24 +225,72 @@ void inicializar_estructuras(void){
 }
 
 void cargar_config(void){
-    //TODO:implementar
+    
+    t_config* config;
+
+	if((config = config_create(CONFIG_FILENAME)) == NULL){
+		log_error(logger, "No se ha podido leer el archivo de config. \nFinalizando Ejecucion.");
+		exit(ERROR_STATUS);
+	}
+
+	leer_str_config(config, "IP_MEMORIA", IP_MEMORIA, logger);
+	leer_str_config(config, "PUERTO_MEMORIA", PUERTO_MEMORIA, logger);
+    leer_str_config(config, "IP_CPU", IP_CPU, logger);
+	leer_str_config(config, "PUERTO_CPU_DISPATCH", PUERTO_CPU_DISPATCH, logger);
+    leer_str_config(config, "PUERTO_ESCUCHA", PUERTO_ESCUCHA, logger);
+	leer_str_config(config, "ALGORITMO_PLANIFICACION", ALGORITMO_PLANIFICACION, logger);
+    leer_int_config(config, "ESTIMACION_INICIAL", &ESTIMACION_INICIAL, logger);
+	leer_float_config(config, "ALFA", &ALFA, logger);    
+    leer_int_config(config, "GRADO_MULTIPROGRAMACION", &GRADO_MULTIPROGRAMACION, logger);
+	leer_int_config(config, "TIEMPO_MAXIMO_BLOQUEADO", &TIEMPO_MAXIMO_BLOQUEADO, logger);
+
+	log_debug(logger, "Se ha leido el archivo de config con exito.");
+
+	config_destroy(config);
     return;
+}
+
+void leer_str_config(t_config* config, char* value, char* return_value, t_log* logger){
+    
+    if (config_has_property(config, value)){
+        strcpy(return_value, config_get_string_value(config, value));
+	    log_debug(logger, "%s: %s", value, return_value);
+	} else {
+		log_error(logger, "No se encontro el valor de %s. Finalizando ejecucion.", value);
+		exit(ERROR_STATUS);
+	}
+}
+
+void leer_int_config(t_config* config, char* value, int32_t* return_value, t_log* logger){
+    
+    if (config_has_property(config, value)){
+        
+        *return_value = config_get_int_value(config, value);
+		log_debug(logger, "%s: %d", value, *return_value);
+
+	} else {
+		log_error(logger, "No se encontro el valor de %s. Finalizando ejecucion.", value);
+		exit(ERROR_STATUS);
+	}   
+}
+
+void leer_float_config(t_config* config, char* value, float* return_value, t_log* logger){
+    
+    if (config_has_property(config, value)){
+        
+        *return_value = config_get_double_value(config, value);
+		log_debug(logger, "%s: %f", value, *return_value);
+
+	} else {
+		log_error(logger, "No se encontro el valor de %s. Finalizando ejecucion.", value);
+		exit(ERROR_STATUS);
+	}   
 }
 
 void probar_conexion_consola(void){
     /*
         Es para testear
     */
-    pthread_t h1;
-
-    inicializar_estructuras();
-
-    sockets_abrir_servidor("8000", CONSOLA_BACKLOG, &socket_server, logger);
-
-    cargar_config();
-
-    pthread_create(&h1, NULL, escuchar_nuevas_consolas, NULL);
-
     
     sleep(7);
 
@@ -233,6 +308,20 @@ void probar_conexion_consola(void){
 int main(void)
 {
     signal(SIGINT, manejar_sigint);
+    
+    pthread_t h1, h2;
+
+    cargar_config();
+
+    inicializar_estructuras();
+
+    pthread_create(&h1, NULL, gestionar_dispatch, NULL);
+    
+    //TODO: conectar puerto interrup de CPU como cliente
+    //TODO: conectar con MEMORIA
+
+    pthread_create(&h2, NULL, gestionar_nuevas_consolas, NULL);
+
     probar_conexion_consola();
 
     return 0;

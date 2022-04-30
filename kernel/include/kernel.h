@@ -6,6 +6,7 @@
 #include <commons/log.h>
 #include <commons/collections/dictionary.h>
 #include <commons/collections/queue.h>
+#include <commons/config.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <pthread.h>
@@ -22,22 +23,24 @@
 #define ERROR_STATUS 1
 #define CONFIG_FILENAME "./cfg/kernel.config"
 #define LOG_FILENAME "./cfg/kernel.log"
+#define MAX_BUFFER_SIZE 100
 
 // *VARIABLES GLOBALES*
 
 t_log * logger;
 t_dictionary * pid_to_socket; //mapea pid (tiene que ser un string) de un proceso al socket de la consola correspondiente
 
-int socket_server = 0;
+int consolas_socket = 0;
+int dispatch_socket = 0;
 
-char *IP_MEMORIA;
-char *PUERTO_MEMORIA;
-char *IP_CPU;
-char *PUERTO_CPU_DISPATCH;
-char *PUERTO_CPU_INTERRUPT;
-char *PUERTO_ESCUCHA;
-char *ALGORITMO_PLANIFICACION; //"FIFO" o "SRT"
-int32_t ESTIMACION_INICIAL = 10000; //inicializo solo para testear
+char IP_MEMORIA[16];
+char PUERTO_MEMORIA[6];
+char IP_CPU[16];
+char PUERTO_CPU_DISPATCH[6];
+char PUERTO_CPU_INTERRUPT[6];
+char PUERTO_ESCUCHA[6];
+char ALGORITMO_PLANIFICACION[5]; //"FIFO" o "SRT"
+int32_t ESTIMACION_INICIAL;
 float ALFA;
 int32_t GRADO_MULTIPROGRAMACION;
 int32_t TIEMPO_MAXIMO_BLOQUEADO;
@@ -59,11 +62,15 @@ pcb_t* proceso_ejec;
 
 void manejar_sigint(int);
 void crear_logger(void);
-void * escuchar_nuevas_consolas(void *);
+void leer_str_config(t_config*, char*, char*, t_log*);
+void leer_int_config(t_config*, char* value, int32_t*, t_log*);
+void leer_float_config(t_config*, char*, float*, t_log*);
+void * gestionar_nuevas_consolas(void *);
 void finalizar_conexion_consola(int32_t);
 void inicializar_estructuras(void);
 void agregar_instruccion_a_lista(char **, char*);
 void generar_pcb(char *, int32_t, int);
 pcb_t* alocar_memoria_todos_pcb(void);
 void liberar_memoria(void);
+
 #endif
