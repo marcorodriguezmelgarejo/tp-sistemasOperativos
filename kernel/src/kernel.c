@@ -12,11 +12,13 @@ void crear_logger(void){
 
 void manejar_sigint(int signal){
     /*
-        captura sigint para liberar memoria
+        captura sigint para hacer cleanup
     */
 
+    pthread_cancel(h1);
+    pthread_cancel(h2);
     liberar_memoria();
-    printf("Finalizando...\n");
+
 }
 
 void *gestionar_dispatch(void *arg){
@@ -30,7 +32,7 @@ void *gestionar_dispatch(void *arg){
 
     sockets_abrir_servidor(PUERTO_CPU_DISPATCH, CONSOLA_BACKLOG, &temp_socket, logger);
 
-    sockets_esperar_cliente(dispatch_socket, &dispatch_socket, logger);
+    sockets_esperar_cliente(temp_socket, &dispatch_socket, logger);
 
     sockets_cerrar(temp_socket); //cierro el servidor porque no espero mas clientes
 
@@ -40,6 +42,7 @@ void *gestionar_dispatch(void *arg){
         sockets_recibir_string(dispatch_socket, io_o_exit, logger);
 
         //sockets_recibir_pcb(dispatch_socket, &pcb_buffer, logger);
+        actualizar_pcb(pcb_buffer);
     }
 
 }
@@ -183,6 +186,20 @@ pcb_t * alocar_memoria_todos_pcb(void){
     return todos_pcb + todos_pcb_length - 1;
 }
 
+void actualizar_pcb(pcb_t pcb_actualizado){
+    //busca el pcb en todos_pcb por pid y lo actualiza
+    //actualiza hasta ahora solo el program_counter
+
+    int i = 0;
+
+    for (i = 0; i < todos_pcb_length; i++){
+        if ((todos_pcb[i]).pid == pcb_actualizado.pid){
+            (todos_pcb[i]).program_counter = pcb_actualizado.program_counter;
+            break;
+        }
+    }
+}
+
 void finalizar_conexion_consola(int32_t pid){
     /*
         Manda mensaje de finalizacion a la consola y cierra el socket correspondiente
@@ -305,15 +322,14 @@ void probar_conexion_consola(void){
     liberar_memoria();
 }
 
+
 int main(void)
 {
     signal(SIGINT, manejar_sigint);
-    
-    pthread_t h1, h2;
-
-    cargar_config();
 
     inicializar_estructuras();
+
+    cargar_config();
 
     pthread_create(&h1, NULL, gestionar_dispatch, NULL);
     
@@ -322,7 +338,9 @@ int main(void)
 
     pthread_create(&h2, NULL, gestionar_nuevas_consolas, NULL);
 
-    probar_conexion_consola();
+    pthread_join(h1, NULL);
+    pthread_join(h2, NULL);
+    //probar_conexion_consola();
 
     return 0;
 }

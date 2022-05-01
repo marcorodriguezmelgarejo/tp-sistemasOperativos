@@ -27,6 +27,7 @@
 
 // *VARIABLES GLOBALES*
 
+pthread_t h1, h2;
 t_log * logger;
 t_dictionary * pid_to_socket; //mapea pid (tiene que ser un string) de un proceso al socket de la consola correspondiente
 
@@ -70,6 +71,7 @@ void finalizar_conexion_consola(int32_t);
 void inicializar_estructuras(void);
 void agregar_instruccion_a_lista(char **, char*);
 void generar_pcb(char *, int32_t, int);
+void actualizar_pcb(pcb_t);
 pcb_t* alocar_memoria_todos_pcb(void);
 void liberar_memoria(void);
 
