@@ -31,8 +31,9 @@ pthread_t h1, h2;
 t_log * logger;
 t_dictionary * pid_to_socket; //mapea pid (tiene que ser un string) de un proceso al socket de la consola correspondiente
 
-int consolas_socket = 0;
-int dispatch_socket = 0;
+int consolas_socket;
+int dispatch_socket;
+int interrupt_socket;
 
 char IP_MEMORIA[16];
 char PUERTO_MEMORIA[6];
@@ -46,23 +47,26 @@ float ALFA;
 int32_t GRADO_MULTIPROGRAMACION;
 int32_t TIEMPO_MAXIMO_BLOQUEADO;
 
-int32_t contador_pid = 0; //Es para determinar el pid del proximo proceso nuevo
-pcb_t* todos_pcb = NULL; //Aca se guardan todos los pcb que esten presentes usando malloc
-int32_t todos_pcb_length = 0; //cuantos pcb se estan guardando en todos_pcb
+int32_t contador_pid; //Es para determinar el pid del proximo proceso nuevo
+pcb_t* todos_pcb; //Aca se guardan todos los pcb que esten presentes usando malloc
+int32_t todos_pcb_length; //cuantos pcb se estan guardando en todos_pcb
 
-//En estas listas y colas se guardan direcciones de pcb en array_pcb, no el pcb en si
+int32_t grado_multiprogramacion_actual;
+
+//En estas listas y colas se guardan direcciones de pcb en todos_pcb, no el pcb en si
 t_queue* cola_new;
-t_queue* cola_ready;
+t_list* lista_ready;
 t_list* lista_bloqueado;
 t_list* lista_bloqueado_sus;
 t_queue* cola_ready_sus;
-t_queue* cola_exit;
-pcb_t* proceso_ejec;
+pcb_t* en_ejecucion;
 
 // *FUNCIONES*
 
 void manejar_sigint(int);
 void crear_logger(void);
+void cargar_config(void);
+void conectar_puerto_interrupt(void);
 void leer_str_config(t_config*, char*, char*, t_log*);
 void leer_int_config(t_config*, char* value, int32_t*, t_log*);
 void leer_float_config(t_config*, char*, float*, t_log*);
@@ -73,6 +77,14 @@ void agregar_instruccion_a_lista(char **, char*);
 void generar_pcb(char *, int32_t, int);
 void actualizar_pcb(pcb_t);
 pcb_t* alocar_memoria_todos_pcb(void);
+pcb_t* obtener_pcb_pointer(pcb_t);
+void *gestionar_dispatch(void *);
+void gestionar_proceso_a_io(void);
+void gestionar_interrupcion_kernel(void);
+void planificador_largo_plazo_ready(void);
+void planificador_largo_plazo_exit(void);
+void inicializar_estructuras_memoria(void);
+void liberar_estructuras_memoria(void);
 void liberar_memoria(void);
 
 #endif
