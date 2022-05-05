@@ -9,7 +9,7 @@ void *_sockets_get_in_addr(struct sockaddr *sa)
     return &(((struct sockaddr_in6*)sa)->sin6_addr);
 }
 
-bool sockets_conectar_como_cliente(char *port, char* ip, int* sockfd_pointer ,t_log* logger)
+bool sockets_conectar_como_cliente(char *ip, char* port, int* sockfd_pointer ,t_log* logger)
 {
     int sockfd;
     struct addrinfo hints, *servinfo, *p;
@@ -51,7 +51,7 @@ bool sockets_conectar_como_cliente(char *port, char* ip, int* sockfd_pointer ,t_
 
     freeaddrinfo(servinfo);
     
-    if (logger != NULL)log_info(logger, "Conectandose a %s", s);
+    if (logger != NULL)log_info(logger, "Conectandose a IP: %s en puerto: %s", s, port);
 
     *sockfd_pointer = sockfd;
 

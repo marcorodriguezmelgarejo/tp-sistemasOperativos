@@ -21,7 +21,7 @@ bool sockets_enviar_pcb(int socket, pcb_t pcb, t_log* logger){
 
     // Envio el resto de la pcb
 
-    //guardo espacio para 5 variables de 4 bytes (int32_t)
+    //guardo espacio para todas las variables de la pcb menos la lista de instrucciones
     if ((data_pointer = malloc(TAMANIO_PCB_SERIALIZADA)) == NULL){
         log_error(logger, "Error al hacer malloc en sockets_enviar_pcb()");
         return false;
@@ -48,10 +48,20 @@ bool sockets_enviar_pcb(int socket, pcb_t pcb, t_log* logger){
 }
 
 bool sockets_recibir_pcb(int socket, pcb_t* pcb_pointer, t_log* logger){
+    /*
+        ACLARACION: pcb_pointer->lista_instrucciones no debe tener memoria ya reservada,
+        se reserva en esta funcion. Luego habra que hacerle un free().
+        pcb_pointer->lista_instrucciones debera ser NULL
+    */
 
     char instruccion_buffer[MAX_INSTRUCCION_SIZE] = "";
     void *buffer;
     size_t tamanio = 0;
+
+    if (pcb_pointer->lista_instrucciones != NULL){
+        log_error(logger, "error en sockets_recibir_pcb(): pcb_pointer debe ser NULL\n");
+        return false;
+    }
 
     // Primero recibo la lista de instrucciones
 
@@ -60,9 +70,22 @@ bool sockets_recibir_pcb(int socket, pcb_t* pcb_pointer, t_log* logger){
 
         if (strcmp(instruccion_buffer, "FIN") == 0) break;
 
-        //TODO: RESERVAR MEMORIA PARA LISTA_INSTRUCCIONES
-        strcat(instruccion_buffer, "\n"); //le agrego el \n
-        strcat(pcb_pointer->lista_instrucciones, instruccion_buffer);
+        //si todavia no tiene memoria alocada
+        if (pcb_pointer->lista_instrucciones == NULL){
+            if ((pcb_pointer->lista_instrucciones = malloc(strlen(instruccion_buffer) + 1)) == NULL){
+                log_error(logger, "error en sockets_recibir_pcb(): error al hacer malloc()");
+                return false;
+            }
+            strcpy(pcb_pointer->lista_instrucciones, instruccion_buffer);
+        }
+        else{
+            if ((pcb_pointer->lista_instrucciones = realloc(pcb_pointer->lista_instrucciones, strlen(pcb_pointer->lista_instrucciones) + strlen(instruccion_buffer) + 2)) == NULL){
+                log_error(logger, "error en sockets_recibir_pcb(): error al hacer realloc()");
+                return false;
+            }
+            strcat(pcb_pointer->lista_instrucciones, "\n"); //le agrego el \n
+            strcat(pcb_pointer->lista_instrucciones, instruccion_buffer);
+        }
     }
 
     // Recibo el resto de la pcb

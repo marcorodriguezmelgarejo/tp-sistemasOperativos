@@ -70,12 +70,13 @@ int main(void)
 
     cargar_config();
 
-    pthread_create(&h1, NULL, gestionar_dispatch, NULL);
+    conectar_puerto_dispatch();
     
     conectar_puerto_interrupt();
 
     //TODO: conectar con MEMORIA
 
+    pthread_create(&h1, NULL, gestionar_dispatch, NULL);
     pthread_create(&h2, NULL, gestionar_nuevas_consolas, NULL);
 
     pthread_join(h1, NULL);

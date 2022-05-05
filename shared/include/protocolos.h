@@ -31,6 +31,6 @@ typedef struct pcb_t{
 // ACLARACION: todas las funciones devuelven 'true' en caso de exito. 'false' si hubo un error
 
 bool sockets_enviar_pcb(int socket, pcb_t pcb, t_log* logger);
-bool sockets_recibir_pcb(int socket, pcb_t *pcb_pointer, t_log* logger);
+bool sockets_recibir_pcb(int socket, pcb_t *pcb_pointer, t_log* logger); //VER ACLARACION EN LA DEFINICION
 
 #endif

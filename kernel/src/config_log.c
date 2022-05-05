@@ -23,6 +23,7 @@ void cargar_config(void){
 	leer_str_config(config, "PUERTO_MEMORIA", PUERTO_MEMORIA, logger);
     leer_str_config(config, "IP_CPU", IP_CPU, logger);
 	leer_str_config(config, "PUERTO_CPU_DISPATCH", PUERTO_CPU_DISPATCH, logger);
+	leer_str_config(config, "PUERTO_CPU_INTERRUPT", PUERTO_CPU_INTERRUPT, logger);
     leer_str_config(config, "PUERTO_ESCUCHA", PUERTO_ESCUCHA, logger);
 	leer_str_config(config, "ALGORITMO_PLANIFICACION", ALGORITMO_PLANIFICACION, logger);
     leer_int_config(config, "ESTIMACION_INICIAL", &ESTIMACION_INICIAL, logger);

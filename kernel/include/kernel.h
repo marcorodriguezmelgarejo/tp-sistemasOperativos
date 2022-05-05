@@ -66,6 +66,7 @@ pcb_t* en_ejecucion;
 void manejar_sigint(int);
 void crear_logger(void);
 void cargar_config(void);
+void conectar_puerto_dispatch(void);
 void conectar_puerto_interrupt(void);
 void leer_str_config(t_config*, char*, char*, t_log*);
 void leer_int_config(t_config*, char* value, int32_t*, t_log*);
