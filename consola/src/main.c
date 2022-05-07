@@ -22,7 +22,7 @@ int main(int argc, char* argv[]) {
 
 	file_instrucciones = abrir_archivo_instrucciones(argv[1], logger);
 
-	if (sockets_conectar_como_cliente(port, ip, &kernel_socket, logger) == false){
+	if (sockets_conectar_como_cliente(ip, port, &kernel_socket, logger) == false){
 		log_error(logger, "Error al intentar conectar con kernel. Finalizando...");
 		salir_error(logger, NULL);
 	}

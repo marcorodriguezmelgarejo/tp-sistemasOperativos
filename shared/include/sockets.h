@@ -39,7 +39,7 @@ void _sockets_sigchld_handler(int);
 
 */
 
-bool sockets_conectar_como_cliente(char *, char*, int*, t_log*);
+bool sockets_conectar_como_cliente(char * ip, char* port, int*, t_log*);
 
 bool sockets_abrir_servidor(const char *, int, int*, t_log*);
 
