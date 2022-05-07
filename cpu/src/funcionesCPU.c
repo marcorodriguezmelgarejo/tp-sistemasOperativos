@@ -1,18 +1,18 @@
 #include "cpu.h"
 
-t_log* crear_logger(){
+// t_log* crear_logger(){
 
-	t_log* logger = NULL;
+// 	t_log* logger = NULL;
 
-	if((logger = log_create("./cfg/cpu.log","cpu_log",1,LOG_LEVEL_TRACE)) == NULL){
-		puts("No se ha podido crear el archivo de log.\nTerminando ejecucion.");
-		exit(ERROR_STATUS);
-	}
+// 	if((logger = log_create("./cfg/cpu.log","cpu_log",1,LOG_LEVEL_TRACE)) == NULL){
+// 		puts("No se ha podido crear el archivo de log.\nTerminando ejecucion.");
+// 		exit(ERROR_STATUS);
+// 	}
 
-	log_debug(logger, "Se ha creado el archivo de log con exito.");
+// 	log_debug(logger, "Se ha creado el archivo de log con exito.");
 
-	return logger;
-}
+// 	return logger;
+// }
 
 void leer_string_config(t_config* config, char* value, char* return_value, t_log* logger){
 	
