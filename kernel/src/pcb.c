@@ -15,6 +15,7 @@ void generar_pcb(char *lista_instrucciones, int32_t tamanio_proceso, int socket)
     lista_instrucciones,
     -1,
     ESTIMACION_INICIAL,
+    0
     };
 
     *pcb_pointer = pcb_nuevo;
@@ -88,11 +89,32 @@ pcb_t *obtener_pcb_pointer(pcb_t pcb){
     return NULL;
 }
 
-void actualizar_pcb(pcb_t pcb_actualizado){
-    //busca el pcb en todos_pcb por pid y lo actualiza
-    //actualiza hasta ahora solo el program_counter
+void actualizar_program_counter(pcb_t pcb_actualizado){
 
     pcb_t* pointer = obtener_pcb_pointer(pcb_actualizado);
 
     pointer->program_counter = pcb_actualizado.program_counter;
+}
+
+void actualizar_timestamp(pcb_t * pcb_pointer){
+
+    struct timeval tv;
+
+    gettimeofday(&tv, NULL);
+    
+    pcb_pointer->timestamp = (tv.tv_sec * 1000) + (tv.tv_usec/1000);
+}
+
+time_t get_tiempo_transcurrido(time_t timestamp_anterior){
+    /*
+        devuelve el tiempo transcurrido entre el tiempo actual y el tiempo pasado como argumento
+    */
+    struct timeval tv;
+    time_t timestamp_actual;
+
+    gettimeofday(&tv, NULL);
+
+    timestamp_actual = (tv.tv_sec * 1000) + (tv.tv_usec/1000);
+
+    return timestamp_actual - timestamp_anterior;
 }

@@ -11,7 +11,7 @@
 #include <stdint.h>
 #include <pthread.h>
 #include <signal.h>
-#include <time.h>
+#include <sys/time.h>
 
 #include "../../shared/include/sockets.h"
 #include "../../shared/include/protocolos.h"
@@ -77,7 +77,9 @@ void finalizar_conexion_consola(int32_t);
 void inicializar_estructuras(void);
 void agregar_instruccion_a_lista(char **, char*);
 void generar_pcb(char *, int32_t, int);
-void actualizar_pcb(pcb_t);
+void actualizar_program_counter(pcb_t);
+void actualizar_timestamp(pcb_t*);
+time_t get_tiempo_transcurrido(time_t);
 pcb_t* alocar_memoria_todos_pcb(void);
 pcb_t* obtener_pcb_pointer(pcb_t);
 void *gestionar_dispatch(void *);

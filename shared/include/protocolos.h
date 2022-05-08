@@ -24,7 +24,10 @@ typedef struct pcb_t{
     char * lista_instrucciones; //instrucciones separadas por un \n
     int32_t tabla_paginas;
     int32_t estimacion_rafaga;
+    time_t timestamp; // (en milisegundos) para medir cuanto estuvo ejecutandose el proceso en CPU
 } pcb_t;
+
+// TODO: ENVIAR TAMBIEN LA TIMESTAMP
 
 #define TAMANIO_PCB_SERIALIZADA 20 //sin contar la lista de instrucciones
 
