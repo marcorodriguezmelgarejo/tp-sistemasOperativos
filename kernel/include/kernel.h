@@ -11,6 +11,7 @@
 #include <stdint.h>
 #include <pthread.h>
 #include <signal.h>
+#include <time.h>
 
 #include "../../shared/include/sockets.h"
 #include "../../shared/include/protocolos.h"
@@ -82,6 +83,11 @@ pcb_t* obtener_pcb_pointer(pcb_t);
 void *gestionar_dispatch(void *);
 void gestionar_proceso_a_io(void);
 void gestionar_interrupcion_kernel(void);
+bool es_algoritmo_srt(void);
+void modificar_estimacion(pcb_t *);
+void planificador_corto_plazo_ready(void);
+pcb_t * seleccionar_proceso_menor_estimacion(void);
+void planificador_corto_plazo_ejec(void);
 void planificador_largo_plazo_ready(void);
 void planificador_largo_plazo_exit(void);
 void inicializar_estructuras_memoria(void);

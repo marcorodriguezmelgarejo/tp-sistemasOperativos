@@ -7,16 +7,24 @@ void *gestionar_dispatch(void *arg){
     */
 
     char motivo[5]; // "I/O", "EXIT" o "INT"
+    /*
+    "I/O" : el proceso llego a instruccion "I/O"
+    "EXIT": el proceso llego a instruccion "EXIT"
+    "INT" : el kernel previamente mando un mensaje de interrupcion al CPU
+    */
     pcb_t pcb_buffer;
 
     while(1){
-        //recibe la razon del mensaje (si el proceso se fue a i/o, si llego a instruccion "EXIT" o si fue por interrupcion del kernel)
+        //recibe el motivo del mensaje
         sockets_recibir_string(dispatch_socket, motivo, logger);
         
+        //recibe el pcb del proceso en ejecucion
         pcb_buffer.lista_instrucciones = NULL;
         sockets_recibir_pcb(dispatch_socket, &pcb_buffer, logger);
         
         actualizar_pcb(pcb_buffer); 
+
+        free(pcb_buffer.lista_instrucciones); //debido a que sockets_recibir_pcb() reservo memoria 
 
         if (strcmp(motivo, "I/O") == 0){
             gestionar_proceso_a_io();
@@ -25,10 +33,9 @@ void *gestionar_dispatch(void *arg){
             planificador_largo_plazo_exit();
         }
         else if (strcmp(motivo, "INT") == 0){
-            gestionar_interrupcion_kernel();
+            planificador_corto_plazo_ready();
         }
         
-        free(pcb_buffer.lista_instrucciones); //debido a que sockets_recibir_pcb() reservo memoria 
     }
 }
 
