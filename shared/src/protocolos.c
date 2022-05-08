@@ -37,6 +37,10 @@ bool sockets_enviar_pcb(int socket, pcb_t pcb, t_log* logger){
     tamanio += sizeof pcb.tabla_paginas;
     memcpy(data_pointer + tamanio, &(pcb.estimacion_rafaga), sizeof pcb.estimacion_rafaga);
     tamanio += sizeof pcb.estimacion_rafaga;
+    memcpy(data_pointer + tamanio, &(pcb.timestamp), sizeof pcb.timestamp);
+    tamanio += sizeof pcb.timestamp;
+    memcpy(data_pointer + tamanio, &(pcb.consola_socket), sizeof pcb.consola_socket);
+    tamanio += sizeof pcb.consola_socket;
 
     if (sockets_enviar_dato(socket, data_pointer, tamanio, logger) == false){
         free(data_pointer);
@@ -109,6 +113,10 @@ bool sockets_recibir_pcb(int socket, pcb_t* pcb_pointer, t_log* logger){
     memcpy(&(pcb_pointer->tabla_paginas), buffer + tamanio, sizeof pcb_pointer->tabla_paginas);
     tamanio += sizeof pcb_pointer->tabla_paginas;
     memcpy(&(pcb_pointer->estimacion_rafaga), buffer + tamanio, sizeof pcb_pointer->estimacion_rafaga);
+    tamanio += sizeof pcb_pointer->estimacion_rafaga;
+    memcpy(&(pcb_pointer->timestamp), buffer + tamanio, sizeof pcb_pointer->timestamp);
+    tamanio += sizeof pcb_pointer->timestamp;
+    memcpy(&(pcb_pointer->consola_socket), buffer + tamanio, sizeof pcb_pointer->consola_socket);
 
     free(buffer);
     return true;

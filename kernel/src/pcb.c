@@ -5,7 +5,6 @@ void generar_pcb(char *lista_instrucciones, int32_t tamanio_proceso, int socket)
         Gestiona la generacion de un nuevo pcb
     */
 
-    char pid_string[12];
     pcb_t * pcb_pointer = alocar_memoria_todos_pcb();
 
     pcb_t pcb_nuevo = {
@@ -15,15 +14,13 @@ void generar_pcb(char *lista_instrucciones, int32_t tamanio_proceso, int socket)
     lista_instrucciones,
     -1,
     ESTIMACION_INICIAL,
-    0
+    0,
+    socket
     };
 
     *pcb_pointer = pcb_nuevo;
 
     queue_push(cola_new, &pcb_pointer);
-
-    sprintf(pid_string, "%d", contador_pid); //para pasar de int a string (para usarse como key del diccionario 'pid_to_socket')
-    dictionary_put(pid_to_socket, pid_string, &socket);
 
     contador_pid++;
 
@@ -89,6 +86,19 @@ pcb_t *obtener_pcb_pointer(pcb_t pcb){
     return NULL;
 }
 
+pcb_t * obtener_pcb_pointer_desde_pid(int32_t pid){
+
+    int i = 0;
+
+    for (i = 0; i < todos_pcb_length; i++){
+        if ((todos_pcb[i]).pid == pid){
+            return &(todos_pcb[i]);
+        }
+    }
+    
+    return NULL;
+}
+
 void actualizar_program_counter(pcb_t pcb_actualizado){
 
     pcb_t* pointer = obtener_pcb_pointer(pcb_actualizado);
@@ -102,19 +112,19 @@ void actualizar_timestamp(pcb_t * pcb_pointer){
 
     gettimeofday(&tv, NULL);
     
-    pcb_pointer->timestamp = (tv.tv_sec * 1000) + (tv.tv_usec/1000);
+    pcb_pointer->timestamp = (uint64_t) (tv.tv_sec * 1000) + (uint64_t) (tv.tv_usec/1000);
 }
 
-time_t get_tiempo_transcurrido(time_t timestamp_anterior){
+uint64_t get_tiempo_transcurrido(uint64_t timestamp_anterior){
     /*
         devuelve el tiempo transcurrido entre el tiempo actual y el tiempo pasado como argumento
     */
     struct timeval tv;
-    time_t timestamp_actual;
+    uint64_t timestamp_actual;
 
     gettimeofday(&tv, NULL);
 
-    timestamp_actual = (tv.tv_sec * 1000) + (tv.tv_usec/1000);
+    timestamp_actual = (uint64_t) (tv.tv_sec * 1000) + (uint64_t) (tv.tv_usec/1000);
 
     return timestamp_actual - timestamp_anterior;
 }

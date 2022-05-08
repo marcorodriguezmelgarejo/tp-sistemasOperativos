@@ -5,26 +5,17 @@ void finalizar_conexion_consola(int32_t pid){
         Manda mensaje de finalizacion a la consola y cierra el socket correspondiente
     */
 
-    int * socket_pointer = NULL;
-
-    char pid_string[12];
-
     int32_t dummy = DUMMY_VALUE;
 
-    sprintf(pid_string, "%d", pid); //convierte el pid a string para poder ser key del diccionario 'pid_to_socket'
+    pcb_t * pcb_pointer = obtener_pcb_pointer_desde_pid(pid);
 
-    if ((socket_pointer = dictionary_get(pid_to_socket, pid_string)) == NULL){
-        log_error(logger, "No se encontró el socket correspondiente al pid %u", pid);
-        return;
+    if (sockets_enviar_dato(pcb_pointer->consola_socket, &dummy, sizeof(int32_t), logger) == false){
+	    log_error(logger, "Error al comunicarse con consola pid %d", pid);
     }
 
-    if (sockets_enviar_dato(*socket_pointer, &dummy, sizeof(int32_t), logger) == false){
-	    log_error(logger, "Error al comunicarse con consola pid %u", pid);
-    }
+    sockets_cerrar(pcb_pointer->consola_socket);
 
-    sockets_cerrar(*socket_pointer);
-
-    log_info(logger, "Se cerró la conexion con consola pid %u", pid);
+    log_info(logger, "Se cerró la conexion con consola pid %d", pid);
 }
 
 void *gestionar_nuevas_consolas(void * arg){

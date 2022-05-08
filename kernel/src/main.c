@@ -25,8 +25,6 @@ void liberar_memoria(void){
 
         free(todos_pcb);
     }
-
-    dictionary_destroy(pid_to_socket);
     
     queue_destroy(cola_new);
     list_destroy(lista_ready);
@@ -38,8 +36,6 @@ void liberar_memoria(void){
 }
 
 void inicializar_estructuras(void){
-
-    pid_to_socket = dictionary_create();
     
     cola_new = queue_create();
     lista_ready = list_create();

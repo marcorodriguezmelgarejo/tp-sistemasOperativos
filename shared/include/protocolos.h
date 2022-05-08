@@ -24,12 +24,11 @@ typedef struct pcb_t{
     char * lista_instrucciones; //instrucciones separadas por un \n
     int32_t tabla_paginas;
     int32_t estimacion_rafaga;
-    time_t timestamp; // (en milisegundos) para medir cuanto estuvo ejecutandose el proceso en CPU
+    uint64_t timestamp; // (en milisegundos) para medir cuanto estuvo ejecutandose el proceso en CPU
+    int32_t consola_socket; //el fd del socket mediante el cual el kernel se conecta a la consola del proceso
 } pcb_t;
 
-// TODO: ENVIAR TAMBIEN LA TIMESTAMP
-
-#define TAMANIO_PCB_SERIALIZADA 20 //sin contar la lista de instrucciones
+#define TAMANIO_PCB_SERIALIZADA 32 //sin contar la lista de instrucciones
 
 // ACLARACION: todas las funciones devuelven 'true' en caso de exito. 'false' si hubo un error
 

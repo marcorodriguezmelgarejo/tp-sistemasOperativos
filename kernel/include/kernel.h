@@ -30,7 +30,6 @@
 
 pthread_t h1, h2;
 t_log * logger;
-t_dictionary * pid_to_socket; //mapea pid (tiene que ser un string) de un proceso al socket de la consola correspondiente
 
 int consolas_socket;
 int dispatch_socket;
@@ -79,9 +78,10 @@ void agregar_instruccion_a_lista(char **, char*);
 void generar_pcb(char *, int32_t, int);
 void actualizar_program_counter(pcb_t);
 void actualizar_timestamp(pcb_t*);
-time_t get_tiempo_transcurrido(time_t);
+uint64_t get_tiempo_transcurrido(uint64_t);
 pcb_t* alocar_memoria_todos_pcb(void);
 pcb_t* obtener_pcb_pointer(pcb_t);
+pcb_t* obtener_pcb_pointer_desde_pid(int32_t);
 void *gestionar_dispatch(void *);
 void gestionar_proceso_a_io(void);
 void gestionar_interrupcion_kernel(void);
