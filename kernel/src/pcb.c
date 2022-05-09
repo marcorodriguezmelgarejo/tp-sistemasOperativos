@@ -15,6 +15,7 @@ void generar_pcb(char *lista_instrucciones, int32_t tamanio_proceso, int socket)
     -1,
     ESTIMACION_INICIAL,
     0,
+    0,
     socket
     };
 
@@ -115,7 +116,7 @@ void actualizar_timestamp(pcb_t * pcb_pointer){
     pcb_pointer->timestamp = (uint64_t) (tv.tv_sec * 1000) + (uint64_t) (tv.tv_usec/1000);
 }
 
-uint64_t get_tiempo_transcurrido(uint64_t timestamp_anterior){
+int32_t get_tiempo_transcurrido(uint64_t timestamp_anterior){
     /*
         devuelve el tiempo transcurrido entre el tiempo actual y el tiempo pasado como argumento
     */
@@ -126,5 +127,5 @@ uint64_t get_tiempo_transcurrido(uint64_t timestamp_anterior){
 
     timestamp_actual = (uint64_t) (tv.tv_sec * 1000) + (uint64_t) (tv.tv_usec/1000);
 
-    return timestamp_actual - timestamp_anterior;
+    return (int32_t) (timestamp_actual - timestamp_anterior);
 }

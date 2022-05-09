@@ -48,7 +48,7 @@ void *gestionar_nuevas_consolas(void * arg){
         while(strcmp(instruccion_o_tamanio, "TAMANIO") != 0);
 
         generar_pcb(lista_instrucciones, tamanio_proceso, socket_consola_actual);
-        planificador_largo_plazo_ready();
+        transicion_new_ready();
         
         lista_instrucciones = NULL;
     }
