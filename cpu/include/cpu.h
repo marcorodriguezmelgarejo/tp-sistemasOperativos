@@ -10,17 +10,35 @@
 #include "../../shared/include/sockets.h"
 #include "../../shared/include/protocolos.h"
 
-//macros
+// MACROS
 #define SUCCESS_STATUS 0
 #define ERROR_STATUS 1
 
-// tipos
+// TIPOS    
 typedef enum alg_reemplazo_tlb_t{
     FIFO, 
     LRU
 } alg_reemplazo_tlb_t;
 
-// variables globales
+typedef enum operacion_t{
+    NO_OP,
+    I_O,
+    READ,
+    WRITE,
+    COPY,
+    EXIT,
+} operacion_t;
+
+typedef struct intruccion_t{
+    operacion_t operacion;
+    //parametros (no siempre se usan todos, cuales se usan depende de la op)
+    int32_t tiempo_bloqueo, valor, dir_destino, dir_origen;
+} instruccion_t;
+
+// VARIABLES GLOBALES
+pcb_t pcb;
+t_log* logger;
+// parametros del config
 char IP_MEMORIA[16];
 char PUERTO_MEMORIA[6];
 char PUERTO_ESCUCHA_DISPATCH[6];
@@ -29,7 +47,7 @@ int32_t ENTRADAS_TLB;
 alg_reemplazo_tlb_t REEEMPLAZO_TLB;
 int32_t RETARDO_NOOP; //en ms
 
-// funciones 
+// FUNCIONES 
 void cargar_config(t_log* logger);
 
 
