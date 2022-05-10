@@ -56,6 +56,57 @@ FILE* abrir_archivo_instrucciones(char * path, t_log* logger){
 	return file_instrucciones;
 }
 
+//testeado (para instrucciones con un parametro)
+int primer_parametro(char* line){
+	int i = 0;
+	int j = 0;
+	char primer_parametro[MAX_STRING_SIZE];
+	while(line[i] != ' '){
+		i++;
+	}
+	i++;
+	while(isdigit(line[i])){
+		primer_parametro[j] = line[i];
+		i++;
+		j++;
+	}
+	primer_parametro[j]=0;
+	return atoi(primer_parametro);
+}
+
+void enviar_instruccion(char* instruccion, int socket, t_log* logger){
+	if (sockets_enviar_string(socket, "INSTRUCCION", logger) == false){
+		log_error(logger, "Error al comunicarse con kernel. Finalizando...");
+		salir_error(logger, &socket);
+	}
+
+	if (sockets_enviar_string(socket, instruccion, logger) == false){
+		log_error(logger, "Error al comunicarse con kernel. Finalizando...");
+		salir_error(logger, &socket);
+	}
+}
+
+void enviar_linea(char* line, int socket, t_log* logger){
+	// obtiene la operacion
+	char nombre_operacion[MAX_STRING_SIZE];
+	int largo_nombre_operacion;
+	largo_nombre_operacion = strcspn(line, " ");
+	strncpy(nombre_operacion, line, largo_nombre_operacion);
+	nombre_operacion[largo_nombre_operacion] = 0;
+	
+	// envia n operaciones no_op si la operacion es no_op, de lo contrario, envia la operacion con los parametros
+	if(strcmp(nombre_operacion, "NO_OP") == 0){
+		int cantidad_noop = primer_parametro(line);
+		for(int i = 0; i < cantidad_noop; i++){
+			enviar_instruccion("NO_OP", socket, logger);
+			log_debug(logger, "Enviando instruccion NO_OP numero %d", i);
+		}
+	}
+	else{
+		enviar_instruccion(line, socket, logger);
+	}
+}
+
 void enviar_instrucciones(FILE* file, int socket, t_log* logger){
 
 	char line[MAX_STRING_SIZE];
@@ -66,16 +117,9 @@ void enviar_instrucciones(FILE* file, int socket, t_log* logger){
 		line[strcspn(line, "\n")] = '\0';
 
 		log_debug(logger,"Instruccion numero %d: %s", i, line);
-		
-		if (sockets_enviar_string(socket, "INSTRUCCION", logger) == false){
-			log_error(logger, "Error al comunicarse con kernel. Finalizando...");
-			salir_error(logger, &socket);
-		}
 
-		if (sockets_enviar_string(socket, line, logger) == false){
-			log_error(logger, "Error al comunicarse con kernel. Finalizando...");
-			salir_error(logger, &socket);
-		}
+		enviar_linea(line, socket, logger);
+
 		i++;
 
 	}

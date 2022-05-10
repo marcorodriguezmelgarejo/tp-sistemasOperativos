@@ -13,6 +13,7 @@
 #include <commons/string.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <ctype.h>
 
 #include "../../shared/include/sockets.h"
 #include "../../shared/include/protocolos.h"
@@ -39,5 +40,11 @@ void esperar_finalizacion(int, t_log*);
 void finalizar_programa(int, t_log*);
 
 void salir_error(t_log*, int*);
+
+int primer_parametro(char* line);
+
+void enviar_instruccion(char* instruccion, int socket, t_log* logger);
+
+void enviar_linea(char* line, int socket, t_log* logger);
 
 #endif /* FUNCIONES_H_ */
