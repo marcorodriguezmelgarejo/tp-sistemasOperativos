@@ -13,6 +13,7 @@ void *gestionar_dispatch(void *arg){
     "INT" : el kernel previamente mando un mensaje de interrupcion al CPU
     */
     pcb_t pcb_buffer;
+    int32_t tiempo_bloqueo = 0;
 
     while(1){
         //recibe el motivo del mensaje
@@ -27,15 +28,23 @@ void *gestionar_dispatch(void *arg){
         free(pcb_buffer.lista_instrucciones); //debido a que sockets_recibir_pcb() reservo memoria 
 
         if (strcmp(motivo, "I/O") == 0){
+            //recibo el tiempo de bloqueo
+            sockets_recibir_dato(dispatch_socket, &tiempo_bloqueo, sizeof tiempo_bloqueo, logger);
             gestionar_proceso_a_io();
         }
         else if (strcmp(motivo, "EXIT") == 0){
-            planificador_largo_plazo_exit();
+            transicion_ejec_exit();
         }
         else if (strcmp(motivo, "INT") == 0){
-            planificador_corto_plazo_ready();
+            transicion_ejec_ready();
         }
         
+    }
+}
+
+void enviar_pcb_cpu(pcb_t* pcb_pointer){
+    if (sockets_enviar_pcb(dispatch_socket, *pcb_pointer, logger) == false){
+        log_error(logger, "Error al enviar pcb al cpu");
     }
 }
 

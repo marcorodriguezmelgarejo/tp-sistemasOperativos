@@ -7,17 +7,17 @@ bool es_algoritmo_srt(void){
     return strcmp(ALGORITMO_PLANIFICACION, "STR") == 0;
 }
 
-void modificar_estimacion(pcb_t * pcb_pointer){
-    //TODO: IMPLEMENTAR
+void sumar_duracion_rafaga(pcb_t * pcb_pointer){
+    pcb_pointer->duracion_real_ultima_rafaga += get_tiempo_transcurrido(pcb_pointer->timestamp);
 }
 
-void planificador_corto_plazo_ready(void){
+void transicion_ejec_ready(void){
     /*
         Gestiona la transicion EJEC->READY
     */
     
     if (es_algoritmo_srt()){
-        modificar_estimacion(en_ejecucion);
+        sumar_duracion_rafaga(en_ejecucion);
     }
 
     list_add(lista_ready, &en_ejecucion);
@@ -26,7 +26,7 @@ void planificador_corto_plazo_ready(void){
 
     en_ejecucion = NULL;
 
-    planificador_corto_plazo_ejec();
+    transicion_ready_ejec();
 }
 
 pcb_t* seleccionar_proceso_menor_estimacion(void){
@@ -55,7 +55,7 @@ pcb_t* seleccionar_proceso_menor_estimacion(void){
     return *pcb_menor_rafaga;
 }
 
-void planificador_corto_plazo_ejec(void){
+void transicion_ready_ejec(void){
     /*
         Gestiona la transicion READY->EJEC
     */
@@ -83,12 +83,19 @@ void planificador_corto_plazo_ejec(void){
         en_ejecucion = *pcb_a_ejecutar;
     }
 
-    //TODO: mandarle al cpu el pcb del proceso a ejecutar
+    if (en_ejecucion->tabla_paginas == -1){
+        log_error(logger, "El proceso a punto de ejecutarse no posee una tabla de paginas reservada");
+        return;
+    }
+
+    if (es_algoritmo_srt()) actualizar_timestamp(en_ejecucion);
+
+    enviar_pcb_cpu(en_ejecucion);
 
     log_info(logger, "READY->EJEC (PID=%d)", en_ejecucion->pid);
 }
 
-void planificador_largo_plazo_ready(void){
+void transicion_new_ready(void){
     /*
         Gestiona la transicion NEW->READY
     */
@@ -104,10 +111,12 @@ void planificador_largo_plazo_ready(void){
         log_info(logger, "NEW->READY (PID=%d)", (*pcb_pointer)->pid);
 
         grado_multiprogramacion_actual++;
+
+        enviar_interrupcion_cpu();
     }
 }
 
-void planificador_largo_plazo_exit(void){
+void transicion_ejec_exit(void){
     /*
         Gestiona la transicion EJEC->EXIT
     */
