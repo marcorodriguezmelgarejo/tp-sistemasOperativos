@@ -5,7 +5,10 @@ void generar_pcb(char *lista_instrucciones, int32_t tamanio_proceso, int socket)
         Gestiona la generacion de un nuevo pcb
     */
 
-    pcb_t * pcb_pointer = alocar_memoria_todos_pcb();
+    if(todos_pcb_length == TODOS_PCB_MAX_LENGTH){
+        log_error(logger, "No hay mas espacio en 'todos_pcb'");
+        return;
+    }
 
     pcb_t pcb_nuevo = {
     contador_pid,
@@ -19,11 +22,13 @@ void generar_pcb(char *lista_instrucciones, int32_t tamanio_proceso, int socket)
     socket
     };
 
-    *pcb_pointer = pcb_nuevo;
+    todos_pcb[todos_pcb_length] = pcb_nuevo;
 
-    queue_push(cola_new, &pcb_pointer);
+    queue_push(cola_new, &(todos_pcb[todos_pcb_length]));
 
     contador_pid++;
+
+    todos_pcb_length++;
 
     log_debug(logger, "Nuevo proceso en NEW (pid = %d)", contador_pid - 1);
 }
@@ -55,6 +60,10 @@ pcb_t * alocar_memoria_todos_pcb(void){
         Devuelve un puntero a un area de memoria donde guardar un pcb
     */
 
+    /*
+        IMPORTANTE : USARSE SOLO EN CASO DE QUE SE IMPLEMENTE 'todos_pcb'
+        COMO PUNTERO Y NO COMO ARRAY.
+
     //si nunca se aloco memoria
     if (todos_pcb_length == 0){
         if((todos_pcb = malloc(sizeof *todos_pcb)) == NULL){
@@ -71,7 +80,9 @@ pcb_t * alocar_memoria_todos_pcb(void){
 
     todos_pcb_length++;
 
-    return todos_pcb + todos_pcb_length - 1;
+    return todos_pcb + todos_pcb_length - 1; 
+    */
+    return NULL;
 }
 
 pcb_t *obtener_pcb_pointer(pcb_t pcb){

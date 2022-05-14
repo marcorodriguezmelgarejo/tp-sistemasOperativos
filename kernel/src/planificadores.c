@@ -20,7 +20,7 @@ void transicion_ejec_ready(void){
         sumar_duracion_rafaga(en_ejecucion);
     }
 
-    list_add(lista_ready, &en_ejecucion);
+    list_add(lista_ready, en_ejecucion);
 
     log_info(logger, "EJEC->READY (pid = %d)", en_ejecucion->pid);
 
@@ -32,35 +32,32 @@ void transicion_ejec_ready(void){
 pcb_t* seleccionar_proceso_menor_estimacion(void){
     /*
         Recorre la lista de ready comparando las estimaciones de rafagas
-        y devuelve un puntero al pcb del proceso con menor estimacion
+        y devuelve un puntero al pcb del proceso con menor estimacion.
+        Supone que lista_ready no es una lista vacía
     */
 
-    pcb_t ** pcb_actual = NULL;
-    pcb_t ** pcb_menor_rafaga = NULL;
+    pcb_t * pcb_actual = NULL;
+    pcb_t * pcb_menor_rafaga = NULL;
+    int i = 0;
 
-    t_list_iterator* iterator_ready = list_iterator_create(lista_ready);
-
-    if (list_iterator_has_next(iterator_ready)){
-        pcb_menor_rafaga = list_iterator_next(iterator_ready);
+    if (!list_is_empty(lista_ready)){
+        pcb_menor_rafaga = list_get(lista_ready, 0);
     }
 
-	while(list_iterator_has_next(iterator_ready)){
+    for (i = 1; i < list_size(lista_ready); i++){
 
-        pcb_actual = list_iterator_next(iterator_ready);
-        if ((*pcb_actual)->estimacion_rafaga < (*pcb_menor_rafaga)->estimacion_rafaga) pcb_menor_rafaga = pcb_actual;
+        pcb_actual = list_get(lista_ready, i);
+        if (pcb_actual->estimacion_rafaga < pcb_menor_rafaga->estimacion_rafaga) pcb_menor_rafaga = pcb_actual;
+
     }
 
-    list_iterator_destroy(iterator_ready);
-
-    return *pcb_menor_rafaga;
+    return pcb_menor_rafaga;
 }
 
 void transicion_ready_ejec(void){
     /*
         Gestiona la transicion READY->EJEC
     */
-
-    pcb_t** pcb_a_ejecutar = NULL;
 
     if (en_ejecucion != NULL){
         log_error(logger, "error en planificador_corto_plazo_ejec(): 'en_ejecucion' no es NULL");
@@ -79,8 +76,7 @@ void transicion_ready_ejec(void){
     }
     else{ //si es fifo
 
-        pcb_a_ejecutar = list_get(lista_ready, 0);
-        en_ejecucion = *pcb_a_ejecutar;
+        en_ejecucion = list_remove(lista_ready, 0);
     }
 
     if (en_ejecucion->tabla_paginas == -1){
@@ -100,7 +96,7 @@ void transicion_new_ready(void){
         Gestiona la transicion NEW->READY
     */
     
-    pcb_t **pcb_pointer;
+    pcb_t *pcb_pointer;
 
     if (grado_multiprogramacion_actual < GRADO_MULTIPROGRAMACION){
 
@@ -108,7 +104,7 @@ void transicion_new_ready(void){
         inicializar_estructuras_memoria();
         list_add(lista_ready, queue_pop(cola_new));
 
-        log_info(logger, "NEW->READY (PID=%d)", (*pcb_pointer)->pid);
+        log_info(logger, "NEW->READY (PID=%d)", pcb_pointer->pid);
 
         grado_multiprogramacion_actual++;
 

@@ -23,7 +23,6 @@ void liberar_memoria(void){
             free((todos_pcb + i)->lista_instrucciones);
         }
 
-        free(todos_pcb);
     }
     
     queue_destroy(cola_new);
@@ -46,12 +45,9 @@ void inicializar_estructuras(void){
     crear_logger();
 }
 
-int main(void)
-{
-    //Inicializo variables globales
+void inicializar_variables_globales(void){
 
     contador_pid = 0;
-    todos_pcb = NULL;
     todos_pcb_length = 0;
     
     grado_multiprogramacion_actual = 0;
@@ -59,6 +55,12 @@ int main(void)
     consolas_socket = 0;
     dispatch_socket = 0;
     interrupt_socket = 0;
+}
+
+int main(void)
+{
+
+    inicializar_variables_globales();
 
     signal(SIGINT, manejar_sigint);
 

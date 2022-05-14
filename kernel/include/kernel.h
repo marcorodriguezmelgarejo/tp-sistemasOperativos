@@ -25,6 +25,7 @@
 #define CONFIG_FILENAME "./cfg/kernel.config"
 #define LOG_FILENAME "./cfg/kernel.log"
 #define MAX_BUFFER_SIZE 100
+#define TODOS_PCB_MAX_LENGTH 100
 
 // *VARIABLES GLOBALES*
 
@@ -48,7 +49,7 @@ int32_t GRADO_MULTIPROGRAMACION;
 int32_t TIEMPO_MAXIMO_BLOQUEADO;
 
 int32_t contador_pid; //Es para determinar el pid del proximo proceso nuevo
-pcb_t* todos_pcb; //Aca se guardan todos los pcb que esten presentes usando malloc
+pcb_t todos_pcb[TODOS_PCB_MAX_LENGTH]; //Aca se guardan todos los pcb que se manejen en el kernel
 int32_t todos_pcb_length; //cuantos pcb se estan guardando en todos_pcb
 
 int32_t grado_multiprogramacion_actual;
@@ -63,6 +64,7 @@ pcb_t* en_ejecucion;
 
 // *FUNCIONES*
 
+void inicializar_variables_globales(void);
 void manejar_sigint(int);
 void crear_logger(void);
 void cargar_config(void);
@@ -97,5 +99,6 @@ void transicion_ejec_exit(void);
 void inicializar_estructuras_memoria(void);
 void liberar_estructuras_memoria(void);
 void liberar_memoria(void);
+void testear_seleccionar_proceso_menor_estimacion(void);
 
 #endif
