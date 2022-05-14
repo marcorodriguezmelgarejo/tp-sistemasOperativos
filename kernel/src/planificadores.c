@@ -119,9 +119,11 @@ void transicion_ejec_exit(void){
 
     liberar_estructuras_memoria();
 
-    finalizar_conexion_consola(en_ejecucion->pid);
+    finalizar_conexion_consola(en_ejecucion);
 
     log_info(logger, "EJEC->EXIT (PID=%d)", en_ejecucion->pid);
+
+    liberar_memoria_pcb(en_ejecucion);
         
     en_ejecucion = NULL;
 

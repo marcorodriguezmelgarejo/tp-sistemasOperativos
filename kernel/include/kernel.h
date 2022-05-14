@@ -25,7 +25,6 @@
 #define CONFIG_FILENAME "./cfg/kernel.config"
 #define LOG_FILENAME "./cfg/kernel.log"
 #define MAX_BUFFER_SIZE 100
-#define TODOS_PCB_MAX_LENGTH 100
 
 // *VARIABLES GLOBALES*
 
@@ -49,12 +48,10 @@ int32_t GRADO_MULTIPROGRAMACION;
 int32_t TIEMPO_MAXIMO_BLOQUEADO;
 
 int32_t contador_pid; //Es para determinar el pid del proximo proceso nuevo
-pcb_t todos_pcb[TODOS_PCB_MAX_LENGTH]; //Aca se guardan todos los pcb que se manejen en el kernel
-int32_t todos_pcb_length; //cuantos pcb se estan guardando en todos_pcb
 
 int32_t grado_multiprogramacion_actual;
 
-//En estas listas y colas se guardan direcciones de pcb en todos_pcb, no el pcb en si
+//En estas listas y colas se guardan punteros a pcb, no el pcb en si
 t_queue* cola_new;
 t_list* lista_ready;
 t_list* lista_bloqueado;
@@ -76,16 +73,14 @@ void leer_str_config(t_config*, char*, char*, t_log*);
 void leer_int_config(t_config*, char* value, int32_t*, t_log*);
 void leer_float_config(t_config*, char*, float*, t_log*);
 void * gestionar_nuevas_consolas(void *);
-void finalizar_conexion_consola(int32_t);
+void finalizar_conexion_consola(pcb_t *);
 void inicializar_estructuras(void);
 void agregar_instruccion_a_lista(char **, char*);
 void generar_pcb(char *, int32_t, int);
-void actualizar_program_counter(pcb_t);
+void actualizar_program_counter_en_ejecucion(int32_t);
 void actualizar_timestamp(pcb_t*);
 int32_t get_tiempo_transcurrido(uint64_t);
-pcb_t* alocar_memoria_todos_pcb(void);
-pcb_t* obtener_pcb_pointer(pcb_t);
-pcb_t* obtener_pcb_pointer_desde_pid(int32_t);
+pcb_t* alocar_memoria_pcb(void);
 void *gestionar_dispatch(void *);
 void gestionar_proceso_a_io(void);
 void gestionar_interrupcion_kernel(void);
@@ -99,6 +94,9 @@ void transicion_ejec_exit(void);
 void inicializar_estructuras_memoria(void);
 void liberar_estructuras_memoria(void);
 void liberar_memoria(void);
+void liberar_memoria_lista_pcb(t_list*);
+void liberar_memoria_cola_pcb(t_queue*);
+void liberar_memoria_pcb(pcb_t*);
 void testear_seleccionar_proceso_menor_estimacion(void);
 
 #endif

@@ -5,10 +5,7 @@ void generar_pcb(char *lista_instrucciones, int32_t tamanio_proceso, int socket)
         Gestiona la generacion de un nuevo pcb
     */
 
-    if(todos_pcb_length == TODOS_PCB_MAX_LENGTH){
-        log_error(logger, "No hay mas espacio en 'todos_pcb'");
-        return;
-    }
+    pcb_t * pcb_pointer = NULL;
 
     pcb_t pcb_nuevo = {
     contador_pid,
@@ -22,13 +19,16 @@ void generar_pcb(char *lista_instrucciones, int32_t tamanio_proceso, int socket)
     socket
     };
 
-    todos_pcb[todos_pcb_length] = pcb_nuevo;
+    if ((pcb_pointer = alocar_memoria_pcb()) == NULL){
+        log_error(logger, "Error al generar_pcb()");
+        return;
+    }
 
-    queue_push(cola_new, &(todos_pcb[todos_pcb_length]));
+    *pcb_pointer = pcb_nuevo;
+
+    queue_push(cola_new, pcb_pointer);
 
     contador_pid++;
-
-    todos_pcb_length++;
 
     log_debug(logger, "Nuevo proceso en NEW (pid = %d)", contador_pid - 1);
 }
@@ -55,67 +55,28 @@ void agregar_instruccion_a_lista(char ** lista, char* instruccion){
     }
 }
 
-pcb_t * alocar_memoria_todos_pcb(void){
+pcb_t * alocar_memoria_pcb(void){
     /*
         Devuelve un puntero a un area de memoria donde guardar un pcb
     */
 
-    /*
-        IMPORTANTE : USARSE SOLO EN CASO DE QUE SE IMPLEMENTE 'todos_pcb'
-        COMO PUNTERO Y NO COMO ARRAY.
+    pcb_t * pcb_pointer = NULL;
 
-    //si nunca se aloco memoria
-    if (todos_pcb_length == 0){
-        if((todos_pcb = malloc(sizeof *todos_pcb)) == NULL){
-            log_error(logger, "Fallo al hacer malloc para 'todos_pcb'");
-            return NULL;
-        }
-    }
-    else{
-        if((todos_pcb = realloc(todos_pcb, (sizeof *todos_pcb) * (todos_pcb_length + 1))) == NULL){
-            log_error(logger, "Fallo al hacer realloc para 'todos_pcb'");
-            return NULL;
-        }
+    if((pcb_pointer = malloc(sizeof *pcb_pointer)) == NULL){
+        log_error(logger, "Fallo al hacer malloc en 'alocar_memoria_todos_pcb()'");
+        return NULL;
     }
 
-    todos_pcb_length++;
-
-    return todos_pcb + todos_pcb_length - 1; 
-    */
-    return NULL;
+    return pcb_pointer;
 }
 
-pcb_t *obtener_pcb_pointer(pcb_t pcb){
+void actualizar_program_counter_en_ejecucion(int32_t program_counter){
 
-    int i = 0;
-
-    for (i = 0; i < todos_pcb_length; i++){
-        if ((todos_pcb[i]).pid == pcb.pid){
-            return &(todos_pcb[i]);
-        }
+    if (en_ejecucion == NULL){
+        log_error(logger, "Error en actualizar_program_counter_en_ejecucion(): 'en_ejecucion' es NULL");
     }
-    
-    return NULL;
-}
 
-pcb_t * obtener_pcb_pointer_desde_pid(int32_t pid){
-
-    int i = 0;
-
-    for (i = 0; i < todos_pcb_length; i++){
-        if ((todos_pcb[i]).pid == pid){
-            return &(todos_pcb[i]);
-        }
-    }
-    
-    return NULL;
-}
-
-void actualizar_program_counter(pcb_t pcb_actualizado){
-
-    pcb_t* pointer = obtener_pcb_pointer(pcb_actualizado);
-
-    pointer->program_counter = pcb_actualizado.program_counter;
+    en_ejecucion->program_counter = program_counter;
 }
 
 void actualizar_timestamp(pcb_t * pcb_pointer){

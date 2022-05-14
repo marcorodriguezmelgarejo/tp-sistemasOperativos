@@ -23,7 +23,7 @@ void *gestionar_dispatch(void *arg){
         pcb_buffer.lista_instrucciones = NULL;
         sockets_recibir_pcb(dispatch_socket, &pcb_buffer, logger);
         
-        actualizar_program_counter(pcb_buffer); 
+        actualizar_program_counter_en_ejecucion(pcb_buffer.program_counter); 
 
         free(pcb_buffer.lista_instrucciones); //debido a que sockets_recibir_pcb() reservo memoria 
 

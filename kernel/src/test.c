@@ -49,22 +49,23 @@ void testear_seleccionar_proceso_menor_estimacion(void){
     };
 
     pcb_t * pcb_menor_estimacion = NULL;
+    pcb_t * pcb_pointer = NULL;
 
-    todos_pcb[todos_pcb_length] = pid1;
-    list_add(lista_ready, &(todos_pcb[todos_pcb_length]));
-    todos_pcb_length++;
+    pcb_pointer = alocar_memoria_pcb();
+    *pcb_pointer = pid1;
+    list_add(lista_ready, pcb_pointer);
 
-    todos_pcb[todos_pcb_length] = pid2;
-    list_add(lista_ready, &(todos_pcb[todos_pcb_length]));
-    todos_pcb_length++;
+    pcb_pointer = alocar_memoria_pcb();
+    *pcb_pointer = pid2;
+    list_add(lista_ready, pcb_pointer);
 
-    todos_pcb[todos_pcb_length] = pid3;
-    list_add(lista_ready, &(todos_pcb[todos_pcb_length]));
-    todos_pcb_length++;
+    pcb_pointer = alocar_memoria_pcb();
+    *pcb_pointer = pid3;
+    list_add(lista_ready, pcb_pointer);
 
-    todos_pcb[todos_pcb_length] = pid4;
-    list_add(lista_ready, &(todos_pcb[todos_pcb_length]));
-    todos_pcb_length++;
+    pcb_pointer = alocar_memoria_pcb();
+    *pcb_pointer = pid4;
+    list_add(lista_ready, pcb_pointer);
 
     printf("breakpoint 1\n");
 
@@ -74,6 +75,6 @@ void testear_seleccionar_proceso_menor_estimacion(void){
 
     log_info(logger, "PCB con menor estimacion: PID=%d", pcb_menor_estimacion->pid);
     
-    if (pcb_menor_estimacion->pid = 3) log_info(logger, "seleccionar_proceso_menor_estimacion() anda bien\n");
+    if (pcb_menor_estimacion->pid == 3) log_info(logger, "seleccionar_proceso_menor_estimacion() anda bien\n");
     else log_error(logger, "seleccionar_proceso_menor_estimacion() anda MAL\n");
 }

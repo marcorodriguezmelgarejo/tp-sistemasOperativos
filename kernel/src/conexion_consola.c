@@ -1,21 +1,19 @@
 #include "kernel.h"
 
-void finalizar_conexion_consola(int32_t pid){
+void finalizar_conexion_consola(pcb_t * pcb_pointer){
     /*
         Manda mensaje de finalizacion a la consola y cierra el socket correspondiente
     */
 
     int32_t dummy = DUMMY_VALUE;
 
-    pcb_t * pcb_pointer = obtener_pcb_pointer_desde_pid(pid);
-
     if (sockets_enviar_dato(pcb_pointer->consola_socket, &dummy, sizeof(int32_t), logger) == false){
-	    log_error(logger, "Error al comunicarse con consola pid %d", pid);
+	    log_error(logger, "Error al comunicarse con consola pid %d", pcb_pointer->pid);
     }
 
     sockets_cerrar(pcb_pointer->consola_socket);
 
-    log_info(logger, "Se cerró la conexion con consola pid %d", pid);
+    log_info(logger, "Se cerró la conexion con consola pid %d", pcb_pointer->pid);
 }
 
 void *gestionar_nuevas_consolas(void * arg){
@@ -63,9 +61,11 @@ void probar_conexion_consola(void){
     sleep(7);
 
     int i = 0;
-    printf("todos_pcb_length: %d\n", todos_pcb_length);
-    for (i = 0; i < todos_pcb_length; i++){
-        printf("\nLista instrucciones: %s\n", (todos_pcb[i]).lista_instrucciones);
+    pcb_t * pcb_pointer = NULL;
+
+    for (i = 0; i < queue_size(cola_new); i++){
+        pcb_pointer = queue_pop(cola_new);
+        printf("\nLista instrucciones: %s\n", pcb_pointer->lista_instrucciones);
     }
 
     sleep(60);

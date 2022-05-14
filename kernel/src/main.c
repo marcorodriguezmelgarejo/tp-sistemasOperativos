@@ -12,26 +12,47 @@ void manejar_sigint(int signal){
 
 void liberar_memoria(void){
 
-    int i = 0;
-
     log_info(logger, "Liberando memoria...");
 
-    if (todos_pcb != NULL){
-
-        //libero todas las listas de instrucciones de los pcb
-        for (i = 0; i < todos_pcb_length; i++){
-            free((todos_pcb + i)->lista_instrucciones);
-        }
-
-    }
-    
+    liberar_memoria_cola_pcb(cola_new);
     queue_destroy(cola_new);
+
+    liberar_memoria_lista_pcb(lista_ready);
     list_destroy(lista_ready);
+
+    liberar_memoria_lista_pcb(lista_bloqueado);
     list_destroy(lista_bloqueado);
+
+    liberar_memoria_lista_pcb(lista_bloqueado_sus);
     list_destroy(lista_bloqueado_sus);
+
+    liberar_memoria_cola_pcb(cola_ready_sus);
     queue_destroy(cola_ready_sus);
 
     log_destroy(logger);
+}
+
+void liberar_memoria_lista_pcb(t_list* lista){
+
+    int i = 0;
+
+    for (i = 0; i < list_size(lista); i++){
+        free(list_remove(lista, i));
+    }
+
+}
+
+void liberar_memoria_cola_pcb(t_queue* cola){
+
+    int i = 0;
+
+    for (i = 0; i < queue_size(cola); i++){
+        free(queue_pop(cola));
+    }
+}
+
+void liberar_memoria_pcb(pcb_t * pcb_pointer){
+    free(pcb_pointer);
 }
 
 void inicializar_estructuras(void){
@@ -48,7 +69,6 @@ void inicializar_estructuras(void){
 void inicializar_variables_globales(void){
 
     contador_pid = 0;
-    todos_pcb_length = 0;
     
     grado_multiprogramacion_actual = 0;
 
