@@ -7,18 +7,31 @@ bool es_algoritmo_srt(void){
     return strcmp(ALGORITMO_PLANIFICACION, "STR") == 0;
 }
 
-void sumar_duracion_rafaga(pcb_t * pcb_pointer){
-    pcb_pointer->duracion_real_ultima_rafaga += get_tiempo_transcurrido(pcb_pointer->timestamp);
+void transicion_consola_new(char *lista_instrucciones, int32_t tamanio_proceso, int socket){
+    /*
+        Gestiona la transicion CONSOLA->NEW
+    */
+
+    queue_push(cola_new, generar_pcb(lista_instrucciones, tamanio_proceso, socket));
+
+    contador_pid++;
+
+    log_debug(logger, "Nuevo proceso en NEW (pid = %d)", contador_pid - 1);
+
+    transicion_new_ready();
 }
 
 void transicion_ejec_ready(void){
     /*
         Gestiona la transicion EJEC->READY
     */
-    
-    if (es_algoritmo_srt()){
-        sumar_duracion_rafaga(en_ejecucion);
+
+    if (en_ejecucion == NULL){
+        log_error(logger, "error en transicion_ejec_ready(): 'en_ejecucion' es NULL");
+        return;
     }
+    
+    if (es_algoritmo_srt()) sumar_duracion_rafaga(en_ejecucion);
 
     list_add(lista_ready, en_ejecucion);
 
@@ -33,7 +46,6 @@ pcb_t* seleccionar_proceso_menor_estimacion(void){
     /*
         Recorre la lista de ready comparando las estimaciones de rafagas
         y devuelve un puntero al pcb del proceso con menor estimacion.
-        Supone que lista_ready no es una lista vacía
     */
 
     pcb_t * pcb_actual = NULL;
@@ -60,7 +72,7 @@ void transicion_ready_ejec(void){
     */
 
     if (en_ejecucion != NULL){
-        log_error(logger, "error en planificador_corto_plazo_ejec(): 'en_ejecucion' no es NULL");
+        log_error(logger, "error en transicion_ready_ejec(): 'en_ejecucion' no es NULL");
         return;
     }
 
@@ -69,15 +81,8 @@ void transicion_ready_ejec(void){
         return;
     }
 
-    if (es_algoritmo_srt()){
-
-        en_ejecucion = seleccionar_proceso_menor_estimacion();
-
-    }
-    else{ //si es fifo
-
-        en_ejecucion = list_remove(lista_ready, 0);
-    }
+    if (es_algoritmo_srt()) en_ejecucion = seleccionar_proceso_menor_estimacion();
+    else en_ejecucion = list_remove(lista_ready, 0); //si es fifo
 
     if (en_ejecucion->tabla_paginas == -1){
         log_error(logger, "El proceso a punto de ejecutarse no posee una tabla de paginas reservada");
@@ -108,14 +113,24 @@ void transicion_new_ready(void){
 
         grado_multiprogramacion_actual++;
 
-        enviar_interrupcion_cpu();
+        if (es_algoritmo_srt() && !es_primer_proceso()) enviar_interrupcion_cpu();
+        else if (es_primer_proceso()) transicion_ready_ejec();
     }
+}
+
+bool es_primer_proceso(void){
+    return contador_pid == 0;
 }
 
 void transicion_ejec_exit(void){
     /*
         Gestiona la transicion EJEC->EXIT
     */
+
+    if (en_ejecucion == NULL){
+        log_error(logger, "error en transicion_ejec_exit(): 'en_ejecucion' es NULL");
+        return;
+    }
 
     liberar_estructuras_memoria();
 

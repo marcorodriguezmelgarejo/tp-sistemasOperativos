@@ -25,6 +25,7 @@
 #define CONFIG_FILENAME "./cfg/kernel.config"
 #define LOG_FILENAME "./cfg/kernel.log"
 #define MAX_BUFFER_SIZE 100
+#define MOTIVO_LENGTH 5 //para gestionar_dispatch()
 
 // *VARIABLES GLOBALES*
 
@@ -76,7 +77,7 @@ void * gestionar_nuevas_consolas(void *);
 void finalizar_conexion_consola(pcb_t *);
 void inicializar_estructuras(void);
 void agregar_instruccion_a_lista(char **, char*);
-void generar_pcb(char *, int32_t, int);
+pcb_t *generar_pcb(char *, int32_t, int);
 void actualizar_program_counter_en_ejecucion(int32_t);
 void actualizar_timestamp(pcb_t*);
 int32_t get_tiempo_transcurrido(uint64_t);
@@ -86,6 +87,7 @@ void gestionar_proceso_a_io(void);
 void gestionar_interrupcion_kernel(void);
 bool es_algoritmo_srt(void);
 void sumar_duracion_rafaga(pcb_t *);
+void transicion_consola_new(char *, int32_t, int);
 void transicion_ejec_ready(void);
 pcb_t * seleccionar_proceso_menor_estimacion(void);
 void transicion_ready_ejec(void);
@@ -97,6 +99,7 @@ void liberar_memoria(void);
 void liberar_memoria_lista_pcb(t_list*);
 void liberar_memoria_cola_pcb(t_queue*);
 void liberar_memoria_pcb(pcb_t*);
+bool es_primer_proceso(void);
 void testear_seleccionar_proceso_menor_estimacion(void);
 
 #endif

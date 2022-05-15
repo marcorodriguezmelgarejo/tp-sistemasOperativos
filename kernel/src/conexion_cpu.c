@@ -6,7 +6,7 @@ void *gestionar_dispatch(void *arg){
         dependiendo del motivo del mensaje de la CPU
     */
 
-    char motivo[5]; // "I/O", "EXIT" o "INT"
+    char motivo[MOTIVO_LENGTH]; // "I/O", "EXIT" o "INT"
     /*
     "I/O" : el proceso llego a instruccion "I/O"
     "EXIT": el proceso llego a instruccion "EXIT"

@@ -45,8 +45,7 @@ void *gestionar_nuevas_consolas(void * arg){
         }
         while(strcmp(instruccion_o_tamanio, "TAMANIO") != 0);
 
-        generar_pcb(lista_instrucciones, tamanio_proceso, socket_consola_actual);
-        transicion_new_ready();
+        transicion_consola_new(lista_instrucciones, tamanio_proceso, socket_consola_actual);
         
         lista_instrucciones = NULL;
     }
@@ -55,15 +54,20 @@ void *gestionar_nuevas_consolas(void * arg){
 }
 void probar_conexion_consola(void){
     /*
-        Es para testear
+        Es para testear.
+        Hay que comentar la linea de gestionar_nuevas_consolas() en donde llama a
+        transicion_new_ready().
     */
-    
-    sleep(7);
 
     int i = 0;
     pcb_t * pcb_pointer = NULL;
+    int cola_new_size = queue_size(cola_new);
 
-    for (i = 0; i < queue_size(cola_new); i++){
+    pthread_create(&h2, NULL, gestionar_nuevas_consolas, NULL);
+    
+    sleep(7);    
+
+    for (i = 0; i < cola_new_size; i++){
         pcb_pointer = queue_pop(cola_new);
         printf("\nLista instrucciones: %s\n", pcb_pointer->lista_instrucciones);
     }

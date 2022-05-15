@@ -1,6 +1,6 @@
 #include "kernel.h"
 
-void generar_pcb(char *lista_instrucciones, int32_t tamanio_proceso, int socket){
+pcb_t *generar_pcb(char *lista_instrucciones, int32_t tamanio_proceso, int socket){
     /*
         Gestiona la generacion de un nuevo pcb
     */
@@ -21,16 +21,12 @@ void generar_pcb(char *lista_instrucciones, int32_t tamanio_proceso, int socket)
 
     if ((pcb_pointer = alocar_memoria_pcb()) == NULL){
         log_error(logger, "Error al generar_pcb()");
-        return;
+        return NULL;
     }
 
     *pcb_pointer = pcb_nuevo;
 
-    queue_push(cola_new, pcb_pointer);
-
-    contador_pid++;
-
-    log_debug(logger, "Nuevo proceso en NEW (pid = %d)", contador_pid - 1);
+    return pcb_pointer;
 }
 
 void agregar_instruccion_a_lista(char ** lista, char* instruccion){
@@ -100,4 +96,8 @@ int32_t get_tiempo_transcurrido(uint64_t timestamp_anterior){
     timestamp_actual = (uint64_t) (tv.tv_sec * 1000) + (uint64_t) (tv.tv_usec/1000);
 
     return (int32_t) (timestamp_actual - timestamp_anterior);
+}
+
+void sumar_duracion_rafaga(pcb_t * pcb_pointer){
+    pcb_pointer->duracion_real_ultima_rafaga += get_tiempo_transcurrido(pcb_pointer->timestamp);
 }

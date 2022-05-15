@@ -75,6 +75,8 @@ void inicializar_variables_globales(void){
     consolas_socket = 0;
     dispatch_socket = 0;
     interrupt_socket = 0;
+
+    en_ejecucion = NULL;
 }
 
 int main(void)
@@ -88,6 +90,8 @@ int main(void)
 
     cargar_config();
 
+    //probar_conexion_consola();
+
     conectar_puerto_dispatch();
     
     conectar_puerto_interrupt();
@@ -99,7 +103,6 @@ int main(void)
 
     pthread_join(h1, NULL);
     pthread_join(h2, NULL);
-    //probar_conexion_consola();
-
+        
     return 0;
 }
