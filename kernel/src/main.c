@@ -35,9 +35,12 @@ void liberar_memoria(void){
 void liberar_memoria_lista_pcb(t_list* lista){
 
     int i = 0;
+    pcb_t* pcb_pointer;
 
     for (i = 0; i < list_size(lista); i++){
-        free(list_remove(lista, i));
+        pcb_pointer = list_remove(lista, i);
+        free(pcb_pointer->lista_instrucciones);
+        free(pcb_pointer);
     }
 
 }
@@ -45,13 +48,17 @@ void liberar_memoria_lista_pcb(t_list* lista){
 void liberar_memoria_cola_pcb(t_queue* cola){
 
     int i = 0;
+    pcb_t * pcb_pointer;
 
     for (i = 0; i < queue_size(cola); i++){
-        free(queue_pop(cola));
+        pcb_pointer = queue_pop(cola);
+        free(pcb_pointer->lista_instrucciones);
+        free(pcb_pointer);
     }
 }
 
 void liberar_memoria_pcb(pcb_t * pcb_pointer){
+    free(pcb_pointer->lista_instrucciones);
     free(pcb_pointer);
 }
 

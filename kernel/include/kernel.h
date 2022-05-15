@@ -60,6 +60,11 @@ t_list* lista_bloqueado_sus;
 t_queue* cola_ready_sus;
 pcb_t* en_ejecucion;
 
+typedef struct datos_tiempo_bloqueo{
+    int32_t tiempo_bloqueo;
+    pcb_t* pcb_pointer;
+} datos_tiempo_bloqueo;
+
 // *FUNCIONES*
 
 void inicializar_variables_globales(void);
@@ -83,23 +88,23 @@ void actualizar_timestamp(pcb_t*);
 int32_t get_tiempo_transcurrido(uint64_t);
 pcb_t* alocar_memoria_pcb(void);
 void *gestionar_dispatch(void *);
-void gestionar_proceso_a_io(void);
-void gestionar_interrupcion_kernel(void);
 bool es_algoritmo_srt(void);
 void sumar_duracion_rafaga(pcb_t *);
 void transicion_consola_new(char *, int32_t, int);
 void transicion_ejec_ready(void);
-pcb_t * seleccionar_proceso_menor_estimacion(void);
+int seleccionar_proceso_menor_estimacion(void);
 void transicion_ready_ejec(void);
 void transicion_new_ready(void);
 void transicion_ejec_exit(void);
-void inicializar_estructuras_memoria(void);
+void transicion_ejec_bloqueado(int32_t);
+void *esperar_tiempo_bloqueo(void *);
+int get_indice_pcb_pointer(t_list*, pcb_t*);
+void inicializar_estructuras_memoria(pcb_t *);
 void liberar_estructuras_memoria(void);
 void liberar_memoria(void);
 void liberar_memoria_lista_pcb(t_list*);
 void liberar_memoria_cola_pcb(t_queue*);
 void liberar_memoria_pcb(pcb_t*);
-bool es_primer_proceso(void);
 void testear_seleccionar_proceso_menor_estimacion(void);
 
 #endif

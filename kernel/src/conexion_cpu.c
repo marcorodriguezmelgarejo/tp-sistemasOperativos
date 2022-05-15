@@ -30,7 +30,8 @@ void *gestionar_dispatch(void *arg){
         if (strcmp(motivo, "I/O") == 0){
             //recibo el tiempo de bloqueo
             sockets_recibir_dato(dispatch_socket, &tiempo_bloqueo, sizeof tiempo_bloqueo, logger);
-            gestionar_proceso_a_io();
+            
+            transicion_ejec_bloqueado(tiempo_bloqueo);
         }
         else if (strcmp(motivo, "EXIT") == 0){
             transicion_ejec_exit();
@@ -46,24 +47,6 @@ void enviar_pcb_cpu(pcb_t* pcb_pointer){
     if (sockets_enviar_pcb(dispatch_socket, *pcb_pointer, logger) == false){
         log_error(logger, "Error al enviar pcb al cpu");
     }
-}
-
-void gestionar_proceso_a_io(void){
-    /*
-        Cuando un proceso se va a I/O
-    */ 
-
-    list_add(lista_bloqueado, &en_ejecucion);
-
-    en_ejecucion = NULL;
-}
-
-void gestionar_interrupcion_kernel(void){
-    /*
-        Cuando se recibe el pcb luego de que el kernel haya mandado una interrupcion al cpu
-    */
-    list_add(lista_ready, &en_ejecucion);
-    en_ejecucion = NULL;
 }
 
 void conectar_puerto_dispatch(void){

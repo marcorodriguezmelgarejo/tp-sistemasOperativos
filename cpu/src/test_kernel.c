@@ -109,7 +109,7 @@ void *escuchar_dispatch(void *arg){
         pcb_buffer.lista_instrucciones = NULL;
         sockets_recibir_pcb(dispatch_socket, &pcb_buffer, logger);
 
-        if (en_ejecucion.pid == -1){
+        if (en_ejecucion.pid != -1){
             log_error(logger, "Se recibio pcb pero ya hay uno en ejecucion");
         }
 

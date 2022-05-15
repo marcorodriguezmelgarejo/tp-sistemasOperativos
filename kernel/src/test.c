@@ -69,7 +69,7 @@ void testear_seleccionar_proceso_menor_estimacion(void){
 
     printf("breakpoint 1\n");
 
-    pcb_menor_estimacion = seleccionar_proceso_menor_estimacion();
+    pcb_menor_estimacion = list_get(lista_ready, seleccionar_proceso_menor_estimacion());
 
     printf("breakpoint 2\n");
 
