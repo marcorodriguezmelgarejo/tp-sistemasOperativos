@@ -7,6 +7,7 @@ void manejar_sigint(int signal){
 
     pthread_cancel(h1);
     pthread_cancel(h2);
+    pthread_cancel(h3);
     liberar_memoria();
 }
 
@@ -29,7 +30,22 @@ void liberar_memoria(void){
     liberar_memoria_cola_pcb(cola_ready_sus);
     queue_destroy(cola_ready_sus);
 
+    liberar_threads_cola(cola_threads);
+    queue_destroy(cola_threads);
+
     log_destroy(logger);
+
+    pthread_mutex_destroy(&mutex_cola_threads);
+}
+
+void liberar_threads_cola(t_queue* cola){
+
+    pthread_t * thread_pointer = NULL;
+
+    if(!queue_is_empty(cola)){
+        thread_pointer = queue_pop(cola);
+        pthread_join(*thread_pointer, NULL);
+    }
 }
 
 void liberar_memoria_lista_pcb(t_list* lista){
@@ -64,11 +80,16 @@ void liberar_memoria_pcb(pcb_t * pcb_pointer){
 
 void inicializar_estructuras(void){
     
+    sem_init(&semaforo_cola_threads, 0, 0);
+    pthread_mutex_init(&mutex_cola_threads, NULL);
+
     cola_new = queue_create();
     lista_ready = list_create();
     lista_bloqueado = list_create();
     lista_bloqueado_sus = list_create();
     cola_ready_sus = queue_create();
+
+    cola_threads = queue_create();
 
     crear_logger();
 }
@@ -107,9 +128,11 @@ int main(void)
 
     pthread_create(&h1, NULL, gestionar_dispatch, NULL);
     pthread_create(&h2, NULL, gestionar_nuevas_consolas, NULL);
+    pthread_create(&h3, NULL, hacer_join_hilos_mediano_plazo, NULL);
 
     pthread_join(h1, NULL);
     pthread_join(h2, NULL);
+    pthread_join(h3, NULL);
         
     return 0;
 }

@@ -12,6 +12,7 @@
 #include <pthread.h>
 #include <signal.h>
 #include <sys/time.h>
+#include <semaphore.h>
 
 #include "../../shared/include/sockets.h"
 #include "../../shared/include/protocolos.h"
@@ -29,7 +30,10 @@
 
 // *VARIABLES GLOBALES*
 
-pthread_t h1, h2;
+pthread_t h1, h2, h3;
+sem_t semaforo_cola_threads;
+pthread_mutex_t mutex_cola_threads;
+
 t_log * logger;
 
 int consolas_socket;
@@ -59,6 +63,8 @@ t_list* lista_bloqueado;
 t_list* lista_bloqueado_sus;
 t_queue* cola_ready_sus;
 pcb_t* en_ejecucion;
+
+t_queue* cola_threads; //aca se guardan punteros a pthreads_t para ir haciendo joins y liberar recursos
 
 typedef struct datos_tiempo_bloqueo{
     int32_t tiempo_bloqueo;
@@ -106,5 +112,7 @@ void liberar_memoria_lista_pcb(t_list*);
 void liberar_memoria_cola_pcb(t_queue*);
 void liberar_memoria_pcb(pcb_t*);
 void testear_seleccionar_proceso_menor_estimacion(void);
+void liberar_threads_cola(t_queue*);
+void *hacer_join_hilos_mediano_plazo(void *);
 
 #endif

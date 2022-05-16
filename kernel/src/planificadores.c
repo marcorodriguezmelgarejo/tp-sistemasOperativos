@@ -164,21 +164,37 @@ void transicion_ejec_bloqueado(int32_t tiempo_bloqueo){
 
     list_add(lista_bloqueado, en_ejecucion);
 
+    log_info(logger, "EJEC -> BLOQUEADO (PID = %d)", en_ejecucion->pid);
+
     en_ejecucion = NULL;
 
     pthread_create(&hilo_proceso_bloqueado, NULL, esperar_tiempo_bloqueo, &datos_para_hilo);
+
+    //guardo el pthread en la cola de threads para que estos sean esperados y liberar sus recursos
+
+    pthread_mutex_lock(&mutex_cola_threads);
+    queue_push(cola_threads, &hilo_proceso_bloqueado);
+    pthread_mutex_unlock(&mutex_cola_threads);
+
+    sem_post(&semaforo_cola_threads);
 }
 
 void *esperar_tiempo_bloqueo(void * datos){
     /*
-        Hilo que maneja un proceso cuando se va a lista_bloqueado
+        Hilo que maneja un proceso cuando se va a lista_bloqueado.
+        Espera el tiempo de bloqueo y , si esta mas tiempo del permitido, se va a suspendido
     */
+
+    //TODO: implementar que vaya a suspendido
 
     datos_tiempo_bloqueo * datos_tiempo_bloqueo_pointer = datos; //paso de void* a datos_tiempo_bloqueo*
 
+    //espero el tiempo de bloqueo
     usleep(datos_tiempo_bloqueo_pointer->tiempo_bloqueo);
 
-    list_remove(lista_bloqueado, get_indice_pcb_pointer(lista_bloqueado, datos_tiempo_bloqueo_pointer->pcb_pointer));
+    list_add(lista_ready, list_remove(lista_bloqueado, get_indice_pcb_pointer(lista_bloqueado, datos_tiempo_bloqueo_pointer->pcb_pointer)));
+
+    log_info(logger, "BLOQUEADO -> READY (PID = %d)", datos_tiempo_bloqueo_pointer->pcb_pointer->pid);
 
     if (es_algoritmo_srt() && en_ejecucion != NULL) enviar_interrupcion_cpu();
     else if (en_ejecucion == NULL) transicion_ready_ejec();  
@@ -199,4 +215,25 @@ int get_indice_pcb_pointer(t_list* lista, pcb_t* pcb_pointer){
     }
 
     return -1;
+}
+
+void *hacer_join_hilos_mediano_plazo(void *arg){
+    /*
+        Hilo que espera a que terminen los hilos de funcion esperar_tiempo_bloqueo()
+    */
+
+    pthread_t *thread_pointer = NULL;
+
+    while(1){
+
+        sem_wait(&semaforo_cola_threads);
+
+        pthread_mutex_lock(&mutex_cola_threads);
+        thread_pointer = queue_pop(cola_threads);
+        pthread_mutex_unlock(&mutex_cola_threads);
+    
+        pthread_join(*thread_pointer, NULL);
+    }
+
+    return NULL;
 }
