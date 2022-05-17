@@ -13,6 +13,20 @@ void inicializar_estructuras_memoria(pcb_t* pcb_pointer){
     pcb_pointer->tabla_paginas = 1;
 }
 
+void memoria_suspender_proceso(pcb_t* pcb_pointer){
+
+    // TODO: IMPLEMENTAR
+
+    return;
+}
+
+void memoria_volver_de_suspendido(pcb_t* pcb_pointer){
+    
+    // TODO: IMPLEMENTAR
+    
+    return;
+}
+
 void liberar_estructuras_memoria(void){
     //TODO: IMPLEMENTAR
     return;

@@ -30,9 +30,10 @@
 
 // *VARIABLES GLOBALES*
 
-pthread_t h1, h2, h3;
+pthread_t h1, h2, h3, h4;
 sem_t semaforo_cola_threads;
 pthread_mutex_t mutex_cola_threads;
+pthread_mutex_t mutex_cola_datos_bloqueo;
 
 t_log * logger;
 
@@ -60,11 +61,12 @@ int32_t grado_multiprogramacion_actual;
 t_queue* cola_new;
 t_list* lista_ready;
 t_list* lista_bloqueado;
-t_list* lista_bloqueado_sus;
-t_queue* cola_ready_sus;
+t_list* lista_bloqueado_suspendido;
+t_queue* cola_ready_suspendido;
 pcb_t* en_ejecucion;
 
 t_queue* cola_threads; //aca se guardan punteros a pthreads_t para ir haciendo joins y liberar recursos
+t_queue* cola_datos_bloqueo; //se guardan punteros a datos_tiempo_bloqueo
 
 typedef struct datos_tiempo_bloqueo{
     int32_t tiempo_bloqueo;
@@ -114,5 +116,7 @@ void liberar_memoria_pcb(pcb_t*);
 void testear_seleccionar_proceso_menor_estimacion(void);
 void liberar_threads_cola(t_queue*);
 void *hacer_join_hilos_mediano_plazo(void *);
+void memoria_suspender_proceso(pcb_t*);
+void memoria_volver_de_suspendido(pcb_t*);
 
 #endif

@@ -24,11 +24,11 @@ void liberar_memoria(void){
     liberar_memoria_lista_pcb(lista_bloqueado);
     list_destroy(lista_bloqueado);
 
-    liberar_memoria_lista_pcb(lista_bloqueado_sus);
-    list_destroy(lista_bloqueado_sus);
+    liberar_memoria_lista_pcb(lista_bloqueado_suspendido);
+    list_destroy(lista_bloqueado_suspendido);
 
-    liberar_memoria_cola_pcb(cola_ready_sus);
-    queue_destroy(cola_ready_sus);
+    liberar_memoria_cola_pcb(cola_ready_suspendido);
+    queue_destroy(cola_ready_suspendido);
 
     liberar_threads_cola(cola_threads);
     queue_destroy(cola_threads);
@@ -36,6 +36,7 @@ void liberar_memoria(void){
     log_destroy(logger);
 
     pthread_mutex_destroy(&mutex_cola_threads);
+    pthread_mutex_destroy(&mutex_cola_datos_bloqueo);
 }
 
 void liberar_threads_cola(t_queue* cola){
@@ -82,14 +83,16 @@ void inicializar_estructuras(void){
     
     sem_init(&semaforo_cola_threads, 0, 0);
     pthread_mutex_init(&mutex_cola_threads, NULL);
+    pthread_mutex_init(&mutex_cola_datos_bloqueo, NULL);
 
     cola_new = queue_create();
     lista_ready = list_create();
     lista_bloqueado = list_create();
-    lista_bloqueado_sus = list_create();
-    cola_ready_sus = queue_create();
+    lista_bloqueado_suspendido = list_create();
+    cola_ready_suspendido = queue_create();
 
     cola_threads = queue_create();
+    cola_datos_bloqueo = queue_create();
 
     crear_logger();
 }
@@ -113,6 +116,8 @@ int main(void)
     inicializar_variables_globales();
 
     signal(SIGINT, manejar_sigint);
+
+    signal(SIGUSR1, ingresar_proceso_a_ready);
 
     inicializar_estructuras();
 
