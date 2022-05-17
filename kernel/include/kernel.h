@@ -102,9 +102,13 @@ void transicion_consola_new(char *, int32_t, int);
 void transicion_ejec_ready(void);
 int seleccionar_proceso_menor_estimacion(void);
 void transicion_ready_ejec(void);
-void transicion_new_ready(void);
+bool transicion_new_ready(void);
 void transicion_ejec_exit(void);
 void transicion_ejec_bloqueado(int32_t);
+void transicion_bloqueado_ready(pcb_t *);
+void transicion_bloqueado_bloqueado_suspendido(pcb_t *);
+void transicion_bloqueado_suspendido_ready_suspendido(pcb_t *);
+bool transicion_ready_suspendido_ready();
 void *esperar_tiempo_bloqueo(void *);
 int get_indice_pcb_pointer(t_list*, pcb_t*);
 void inicializar_estructuras_memoria(pcb_t *);
@@ -118,5 +122,7 @@ void liberar_threads_cola(t_queue*);
 void *hacer_join_hilos_mediano_plazo(void *);
 void memoria_suspender_proceso(pcb_t*);
 void memoria_volver_de_suspendido(pcb_t*);
+void ingresar_proceso_a_ready(int);
+void invocar_ingresar_proceso_a_ready(void);
 
 #endif

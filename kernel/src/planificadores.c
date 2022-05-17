@@ -7,21 +7,34 @@ bool es_algoritmo_srt(void){
     return strcmp(ALGORITMO_PLANIFICACION, "STR") == 0;
 }
 
-void ingresar_proceso_a_new(int signal){
+void ingresar_proceso_a_ready(int signal){
     /*
-        Escucha la signal SIGUSR1 que se activa cuando llega un proceso a
-        NEW o a READY_SUSPENDIDO o se baja el grado de multiprogramacion
+        Escucha la signal SIGUSR1. Intenta ingresar un proceso a ready.
+        La signal se activa cuando:
+        - Entra un nuevo proceso a NEW
+        - Entra un proceso a READY_SUSPENDIDO
+        - Se suspende un proceso (Entra a BLOQUEADO_SUSPENDIDO)
+        - Proceso se va a EXIT
     */
+
     if (grado_multiprogramacion_actual < GRADO_MULTIPROGRAMACION){
 
-        if (!queue_is_empty(cola_ready_suspendido)){
-            transicion_ready_suspendido_ready();
+        //primero intento con los procesos de READY_SUSPENDIDO porque tienen prioridad
+        if (transicion_ready_suspendido_ready()){
+            grado_multiprogramacion_actual++;
+            if (es_algoritmo_srt() && en_ejecucion != NULL) enviar_interrupcion_cpu();
+            else if (en_ejecucion == NULL) transicion_ready_ejec();
         }
-        else{
-            transicion_new_ready();
+        else if(transicion_new_ready()){
+            grado_multiprogramacion_actual++;
+            if (es_algoritmo_srt() && en_ejecucion != NULL) enviar_interrupcion_cpu();
+            else if (en_ejecucion == NULL) transicion_ready_ejec();
         }
     }
+}
 
+void invocar_ingresar_proceso_a_ready(void){
+    kill(getpid(), SIGUSR1);
 }
 
 void transicion_consola_new(char *lista_instrucciones, int32_t tamanio_proceso, int socket){
@@ -37,7 +50,7 @@ void transicion_consola_new(char *lista_instrucciones, int32_t tamanio_proceso, 
 
     log_info(logger, "Nuevo proceso en NEW (pid = %d)", pcb_pointer->pid);
 
-    kill(getpid(), SIGUSR1);
+    invocar_ingresar_proceso_a_ready();
 }
 
 void transicion_ejec_ready(void){
@@ -124,26 +137,30 @@ void transicion_ready_ejec(void){
     log_info(logger, "READY->EJEC (PID=%d)", en_ejecucion->pid);
 }
 
-void transicion_new_ready(void){
+bool transicion_new_ready(void){
     /*
-        Gestiona la transicion NEW->READY
+        Gestiona la transicion NEW->READY.
+        Devuelve true en caso de haber hecho la transicion, false en caso contrario.
     */
     
     pcb_t *pcb_pointer;
 
-    pcb_pointer = queue_peek(cola_new);
+    bool resultado = false;
 
-    inicializar_estructuras_memoria(pcb_pointer);
+    if (!queue_is_empty(cola_new)){
 
-    list_add(lista_ready, queue_pop(cola_new));
+        pcb_pointer = queue_peek(cola_new);
 
-    log_info(logger, "NEW->READY (PID=%d)", pcb_pointer->pid);
+        inicializar_estructuras_memoria(pcb_pointer);
 
-    grado_multiprogramacion_actual++;
+        list_add(lista_ready, queue_pop(cola_new));
 
-    if (es_algoritmo_srt() && en_ejecucion != NULL) enviar_interrupcion_cpu();
-    else if (en_ejecucion == NULL) transicion_ready_ejec();
-    
+        log_info(logger, "NEW->READY (PID=%d)", pcb_pointer->pid);
+
+        resultado = true;
+    }
+
+    return resultado;
 }
 
 void transicion_ejec_exit(void){
@@ -167,6 +184,8 @@ void transicion_ejec_exit(void){
     en_ejecucion = NULL;
 
     grado_multiprogramacion_actual--;
+
+    invocar_ingresar_proceso_a_ready();
 }
 
 void transicion_ejec_bloqueado(int32_t tiempo_bloqueo){
@@ -185,7 +204,7 @@ void transicion_ejec_bloqueado(int32_t tiempo_bloqueo){
 
     pthread_create(&hilo_proceso_bloqueado, NULL, esperar_tiempo_bloqueo, &datos_para_hilo);
 
-    //guardo el pthread en la cola de threads para que estos sean esperados y liberar sus recursos
+    //guardo el pthread en la cola de threads para que estos sean esperados y luego poder liberar sus recursos
 
     pthread_mutex_lock(&mutex_cola_threads);
     queue_push(cola_threads, &hilo_proceso_bloqueado);
@@ -196,70 +215,108 @@ void transicion_ejec_bloqueado(int32_t tiempo_bloqueo){
 
 void *esperar_tiempo_bloqueo(void * datos){
     /*
-        Hilo que maneja un proceso cuando se va a lista_bloqueado.
-        Espera el tiempo de bloqueo y , si esta mas tiempo del permitido, se va a suspendido
+        Hilo que maneja un proceso cuando se va a BLOQUEADO.
+        Espera el tiempo de bloqueo y, si esta mas tiempo del permitido, se va a suspendido.
+        Si se va a suspendido espera el tiempo restante de I/O para finalmente pasar a READY_SUSPENDIDO
     */
+
+    // TODO: BUSCAR LA MANERA DE PASAR LOS DATOS DE datos_tiempo_bloqueo_pointer.
+    //       ME PARECE QUE ASI COMO ESTA NO ANDA
 
     datos_tiempo_bloqueo * datos_tiempo_bloqueo_pointer = datos; //paso de void* a datos_tiempo_bloqueo*
 
-    //espero el tiempo de bloqueo
     if (datos_tiempo_bloqueo_pointer->tiempo_bloqueo <= TIEMPO_MAXIMO_BLOQUEADO){
-
+        
+        //espero el tiempo de bloqueo
         usleep(datos_tiempo_bloqueo_pointer->tiempo_bloqueo);
 
-        //lo mando a READY
+        transicion_bloqueado_ready(datos_tiempo_bloqueo_pointer->pcb_pointer);
 
-        list_add(lista_ready, list_remove(lista_bloqueado, get_indice_pcb_pointer(lista_bloqueado, datos_tiempo_bloqueo_pointer->pcb_pointer)));
-
-        log_info(logger, "BLOQUEADO -> READY (PID = %d)", datos_tiempo_bloqueo_pointer->pcb_pointer->pid);
-
-        if (es_algoritmo_srt() && en_ejecucion != NULL) enviar_interrupcion_cpu();
-        else if (en_ejecucion == NULL) transicion_ready_ejec(); 
     }
-    else{ //espero el tiempo maximo de bloqueado y lo mando a suspendido a seguir esperando por I/O
-
+    else{
+        
+        //espero el tiempo maximo de bloqueado
         usleep(TIEMPO_MAXIMO_BLOQUEADO);
 
         //suspendo el proceso
+        transicion_bloqueado_bloqueado_suspendido(datos_tiempo_bloqueo_pointer->pcb_pointer);
 
-        memoria_suspender_proceso(datos_tiempo_bloqueo_pointer->pcb_pointer);
-
-        grado_multiprogramacion_actual--;
-
-        kill(getpid(), SIGUSR1);
-
-        list_add(lista_bloqueado_suspendido, list_remove(lista_bloqueado, get_indice_pcb_pointer(lista_bloqueado, datos_tiempo_bloqueo_pointer->pcb_pointer)));
-
-        log_info(logger, "BLOQUEADO -> BLOQUEADO_SUSPENDIDO (PID = %d)", datos_tiempo_bloqueo_pointer->pcb_pointer->pid);
-
-        //espero el tiempo restante
+        //termino de esperar el I/O
         usleep(datos_tiempo_bloqueo_pointer->tiempo_bloqueo - TIEMPO_MAXIMO_BLOQUEADO);
 
-        //ahora lo mando a READY_SUSPENDIDO
-
-        queue_push(cola_ready_suspendido, list_remove(lista_bloqueado_suspendido, get_indice_pcb_pointer(lista_bloqueado_suspendido, datos_tiempo_bloqueo_pointer->pcb_pointer)));
-
-        log_info(logger, "BLOQUEADO_SUSPENDIDO -> READY_SUSPENDIDO (PID = %d)", datos_tiempo_bloqueo_pointer->pcb_pointer->pid);
+        transicion_bloqueado_suspendido_ready_suspendido(datos_tiempo_bloqueo_pointer->pcb_pointer);
         
-        kill(getpid(), SIGUSR1);
     }
 
     return NULL;
 }
 
-void transicion_ready_suspendido_ready(void){
+void transicion_bloqueado_bloqueado_suspendido(pcb_t *pcb_pointer){
+    /*
+        Gestiona la transicion BLOQUEADO->BLOQUEADO_SUSPENDIDO.
+        Suspende un proceso
+    */
 
-    pcb_t* pcb_pointer = queue_pop(cola_ready_suspendido);
+    memoria_suspender_proceso(pcb_pointer);
 
-    memoria_volver_de_suspendido(pcb_pointer);
+    list_add(lista_bloqueado_suspendido, list_remove(lista_bloqueado, get_indice_pcb_pointer(lista_bloqueado, pcb_pointer)));
 
-    list_add(lista_ready, pcb_pointer);
+    log_info(logger, "BLOQUEADO -> BLOQUEADO_SUSPENDIDO (PID = %d)", pcb_pointer->pid);
 
-    grado_multiprogramacion_actual++;
+    grado_multiprogramacion_actual--;
+
+    invocar_ingresar_proceso_a_ready(); 
+}
+
+void transicion_bloqueado_suspendido_ready_suspendido(pcb_t* pcb_pointer){
+    /*
+        Gestiona la transicion BLOQUEADO_SUSPENDIDO->READY_SUSPENDIO
+        Cuando un proceso suspendido cumplio su tiempo de I/O
+    */
+
+    queue_push(cola_ready_suspendido, list_remove(lista_bloqueado_suspendido, get_indice_pcb_pointer(lista_bloqueado_suspendido, pcb_pointer)));
+
+    log_info(logger, "BLOQUEADO_SUSPENDIDO -> READY_SUSPENDIDO (PID = %d)", pcb_pointer->pid);
+    
+    invocar_ingresar_proceso_a_ready();
+}
+
+void transicion_bloqueado_ready(pcb_t* pcb_pointer){
+    /*
+        Gestiona la transicion BLOQUEADO->READY
+        Cuando un proceso termina de esperar por I/O sin llegar a ser suspendido
+    */
+
+    list_add(lista_ready, list_remove(lista_bloqueado, get_indice_pcb_pointer(lista_bloqueado, pcb_pointer)));
+
+    log_info(logger, "BLOQUEADO -> READY (PID = %d)", pcb_pointer->pid);
 
     if (es_algoritmo_srt() && en_ejecucion != NULL) enviar_interrupcion_cpu();
-    else if (en_ejecucion == NULL) transicion_ready_ejec();         
+    else if (en_ejecucion == NULL) transicion_ready_ejec(); 
+}
 
+bool transicion_ready_suspendido_ready(void){
+    /*
+        Gestiona la transicion READY_SUSPENDIDO -> READY.
+        Devuelve true en caso de haber hecho la transicion, false en caso contrario.
+    */
+
+    bool resultado = false;
+    pcb_t * pcb_pointer = NULL;
+
+    if (!queue_is_empty(cola_ready_suspendido)){
+
+        pcb_pointer = queue_pop(cola_ready_suspendido);
+
+        memoria_volver_de_suspendido(pcb_pointer);
+
+        list_add(lista_ready, pcb_pointer);
+
+        resultado = true;
+    
+    }
+
+    return resultado;
 }
 
 int get_indice_pcb_pointer(t_list* lista, pcb_t* pcb_pointer){
