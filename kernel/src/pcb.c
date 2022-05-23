@@ -26,6 +26,8 @@ pcb_t *generar_pcb(char *lista_instrucciones, int32_t tamanio_proceso, int socke
 
     *pcb_pointer = pcb_nuevo;
 
+    contador_pid++;
+
     return pcb_pointer;
 }
 

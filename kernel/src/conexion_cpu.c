@@ -22,6 +22,8 @@ void *gestionar_dispatch(void *arg){
         //recibe el pcb del proceso en ejecucion
         pcb_buffer.lista_instrucciones = NULL;
         sockets_recibir_pcb(dispatch_socket, &pcb_buffer, logger);
+
+        log_debug(logger, "Se recibio pcb de parte del CPU (PID = %d) (MOTIVO = %s)", pcb_buffer.pid, motivo);
         
         actualizar_program_counter_en_ejecucion(pcb_buffer.program_counter); 
 
@@ -44,9 +46,12 @@ void *gestionar_dispatch(void *arg){
 }
 
 void enviar_pcb_cpu(pcb_t* pcb_pointer){
+    
     if (sockets_enviar_pcb(dispatch_socket, *pcb_pointer, logger) == false){
         log_error(logger, "Error al enviar pcb al cpu");
     }
+    
+    log_debug(logger, "Se envio pcb al CPU (PID = %d)", pcb_pointer->pid);
 }
 
 void conectar_puerto_dispatch(void){
@@ -74,4 +79,6 @@ void enviar_interrupcion_cpu(void){
     if (sockets_enviar_dato(interrupt_socket, &dato, sizeof dato, logger) == false){
         log_error(logger, "Error al enviar interrupcion al CPU");
     }
+
+    log_debug(logger, "Se envio interrupcion al CPU");
 }

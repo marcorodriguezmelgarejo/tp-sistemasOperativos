@@ -11,7 +11,7 @@ pcb_t en_ejecucion;
 #define CONSOLA_BACKLOG 5
 #define PUERTO_INTERRUPT "8005"
 #define TIEMPO_EJECUCION 2
-#define MOTIVO "EXIT"
+#define TIEMPO_BLOQUEO 20000
 
 void crear_logger(void);
 void *conectar_dispatch(void *);
@@ -21,7 +21,7 @@ int contar_instrucciones(pcb_t);
 void llegar_instruccion_exit(void);
 void *escuchar_dispatch(void *);
 void *escuchar_interrupt(void *);
-void enviar_dispatch(pcb_t);
+void enviar_dispatch(pcb_t, char *);
 
 void crear_logger(void){
 
@@ -95,7 +95,20 @@ void llegar_instruccion_exit(void){
 
     log_info(logger, "pid = %d llego a instruccion EXIT", en_ejecucion.pid);
 
-    enviar_dispatch(en_ejecucion);
+    enviar_dispatch(en_ejecucion, "EXIT");
+
+    en_ejecucion.pid = -1;
+}
+
+void llegar_io(void){
+
+    sleep(TIEMPO_EJECUCION);
+
+    en_ejecucion.program_counter = 5;
+
+    log_info(logger, "pid = %d llego a instruccion I/O", en_ejecucion.pid);
+
+    enviar_dispatch(en_ejecucion, "I/O");
 
     en_ejecucion.pid = -1;
 }
@@ -117,7 +130,13 @@ void *escuchar_dispatch(void *arg){
         en_ejecucion = pcb_buffer;
         log_info(logger, "Se esta ejecutando pid = %d", en_ejecucion.pid);
 
-        llegar_instruccion_exit();
+        //llegar_instruccion_exit();
+        if (en_ejecucion.program_counter < 5){
+            llegar_io();
+        }
+        else{
+            llegar_instruccion_exit();
+        }
 
         free(pcb_buffer.lista_instrucciones);
     }
@@ -125,11 +144,22 @@ void *escuchar_dispatch(void *arg){
     return NULL;
 }
 
-void enviar_dispatch(pcb_t pcb_a_enviar){
+void enviar_dispatch(pcb_t pcb_a_enviar, char * motivo){
+
+    if (en_ejecucion.pid == -1){
+        log_error(logger, "Se quiso enviar dispatch pero no hay proceso en ejecucion");
+        return;
+    }
     
-    sockets_enviar_string(dispatch_socket, MOTIVO, logger);
+    int32_t tiempo_bloqueo = TIEMPO_BLOQUEO;
+
+    sockets_enviar_string(dispatch_socket, motivo, logger);
 
     sockets_enviar_pcb(dispatch_socket, pcb_a_enviar, logger);
+
+    if (strcmp(motivo, "I/O") == 0){
+        sockets_enviar_dato(dispatch_socket, &tiempo_bloqueo, sizeof tiempo_bloqueo, logger);
+    }
 }
 
 void *escuchar_interrupt(void * arg){
@@ -140,9 +170,7 @@ void *escuchar_interrupt(void * arg){
         sockets_recibir_dato(interrupt_socket, &buffer, sizeof buffer, logger);
         log_info(logger, "Se recibio interrupcion del kernel");
 
-        en_ejecucion.program_counter++; //aumento en uno simbolicamente
-
-        enviar_dispatch(en_ejecucion);
+        enviar_dispatch(en_ejecucion, "INT");
 
         en_ejecucion.pid = -1;
     }

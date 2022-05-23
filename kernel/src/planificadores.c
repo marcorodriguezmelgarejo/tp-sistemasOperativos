@@ -46,9 +46,7 @@ void transicion_consola_new(char *lista_instrucciones, int32_t tamanio_proceso, 
 
     queue_push(cola_new, pcb_pointer);
 
-    contador_pid++;
-
-    log_info(logger, "Nuevo proceso en NEW (pid = %d)", pcb_pointer->pid);
+    log_info(logger, "-> NEW (PID = %d)", pcb_pointer->pid);
 
     invocar_ingresar_proceso_a_ready();
 }
@@ -134,7 +132,7 @@ void transicion_ready_ejec(void){
 
     enviar_pcb_cpu(en_ejecucion);
 
-    log_info(logger, "READY->EJEC (PID=%d)", en_ejecucion->pid);
+    log_info(logger, "READY->EJEC (PID = %d)", en_ejecucion->pid);
 }
 
 bool transicion_new_ready(void){
@@ -155,7 +153,7 @@ bool transicion_new_ready(void){
 
         list_add(lista_ready, queue_pop(cola_new));
 
-        log_info(logger, "NEW->READY (PID=%d)", pcb_pointer->pid);
+        log_info(logger, "NEW->READY (PID = %d)", pcb_pointer->pid);
 
         resultado = true;
     }
@@ -194,7 +192,16 @@ void transicion_ejec_bloqueado(int32_t tiempo_bloqueo){
     */
 
     pthread_t hilo_proceso_bloqueado;
-    datos_tiempo_bloqueo datos_para_hilo = {tiempo_bloqueo, en_ejecucion};
+
+    datos_tiempo_bloqueo *datos_para_hilo = NULL;
+
+    if ((datos_para_hilo = malloc(sizeof *datos_para_hilo)) == NULL){
+        log_error(logger, "Error al hacer malloc() en transicion_ejec_bloqueado()");
+        return;
+    }
+
+    datos_para_hilo->tiempo_bloqueo = tiempo_bloqueo;
+    datos_para_hilo->pcb_pointer = en_ejecucion;
 
     list_add(lista_bloqueado, en_ejecucion);
 
@@ -202,9 +209,15 @@ void transicion_ejec_bloqueado(int32_t tiempo_bloqueo){
 
     en_ejecucion = NULL;
 
-    pthread_create(&hilo_proceso_bloqueado, NULL, esperar_tiempo_bloqueo, &datos_para_hilo);
+    //pusheo los datos necesarios (tiempo de bloqueo y pcb_pointer) para el hilo en una cola
 
-    //guardo el pthread en la cola de threads para que estos sean esperados y luego poder liberar sus recursos
+    pthread_mutex_lock(&mutex_cola_datos_bloqueo);
+    queue_push(cola_datos_bloqueo, datos_para_hilo);
+    pthread_mutex_unlock(&mutex_cola_datos_bloqueo);
+
+    pthread_create(&hilo_proceso_bloqueado, NULL, esperar_tiempo_bloqueo, NULL);
+
+    //guardo el pthread en la cola de threads para que estos sean esperados y poder liberar sus recursos
 
     pthread_mutex_lock(&mutex_cola_threads);
     queue_push(cola_threads, &hilo_proceso_bloqueado);
@@ -213,38 +226,48 @@ void transicion_ejec_bloqueado(int32_t tiempo_bloqueo){
     sem_post(&semaforo_cola_threads);
 }
 
-void *esperar_tiempo_bloqueo(void * datos){
+void *esperar_tiempo_bloqueo(void * arg){
     /*
         Hilo que maneja un proceso cuando se va a BLOQUEADO.
         Espera el tiempo de bloqueo y, si esta mas tiempo del permitido, se va a suspendido.
         Si se va a suspendido espera el tiempo restante de I/O para finalmente pasar a READY_SUSPENDIDO
     */
 
-    // TODO: BUSCAR LA MANERA DE PASAR LOS DATOS DE datos_tiempo_bloqueo_pointer.
-    //       ME PARECE QUE ASI COMO ESTA NO ANDA
+    datos_tiempo_bloqueo * datos_tiempo_bloqueo_pointer = NULL;
+    pcb_t * pcb_pointer = NULL;
+    int32_t tiempo_bloqueo;
 
-    datos_tiempo_bloqueo * datos_tiempo_bloqueo_pointer = datos; //paso de void* a datos_tiempo_bloqueo*
+    //obtiene el tiempo de bloqueo y el puntero al pcb correspondiente
 
-    if (datos_tiempo_bloqueo_pointer->tiempo_bloqueo <= TIEMPO_MAXIMO_BLOQUEADO){
+    pthread_mutex_lock(&mutex_cola_datos_bloqueo);
+    datos_tiempo_bloqueo_pointer = queue_pop(cola_datos_bloqueo);
+    pthread_mutex_unlock(&mutex_cola_datos_bloqueo);    
+
+    pcb_pointer = datos_tiempo_bloqueo_pointer->pcb_pointer;
+    tiempo_bloqueo = datos_tiempo_bloqueo_pointer->tiempo_bloqueo;
+
+    free(datos_tiempo_bloqueo_pointer);
+
+    if (tiempo_bloqueo <= TIEMPO_MAXIMO_BLOQUEADO){
         
         //espero el tiempo de bloqueo
-        usleep(datos_tiempo_bloqueo_pointer->tiempo_bloqueo);
+        usleep(milisegundos_a_microsegundos(TIEMPO_MAXIMO_BLOQUEADO));
 
-        transicion_bloqueado_ready(datos_tiempo_bloqueo_pointer->pcb_pointer);
+        transicion_bloqueado_ready(pcb_pointer);
 
     }
     else{
         
         //espero el tiempo maximo de bloqueado
-        usleep(TIEMPO_MAXIMO_BLOQUEADO);
+        usleep(milisegundos_a_microsegundos(TIEMPO_MAXIMO_BLOQUEADO));
 
         //suspendo el proceso
-        transicion_bloqueado_bloqueado_suspendido(datos_tiempo_bloqueo_pointer->pcb_pointer);
+        transicion_bloqueado_bloqueado_suspendido(pcb_pointer);
 
         //termino de esperar el I/O
-        usleep(datos_tiempo_bloqueo_pointer->tiempo_bloqueo - TIEMPO_MAXIMO_BLOQUEADO);
+        usleep(milisegundos_a_microsegundos(tiempo_bloqueo - TIEMPO_MAXIMO_BLOQUEADO));
 
-        transicion_bloqueado_suspendido_ready_suspendido(datos_tiempo_bloqueo_pointer->pcb_pointer);
+        transicion_bloqueado_suspendido_ready_suspendido(pcb_pointer);
         
     }
 
@@ -312,6 +335,8 @@ bool transicion_ready_suspendido_ready(void){
 
         list_add(lista_ready, pcb_pointer);
 
+        log_info(logger, "READY_SUSPENDIDO->READY (PID = %d)", pcb_pointer->pid);
+
         resultado = true;
     
     }
@@ -353,4 +378,8 @@ void *hacer_join_hilos_mediano_plazo(void *arg){
     }
 
     return NULL;
+}
+
+int32_t milisegundos_a_microsegundos(int32_t milisegundos){
+    return milisegundos * 1000;
 }

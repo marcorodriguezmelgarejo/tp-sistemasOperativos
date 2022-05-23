@@ -33,6 +33,9 @@ void liberar_memoria(void){
     liberar_threads_cola(cola_threads);
     queue_destroy(cola_threads);
 
+    liberar_memoria_cola_pcb(cola_datos_bloqueo);
+    queue_destroy(cola_datos_bloqueo);
+
     log_destroy(logger);
 
     pthread_mutex_destroy(&mutex_cola_threads);

@@ -124,5 +124,6 @@ void memoria_suspender_proceso(pcb_t*);
 void memoria_volver_de_suspendido(pcb_t*);
 void ingresar_proceso_a_ready(int);
 void invocar_ingresar_proceso_a_ready(void);
+int32_t milisegundos_a_microsegundos (int32_t);
 
 #endif
