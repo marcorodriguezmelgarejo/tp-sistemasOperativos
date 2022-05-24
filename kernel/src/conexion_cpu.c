@@ -6,7 +6,7 @@ void *gestionar_dispatch(void *arg){
         dependiendo del motivo del mensaje de la CPU
     */
 
-    char motivo[5]; // "I/O", "EXIT" o "INT"
+    char motivo[MOTIVO_LENGTH]; // "I/O", "EXIT" o "INT"
     /*
     "I/O" : el proceso llego a instruccion "I/O"
     "EXIT": el proceso llego a instruccion "EXIT"
@@ -22,15 +22,18 @@ void *gestionar_dispatch(void *arg){
         //recibe el pcb del proceso en ejecucion
         pcb_buffer.lista_instrucciones = NULL;
         sockets_recibir_pcb(dispatch_socket, &pcb_buffer, logger);
+
+        log_debug(logger, "Se recibio pcb de parte del CPU (PID = %d) (MOTIVO = %s)", pcb_buffer.pid, motivo);
         
-        actualizar_program_counter(pcb_buffer); 
+        actualizar_program_counter_en_ejecucion(pcb_buffer.program_counter); 
 
         free(pcb_buffer.lista_instrucciones); //debido a que sockets_recibir_pcb() reservo memoria 
 
         if (strcmp(motivo, "I/O") == 0){
             //recibo el tiempo de bloqueo
             sockets_recibir_dato(dispatch_socket, &tiempo_bloqueo, sizeof tiempo_bloqueo, logger);
-            gestionar_proceso_a_io();
+            
+            transicion_ejec_bloqueado(tiempo_bloqueo);
         }
         else if (strcmp(motivo, "EXIT") == 0){
             transicion_ejec_exit();
@@ -43,27 +46,12 @@ void *gestionar_dispatch(void *arg){
 }
 
 void enviar_pcb_cpu(pcb_t* pcb_pointer){
+    
     if (sockets_enviar_pcb(dispatch_socket, *pcb_pointer, logger) == false){
         log_error(logger, "Error al enviar pcb al cpu");
     }
-}
-
-void gestionar_proceso_a_io(void){
-    /*
-        Cuando un proceso se va a I/O
-    */ 
-
-    list_add(lista_bloqueado, &en_ejecucion);
-
-    en_ejecucion = NULL;
-}
-
-void gestionar_interrupcion_kernel(void){
-    /*
-        Cuando se recibe el pcb luego de que el kernel haya mandado una interrupcion al cpu
-    */
-    list_add(lista_ready, &en_ejecucion);
-    en_ejecucion = NULL;
+    
+    log_debug(logger, "Se envio pcb al CPU (PID = %d)", pcb_pointer->pid);
 }
 
 void conectar_puerto_dispatch(void){
@@ -91,4 +79,6 @@ void enviar_interrupcion_cpu(void){
     if (sockets_enviar_dato(interrupt_socket, &dato, sizeof dato, logger) == false){
         log_error(logger, "Error al enviar interrupcion al CPU");
     }
+
+    log_debug(logger, "Se envio interrupcion al CPU");
 }

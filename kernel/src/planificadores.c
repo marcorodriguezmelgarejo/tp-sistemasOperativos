@@ -7,20 +7,63 @@ bool es_algoritmo_srt(void){
     return strcmp(ALGORITMO_PLANIFICACION, "STR") == 0;
 }
 
-void sumar_duracion_rafaga(pcb_t * pcb_pointer){
-    pcb_pointer->duracion_real_ultima_rafaga += get_tiempo_transcurrido(pcb_pointer->timestamp);
+void ingresar_proceso_a_ready(int signal){
+    /*
+        Escucha la signal SIGUSR1. Intenta ingresar un proceso a ready.
+        La signal se activa cuando:
+        - Entra un nuevo proceso a NEW
+        - Entra un proceso a READY_SUSPENDIDO
+        - Se suspende un proceso (Entra a BLOQUEADO_SUSPENDIDO)
+        - Proceso se va a EXIT
+    */
+
+    if (grado_multiprogramacion_actual < GRADO_MULTIPROGRAMACION){
+
+        //primero intento con los procesos de READY_SUSPENDIDO porque tienen prioridad
+        if (transicion_ready_suspendido_ready()){
+            grado_multiprogramacion_actual++;
+            if (es_algoritmo_srt() && en_ejecucion != NULL) enviar_interrupcion_cpu();
+            else if (en_ejecucion == NULL) transicion_ready_ejec();
+        }
+        else if(transicion_new_ready()){
+            grado_multiprogramacion_actual++;
+            if (es_algoritmo_srt() && en_ejecucion != NULL) enviar_interrupcion_cpu();
+            else if (en_ejecucion == NULL) transicion_ready_ejec();
+        }
+    }
+}
+
+void invocar_ingresar_proceso_a_ready(void){
+    kill(getpid(), SIGUSR1);
+}
+
+void transicion_consola_new(char *lista_instrucciones, int32_t tamanio_proceso, int socket){
+    /*
+        Gestiona la transicion CONSOLA->NEW
+    */
+
+    pcb_t *pcb_pointer = generar_pcb(lista_instrucciones, tamanio_proceso, socket);
+
+    queue_push(cola_new, pcb_pointer);
+
+    log_info(logger, "-> NEW (PID = %d)", pcb_pointer->pid);
+
+    invocar_ingresar_proceso_a_ready();
 }
 
 void transicion_ejec_ready(void){
     /*
         Gestiona la transicion EJEC->READY
     */
-    
-    if (es_algoritmo_srt()){
-        sumar_duracion_rafaga(en_ejecucion);
-    }
 
-    list_add(lista_ready, &en_ejecucion);
+    if (en_ejecucion == NULL){
+        log_error(logger, "error en transicion_ejec_ready(): 'en_ejecucion' es NULL");
+        return;
+    }
+    
+    if (es_algoritmo_srt()) sumar_duracion_rafaga(en_ejecucion);
+
+    list_add(lista_ready, en_ejecucion);
 
     log_info(logger, "EJEC->READY (pid = %d)", en_ejecucion->pid);
 
@@ -29,30 +72,33 @@ void transicion_ejec_ready(void){
     transicion_ready_ejec();
 }
 
-pcb_t* seleccionar_proceso_menor_estimacion(void){
+int seleccionar_proceso_menor_estimacion(void){
     /*
         Recorre la lista de ready comparando las estimaciones de rafagas
-        y devuelve un puntero al pcb del proceso con menor estimacion
+        y devuelve la posicion en la lista de ready del pcb del proceso con menor estimacion.
     */
 
-    pcb_t ** pcb_actual = NULL;
-    pcb_t ** pcb_menor_rafaga = NULL;
+    pcb_t * pcb_actual = NULL;
+    pcb_t * pcb_menor_rafaga = NULL;
+    int indice_menor_rafaga = 0;
+    int i = 0;
 
-    t_list_iterator* iterator_ready = list_iterator_create(lista_ready);
-
-    if (list_iterator_has_next(iterator_ready)){
-        pcb_menor_rafaga = list_iterator_next(iterator_ready);
+    if (!list_is_empty(lista_ready)){
+        pcb_menor_rafaga = list_get(lista_ready, 0);
     }
 
-	while(list_iterator_has_next(iterator_ready)){
+    for (i = 1; i < list_size(lista_ready); i++){
 
-        pcb_actual = list_iterator_next(iterator_ready);
-        if ((*pcb_actual)->estimacion_rafaga < (*pcb_menor_rafaga)->estimacion_rafaga) pcb_menor_rafaga = pcb_actual;
+        pcb_actual = list_get(lista_ready, i);
+
+        if (pcb_actual->estimacion_rafaga < pcb_menor_rafaga->estimacion_rafaga){
+            pcb_menor_rafaga = pcb_actual;
+            indice_menor_rafaga = i;
+        }
+
     }
 
-    list_iterator_destroy(iterator_ready);
-
-    return *pcb_menor_rafaga;
+    return indice_menor_rafaga;
 }
 
 void transicion_ready_ejec(void){
@@ -60,10 +106,8 @@ void transicion_ready_ejec(void){
         Gestiona la transicion READY->EJEC
     */
 
-    pcb_t** pcb_a_ejecutar = NULL;
-
     if (en_ejecucion != NULL){
-        log_error(logger, "error en planificador_corto_plazo_ejec(): 'en_ejecucion' no es NULL");
+        log_error(logger, "error en transicion_ready_ejec(): 'en_ejecucion' no es NULL");
         return;
     }
 
@@ -73,18 +117,14 @@ void transicion_ready_ejec(void){
     }
 
     if (es_algoritmo_srt()){
-
-        en_ejecucion = seleccionar_proceso_menor_estimacion();
-
+        en_ejecucion = list_remove(lista_ready, seleccionar_proceso_menor_estimacion());
     }
-    else{ //si es fifo
-
-        pcb_a_ejecutar = list_get(lista_ready, 0);
-        en_ejecucion = *pcb_a_ejecutar;
-    }
+    else{//si es fifo
+        en_ejecucion = list_remove(lista_ready, 0);
+    } 
 
     if (en_ejecucion->tabla_paginas == -1){
-        log_error(logger, "El proceso a punto de ejecutarse no posee una tabla de paginas reservada");
+        log_error(logger, "error en transicion_ready_ejec(): el proceso no posee una tabla de paginas reservada");
         return;
     }
 
@@ -92,28 +132,33 @@ void transicion_ready_ejec(void){
 
     enviar_pcb_cpu(en_ejecucion);
 
-    log_info(logger, "READY->EJEC (PID=%d)", en_ejecucion->pid);
+    log_info(logger, "READY->EJEC (PID = %d)", en_ejecucion->pid);
 }
 
-void transicion_new_ready(void){
+bool transicion_new_ready(void){
     /*
-        Gestiona la transicion NEW->READY
+        Gestiona la transicion NEW->READY.
+        Devuelve true en caso de haber hecho la transicion, false en caso contrario.
     */
     
-    pcb_t **pcb_pointer;
+    pcb_t *pcb_pointer;
 
-    if (grado_multiprogramacion_actual < GRADO_MULTIPROGRAMACION){
+    bool resultado = false;
+
+    if (!queue_is_empty(cola_new)){
 
         pcb_pointer = queue_peek(cola_new);
-        inicializar_estructuras_memoria();
+
+        inicializar_estructuras_memoria(pcb_pointer);
+
         list_add(lista_ready, queue_pop(cola_new));
 
-        log_info(logger, "NEW->READY (PID=%d)", (*pcb_pointer)->pid);
+        log_info(logger, "NEW->READY (PID = %d)", pcb_pointer->pid);
 
-        grado_multiprogramacion_actual++;
-
-        enviar_interrupcion_cpu();
+        resultado = true;
     }
+
+    return resultado;
 }
 
 void transicion_ejec_exit(void){
@@ -121,13 +166,220 @@ void transicion_ejec_exit(void){
         Gestiona la transicion EJEC->EXIT
     */
 
+    if (en_ejecucion == NULL){
+        log_error(logger, "error en transicion_ejec_exit(): 'en_ejecucion' es NULL");
+        return;
+    }
+
     liberar_estructuras_memoria();
 
-    finalizar_conexion_consola(en_ejecucion->pid);
-
     log_info(logger, "EJEC->EXIT (PID=%d)", en_ejecucion->pid);
+
+    finalizar_conexion_consola(en_ejecucion);
+
+    liberar_memoria_pcb(en_ejecucion);
         
     en_ejecucion = NULL;
 
     grado_multiprogramacion_actual--;
+
+    invocar_ingresar_proceso_a_ready();
+}
+
+void transicion_ejec_bloqueado(int32_t tiempo_bloqueo){
+    /*
+        Gestiona la transicion EJEC->BLOQUEADO
+    */
+
+    pthread_t hilo_proceso_bloqueado;
+
+    datos_tiempo_bloqueo *datos_para_hilo = NULL;
+
+    if ((datos_para_hilo = malloc(sizeof *datos_para_hilo)) == NULL){
+        log_error(logger, "Error al hacer malloc() en transicion_ejec_bloqueado()");
+        return;
+    }
+
+    datos_para_hilo->tiempo_bloqueo = tiempo_bloqueo;
+    datos_para_hilo->pcb_pointer = en_ejecucion;
+
+    list_add(lista_bloqueado, en_ejecucion);
+
+    log_info(logger, "EJEC -> BLOQUEADO (PID = %d)", en_ejecucion->pid);
+
+    en_ejecucion = NULL;
+
+    //pusheo los datos necesarios (tiempo de bloqueo y pcb_pointer) para el hilo en una cola
+
+    pthread_mutex_lock(&mutex_cola_datos_bloqueo);
+    queue_push(cola_datos_bloqueo, datos_para_hilo);
+    pthread_mutex_unlock(&mutex_cola_datos_bloqueo);
+
+    pthread_create(&hilo_proceso_bloqueado, NULL, esperar_tiempo_bloqueo, NULL);
+
+    //guardo el pthread en la cola de threads para que estos sean esperados y poder liberar sus recursos
+
+    pthread_mutex_lock(&mutex_cola_threads);
+    queue_push(cola_threads, &hilo_proceso_bloqueado);
+    pthread_mutex_unlock(&mutex_cola_threads);
+
+    sem_post(&semaforo_cola_threads);
+}
+
+void *esperar_tiempo_bloqueo(void * arg){
+    /*
+        Hilo que maneja un proceso cuando se va a BLOQUEADO.
+        Espera el tiempo de bloqueo y, si esta mas tiempo del permitido, se va a suspendido.
+        Si se va a suspendido espera el tiempo restante de I/O para finalmente pasar a READY_SUSPENDIDO
+    */
+
+    datos_tiempo_bloqueo * datos_tiempo_bloqueo_pointer = NULL;
+    pcb_t * pcb_pointer = NULL;
+    int32_t tiempo_bloqueo;
+
+    //obtiene el tiempo de bloqueo y el puntero al pcb correspondiente
+
+    pthread_mutex_lock(&mutex_cola_datos_bloqueo);
+    datos_tiempo_bloqueo_pointer = queue_pop(cola_datos_bloqueo);
+    pthread_mutex_unlock(&mutex_cola_datos_bloqueo);    
+
+    pcb_pointer = datos_tiempo_bloqueo_pointer->pcb_pointer;
+    tiempo_bloqueo = datos_tiempo_bloqueo_pointer->tiempo_bloqueo;
+
+    free(datos_tiempo_bloqueo_pointer);
+
+    if (tiempo_bloqueo <= TIEMPO_MAXIMO_BLOQUEADO){
+        
+        //espero el tiempo de bloqueo
+        usleep(milisegundos_a_microsegundos(TIEMPO_MAXIMO_BLOQUEADO));
+
+        transicion_bloqueado_ready(pcb_pointer);
+
+    }
+    else{
+        
+        //espero el tiempo maximo de bloqueado
+        usleep(milisegundos_a_microsegundos(TIEMPO_MAXIMO_BLOQUEADO));
+
+        //suspendo el proceso
+        transicion_bloqueado_bloqueado_suspendido(pcb_pointer);
+
+        //termino de esperar el I/O
+        usleep(milisegundos_a_microsegundos(tiempo_bloqueo - TIEMPO_MAXIMO_BLOQUEADO));
+
+        transicion_bloqueado_suspendido_ready_suspendido(pcb_pointer);
+        
+    }
+
+    return NULL;
+}
+
+void transicion_bloqueado_bloqueado_suspendido(pcb_t *pcb_pointer){
+    /*
+        Gestiona la transicion BLOQUEADO->BLOQUEADO_SUSPENDIDO.
+        Suspende un proceso
+    */
+
+    memoria_suspender_proceso(pcb_pointer);
+
+    list_add(lista_bloqueado_suspendido, list_remove(lista_bloqueado, get_indice_pcb_pointer(lista_bloqueado, pcb_pointer)));
+
+    log_info(logger, "BLOQUEADO -> BLOQUEADO_SUSPENDIDO (PID = %d)", pcb_pointer->pid);
+
+    grado_multiprogramacion_actual--;
+
+    invocar_ingresar_proceso_a_ready(); 
+}
+
+void transicion_bloqueado_suspendido_ready_suspendido(pcb_t* pcb_pointer){
+    /*
+        Gestiona la transicion BLOQUEADO_SUSPENDIDO->READY_SUSPENDIO
+        Cuando un proceso suspendido cumplio su tiempo de I/O
+    */
+
+    queue_push(cola_ready_suspendido, list_remove(lista_bloqueado_suspendido, get_indice_pcb_pointer(lista_bloqueado_suspendido, pcb_pointer)));
+
+    log_info(logger, "BLOQUEADO_SUSPENDIDO -> READY_SUSPENDIDO (PID = %d)", pcb_pointer->pid);
+    
+    invocar_ingresar_proceso_a_ready();
+}
+
+void transicion_bloqueado_ready(pcb_t* pcb_pointer){
+    /*
+        Gestiona la transicion BLOQUEADO->READY
+        Cuando un proceso termina de esperar por I/O sin llegar a ser suspendido
+    */
+
+    list_add(lista_ready, list_remove(lista_bloqueado, get_indice_pcb_pointer(lista_bloqueado, pcb_pointer)));
+
+    log_info(logger, "BLOQUEADO -> READY (PID = %d)", pcb_pointer->pid);
+
+    if (es_algoritmo_srt() && en_ejecucion != NULL) enviar_interrupcion_cpu();
+    else if (en_ejecucion == NULL) transicion_ready_ejec(); 
+}
+
+bool transicion_ready_suspendido_ready(void){
+    /*
+        Gestiona la transicion READY_SUSPENDIDO -> READY.
+        Devuelve true en caso de haber hecho la transicion, false en caso contrario.
+    */
+
+    bool resultado = false;
+    pcb_t * pcb_pointer = NULL;
+
+    if (!queue_is_empty(cola_ready_suspendido)){
+
+        pcb_pointer = queue_pop(cola_ready_suspendido);
+
+        memoria_volver_de_suspendido(pcb_pointer);
+
+        list_add(lista_ready, pcb_pointer);
+
+        log_info(logger, "READY_SUSPENDIDO->READY (PID = %d)", pcb_pointer->pid);
+
+        resultado = true;
+    
+    }
+
+    return resultado;
+}
+
+int get_indice_pcb_pointer(t_list* lista, pcb_t* pcb_pointer){
+
+    int i = 0;
+
+    if (list_is_empty(lista)) return -1;
+
+    for (i = 0; i < list_size(lista); i++){
+
+        if (list_get(lista, i) == pcb_pointer) return i;
+
+    }
+
+    return -1;
+}
+
+void *hacer_join_hilos_mediano_plazo(void *arg){
+    /*
+        Hilo que espera a que terminen los hilos de funcion esperar_tiempo_bloqueo()
+    */
+
+    pthread_t *thread_pointer = NULL;
+
+    while(1){
+
+        sem_wait(&semaforo_cola_threads);
+
+        pthread_mutex_lock(&mutex_cola_threads);
+        thread_pointer = queue_pop(cola_threads);
+        pthread_mutex_unlock(&mutex_cola_threads);
+    
+        pthread_join(*thread_pointer, NULL);
+    }
+
+    return NULL;
+}
+
+int32_t milisegundos_a_microsegundos(int32_t milisegundos){
+    return milisegundos * 1000;
 }
