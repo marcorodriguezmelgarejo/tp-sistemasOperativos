@@ -6,6 +6,7 @@
 #include <commons/log.h>
 #include <commons/config.h>
 #include <stdint.h>
+#include <ctype.h>
 
 #include "../../shared/include/sockets.h"
 #include "../../shared/include/protocolos.h"
@@ -21,12 +22,13 @@ typedef enum alg_reemplazo_tlb_t{
 } alg_reemplazo_tlb_t;
 
 typedef enum operacion_t{
-    NO_OP,
-    I_O,
-    READ,
-    WRITE,
-    COPY,
-    EXIT,
+    INVALIDA=0,
+    NO_OP=1,
+    I_O=2,
+    READ=3,
+    WRITE=4,
+    COPY=5,
+    EXIT=6,
 } operacion_t;
 
 typedef struct intruccion_t{
@@ -49,8 +51,9 @@ int32_t RETARDO_NOOP; //en ms
 
 // FUNCIONES 
 void cargar_config(t_log* logger);
-
-
+void crear_logger();
+instruccion_t decode(char* string_instruccion);
+operacion_t decode_operacion(char* string_instruccion);
 
 
 

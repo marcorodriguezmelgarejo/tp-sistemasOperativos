@@ -10,15 +10,15 @@ int interrupt_socket;
 #define CONSOLA_BACKLOG 5
 #define PUERTO_INTERRUPT "8005"
 
-void crear_logger(void){
+// void crear_logger(void){
 
-	if((logger = log_create("./cfg/cpu.log", "cpu_log",1,LOG_LEVEL_TRACE)) == NULL){
-		puts("No se ha podido crear el archivo de log.\nTerminando ejecucion.");
-		exit(1);
-	}
+// 	if((logger = log_create("./cfg/cpu.log", "cpu_log",1,LOG_LEVEL_TRACE)) == NULL){
+// 		puts("No se ha podido crear el archivo de log.\nTerminando ejecucion.");
+// 		exit(1);
+// 	}
 
-	log_debug(logger, "Se ha creado el archivo de log con exito.");
-}
+// 	log_debug(logger, "Se ha creado el archivo de log con exito.");
+// }
 
 void *conectar_dispatch(void * arg){
 
@@ -70,23 +70,23 @@ void probar_enviar_pcb(){
     free(pcb.lista_instrucciones);
 }
 
-int main(){
+// int main(){
 
-    // PARA TESTEAR EL KERNEL
-    pthread_t h1, h2;
+//     // PARA TESTEAR EL KERNEL
+//     pthread_t h1, h2;
 
-    crear_logger();
+//     crear_logger();
 
-    pthread_create(&h1, NULL, conectar_dispatch, NULL);
+//     pthread_create(&h1, NULL, conectar_dispatch, NULL);
 
-    pthread_create(&h2, NULL, conectar_interrupt, NULL);
+//     pthread_create(&h2, NULL, conectar_interrupt, NULL);
 
-    //espero a que finalicen los threads
-    pthread_join(h1, NULL);
-    pthread_join(h2, NULL);
+//     //espero a que finalicen los threads
+//     pthread_join(h1, NULL);
+//     pthread_join(h2, NULL);
 
-    sockets_cerrar(dispatch_socket);
-    sockets_cerrar(interrupt_socket);
+//     sockets_cerrar(dispatch_socket);
+//     sockets_cerrar(interrupt_socket);
 
-    return 0;
-}
+//     return 0;
+// }
