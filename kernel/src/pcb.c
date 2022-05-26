@@ -103,3 +103,11 @@ int32_t get_tiempo_transcurrido(uint64_t timestamp_anterior){
 void sumar_duracion_rafaga(pcb_t * pcb_pointer){
     pcb_pointer->duracion_real_ultima_rafaga += get_tiempo_transcurrido(pcb_pointer->timestamp);
 }
+
+int32_t calcular_estimacion_rafaga(pcb_t *pcb_pointer){
+    
+    int32_t estimacion_anterior = pcb_pointer->estimacion_rafaga;
+    int32_t duracion_real = pcb_pointer->duracion_real_ultima_rafaga;
+
+    return (int32_t) (ALFA * duracion_real + (1-ALFA) * estimacion_anterior);
+}

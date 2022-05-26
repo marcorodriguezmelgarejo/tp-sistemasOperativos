@@ -34,6 +34,13 @@ pthread_t h1, h2, h3, h4;
 sem_t semaforo_cola_threads;
 pthread_mutex_t mutex_cola_threads;
 pthread_mutex_t mutex_cola_datos_bloqueo;
+pthread_mutex_t mutex_cola_new;
+pthread_mutex_t mutex_lista_ready;
+pthread_mutex_t mutex_lista_bloqueado;
+pthread_mutex_t mutex_lista_bloqueado_suspendido;
+pthread_mutex_t mutex_cola_ready_suspendido;
+pthread_mutex_t mutex_en_ejecucion;
+pthread_mutex_t mutex_grado_multiprogramacion_actual;
 
 t_log * logger;
 
@@ -125,5 +132,7 @@ void memoria_volver_de_suspendido(pcb_t*);
 void ingresar_proceso_a_ready(int);
 void invocar_ingresar_proceso_a_ready(void);
 int32_t milisegundos_a_microsegundos (int32_t);
+void si_es_necesario_enviar_interrupcion_o_ready_ejec(void);
+int32_t calcular_estimacion_rafaga(pcb_t *);
 
 #endif

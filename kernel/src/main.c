@@ -40,6 +40,13 @@ void liberar_memoria(void){
 
     pthread_mutex_destroy(&mutex_cola_threads);
     pthread_mutex_destroy(&mutex_cola_datos_bloqueo);
+    pthread_mutex_destroy(&mutex_cola_new);
+    pthread_mutex_destroy(&mutex_lista_ready);
+    pthread_mutex_destroy(&mutex_lista_bloqueado);
+    pthread_mutex_destroy(&mutex_lista_bloqueado_suspendido);
+    pthread_mutex_destroy(&mutex_cola_ready_suspendido);
+    pthread_mutex_destroy(&mutex_en_ejecucion);
+    pthread_mutex_destroy(&mutex_grado_multiprogramacion_actual);
 }
 
 void liberar_threads_cola(t_queue* cola){
@@ -87,6 +94,13 @@ void inicializar_estructuras(void){
     sem_init(&semaforo_cola_threads, 0, 0);
     pthread_mutex_init(&mutex_cola_threads, NULL);
     pthread_mutex_init(&mutex_cola_datos_bloqueo, NULL);
+    pthread_mutex_init(&mutex_cola_new, NULL);
+    pthread_mutex_init(&mutex_lista_ready, NULL);
+    pthread_mutex_init(&mutex_lista_bloqueado, NULL);
+    pthread_mutex_init(&mutex_lista_bloqueado_suspendido, NULL);
+    pthread_mutex_init(&mutex_cola_ready_suspendido, NULL);
+    pthread_mutex_init(&mutex_en_ejecucion, NULL);
+    pthread_mutex_init(&mutex_grado_multiprogramacion_actual, NULL);
 
     cola_new = queue_create();
     lista_ready = list_create();
