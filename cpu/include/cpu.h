@@ -7,6 +7,8 @@
 #include <commons/config.h>
 #include <stdint.h>
 #include <ctype.h>
+#include <pthread.h>
+#include <semaphore.h>
 
 #include "../../shared/include/sockets.h"
 #include "../../shared/include/protocolos.h"
@@ -14,6 +16,7 @@
 // MACROS
 #define SUCCESS_STATUS 0
 #define ERROR_STATUS 1
+#define PID_NULO -1
 
 // TIPOS    
 typedef enum alg_reemplazo_tlb_t{
@@ -38,8 +41,9 @@ typedef struct intruccion_t{
 } instruccion_t;
 
 // VARIABLES GLOBALES
-pcb_t pcb;
+pcb_t en_ejecucion;
 t_log* logger;
+bool interrupcion;
 // parametros del config
 char IP_MEMORIA[16];
 char PUERTO_MEMORIA[6];
@@ -48,13 +52,36 @@ char PUERTO_ESCUCHA_INTERRUPT[6];
 int32_t ENTRADAS_TLB;
 alg_reemplazo_tlb_t REEEMPLAZO_TLB;
 int32_t RETARDO_NOOP; //en ms
+// conexiones
+int dispatch_socket;
+int interrupt_socket;
+// semaforos
+sem_t PCB_en_CPU;
+sem_t CPU_vacia;
+pthread_mutex_t mutex_interrupcion;
+pthread_mutex_t mutex_PCB;
 
 // FUNCIONES 
 void cargar_config(t_log* logger);
 void crear_logger();
 instruccion_t decode(char* string_instruccion);
 operacion_t decode_operacion(char* string_instruccion);
-
+void chequear_interrupcion();
+void desalojar_y_devolver_pcb(char * motivo);
+void *conectar_dispatch(void *arg);
+void *conectar_interrupt(void *arg);
+bool execute(instruccion_t instruccion);
+void instruccion_siguiente(char* retorno);
+void fetch(char* string_instruccion);
+int primer_parametro(char* line);
+int segundo_parametro(char* line);
+operacion_t decode_operacion(char* string_instruccion);
+instruccion_t decode(char* string_instruccion);
+void inicializar_semaforos();
+void esperar_pcb();
+void esperar_interrupcion();
+void ciclo_instruccion();
+bool no_op();
 
 
 #endif

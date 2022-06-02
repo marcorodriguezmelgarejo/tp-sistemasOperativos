@@ -12,7 +12,7 @@ void instruccion_siguiente(char* retorno){ // testeado
 	program_counter = en_ejecucion.program_counter;
 	pthread_mutex_unlock(&mutex_PCB);
 
-	char* lista_instrucciones = malloc( largo_lista_instrucciones + 1);
+	lista_instrucciones = malloc( largo_lista_instrucciones + 1);
 
 	pthread_mutex_lock(&mutex_PCB);
 	strcpy(lista_instrucciones, en_ejecucion.lista_instrucciones);
@@ -140,7 +140,7 @@ operacion_t decode_operacion(char* string_instruccion){
 // TODO: que chequee la cant de parametros (como esta ahora si le mandamos mas parametros solo los)
 instruccion_t decode(char* string_instruccion){
 	instruccion_t instruccion;
-	log_info(logger, "String instruccion: '%s'", string_instruccion);
+	log_info(logger, "Instruccion: '%s'", string_instruccion);
 
 	if(string_instruccion[0] == '\0') {
 		log_error(logger, "Error instruccion cadena vacia");
@@ -177,12 +177,4 @@ instruccion_t decode(char* string_instruccion){
 	}
 
 	return instruccion;
-}
-
-bool chequear_cant_parametros(){
-
-}
-
-int cant_parametros(){
-
 }

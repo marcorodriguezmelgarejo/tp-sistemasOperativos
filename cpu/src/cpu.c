@@ -1,56 +1,31 @@
-#include "sockets.h"
-#include "prueba.h"
 #include "cpu.h"
-#include "protocolos.h"
+#include "cpu.h"
 
-// int main(){
-//     char instruccion_string[MAX_INSTRUCCION_SIZE];
-    
-
-//     while(true){
-//         recibir_pcb();
-//         while(true){
-            
-//         }
-
-//     }
-
-// }
-
-int main(){     // prueba de decode()
+int main(){
     crear_logger();
+    cargar_config(logger);
+    inicializar_semaforos();
+    // conectar_dispatch();
+    // conectar_interrupt();
 
-    char* string_instruccion = malloc(MAX_INSTRUCCION_SIZE);
-    int tamanio_instruccion = MAX_INSTRUCCION_SIZE;
-    instruccion_t instruccion;
-    operacion_t operacion;
+    pthread_t hilo_dispatch;
+    pthread_t hilo_ciclo_instruccion;
+    pthread_t hilo_interrupcion;
 
-    while(1){
-        getline(&string_instruccion, &tamanio_instruccion, stdin);
-        instruccion = decode(string_instruccion);
-        printf("Codigo operacion: %d\n", instruccion.operacion);
-       	switch(instruccion.operacion){
-            case INVALIDA:
-                break;
-	    	case NO_OP:
-			    break;
-		    case EXIT:
-			    break;
-		    case I_O:
-                printf("Tiempo bloqueo: %d\n", instruccion.tiempo_bloqueo);
-			    break;
-		    case READ:
-                printf("Dir origen: %d\n", instruccion.dir_origen);
-			    break;
-		    case WRITE:
-                printf("Dir destino: %d\n", instruccion.dir_destino);
-	    		break;
-    		case COPY:
-                printf("Dir destino: %d\n", instruccion.dir_destino);
-                printf("Dir origen: %d\n", instruccion.dir_origen);
-			    break;
-	    }
-    }
-    free(string_instruccion);
-    return 0;
-} 
+    ciclo_instruccion();
+
+    // pthread_create(&hilo_dispatch, NULL, (void*) esperar_pcb, NULL);
+    // if(pthread_create(&hilo_ciclo_instruccion, NULL, (void*) ciclo_instruccion, NULL) == 0){
+    //     log_debug(logger, "Hilo creado con exito");
+    // }else{
+    //     log_error(logger, "Error al crear el hilo");
+    // }
+    // pthread_create(&hilo_interrupcion, NULL, (void*) esperar_int, NULL);
+    
+    // pthread_join(hilo_dispatch, NULL);
+    // pthread_join(hilo_ciclo_instruccion, NULL);
+    // pthread_join(hilo_interrupcion, NULL);
+    // TODO: capturar sigint para liberar memoria cuando se interrumpa con CTRL+C (destruir semaforos, logger, free(lista_instrucciones), etc)
+}
+
+

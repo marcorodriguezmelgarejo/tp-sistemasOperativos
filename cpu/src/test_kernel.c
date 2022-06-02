@@ -33,31 +33,31 @@ void enviar_dispatch(pcb_t, char *);
 // 	log_debug(logger, "Se ha creado el archivo de log con exito.");
 // }
 
-void *conectar_dispatch(void * arg){
+// void *conectar_dispatch(void * arg){
 
-    int temp_socket = 0;
+//     int temp_socket = 0;
 
-    sockets_abrir_servidor(PUERTO_DISPATCH, CONSOLA_BACKLOG, &temp_socket, logger);
+//     sockets_abrir_servidor(PUERTO_DISPATCH, CONSOLA_BACKLOG, &temp_socket, logger);
     
-    sockets_esperar_cliente(temp_socket, &dispatch_socket, logger);
+//     sockets_esperar_cliente(temp_socket, &dispatch_socket, logger);
     
-    sockets_cerrar(temp_socket); //cierro el servidor porque no espero mas clientes
+//     sockets_cerrar(temp_socket); //cierro el servidor porque no espero mas clientes
 
-    return NULL;
-}
+//     return NULL;
+// }
 
-void *conectar_interrupt(void *arg){
+// void *conectar_interrupt(void *arg){
 
-    int temp_socket_1 = 0;
+//     int temp_socket_1 = 0;
 
-    sockets_abrir_servidor(PUERTO_INTERRUPT, CONSOLA_BACKLOG, &temp_socket_1, logger);
+//     sockets_abrir_servidor(PUERTO_INTERRUPT, CONSOLA_BACKLOG, &temp_socket_1, logger);
     
-    sockets_esperar_cliente(temp_socket_1, &interrupt_socket, logger);
+//     sockets_esperar_cliente(temp_socket_1, &interrupt_socket, logger);
     
-    sockets_cerrar(temp_socket_1); //cierro el servidor porque no espero mas clientes
+//     sockets_cerrar(temp_socket_1); //cierro el servidor porque no espero mas clientes
 
-    return NULL;
-}
+//     return NULL;
+// }
 
 void probar_enviar_pcb(void){
     //ya se probo esto

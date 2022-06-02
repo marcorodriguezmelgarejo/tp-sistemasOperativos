@@ -1,0 +1,72 @@
+
+// un hilo
+int ciclo_instruccion(){
+    
+    wait(PCB_en_cpu);
+    while(true){
+        fetch(instruccion_string); <- usaa el pcb, debe usar su mutex
+        instruccion = decode_operacion(instruccion_string);
+        ejecutar_operacion() // <- algunas operaciones hacen desalojar_PCB. Algunas operaciones actualizan el pcb, esas usan su mutex
+        chequear_interrupcion() // <- desaloja el PCB si hay una interrupcion
+    }
+
+}
+
+// funcion
+inicializar_semaforos(){
+    PCB_en_cpu = 0
+    CPU_vacia = 1
+    mutex_pcb = 1 // es inncecesario porque solo un hilo que modifica el pcb va a estar corriendo al mismo tiempo, pero sincronizo el acceso por las dudas
+    mutex_int = 1 // este si hace falta
+}
+
+// funcion
+chequear_interrupcion(){
+    if(interrupcion){
+        desalojar_PCB("INT")
+
+        wait(mutex_int)
+        interrupcion = false
+        signal(mutex_int)
+    }
+}
+
+// funcion
+Desalojar_PCB(char* motivo){
+ 
+    devolver_PCB(motivo)
+
+    wait(mutex_pcb)
+    pcb.pid = -1
+    pcb.lista_instrucciones = NULL
+    free(pcb.lista_instrucciones)
+    signal(mutex_pcb)
+
+    signal(CPU_vacia)
+
+}
+
+
+// un hilo
+Esperar_PCB(){
+    recibirPCB() //bloqueante, recibe pcb del kernel
+
+    wait(CPU_vacia)
+
+    wait(mutex_pcb)
+    guardarPCB()
+    signal(mutex_pcb)
+
+    signal(PCB_en_cpu)
+}
+
+// un hilo
+Esperar_int(){
+    
+    recibir_int() //bloqueante, recibe int del kernel
+    
+    wait(mutex_int)
+    interrupcion = true
+    signal(mutex_int)
+
+}
