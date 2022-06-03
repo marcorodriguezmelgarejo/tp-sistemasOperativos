@@ -3,13 +3,17 @@
 bool sockets_enviar_pcb(int socket, pcb_t pcb, t_log* logger){
 
     char *instruccion_buffer;
+    char *lista_instrucciones_aux;
     char delimiter[] = "\n";
     void * data_pointer;
     size_t tamanio  = 0;
 
     // Envio primero la lista de instrucciones
 
-    instruccion_buffer = strtok(pcb.lista_instrucciones, delimiter);
+    lista_instrucciones_aux = malloc(strlen(pcb.lista_instrucciones)+1);
+    strcpy(lista_instrucciones_aux, pcb.lista_instrucciones);
+
+    instruccion_buffer = strtok(lista_instrucciones_aux, delimiter);
     
     //voy parseando las diferentes instrucciones
     while( instruccion_buffer != NULL ) {
