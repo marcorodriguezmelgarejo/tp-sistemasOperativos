@@ -5,16 +5,12 @@ bool conectar_con_kernel(){
     pthread_t hilo_conectar_dispatch, hilo_conectar_interrupt;
 
 
-    if(pthread_create(&hilo_conectar_dispatch, NULL, (void*) conectar_dispatch, NULL) == 0){
-        log_debug(logger, "Hilo para conectar con dispatch creado");
-    }else{
+    if(pthread_create(&hilo_conectar_dispatch, NULL, (void*) conectar_dispatch, NULL) != 0){
         log_error(logger, "No se pudo crear el hilo para conectar con dispatch");
         exit(ERROR_STATUS);
     }
 
-    if(pthread_create(&hilo_conectar_interrupt, NULL, (void*) conectar_interrupt, NULL) == 0){
-        log_debug(logger, "Hilo para conectar con interrupt creado");
-    }else{
+    if(pthread_create(&hilo_conectar_interrupt, NULL, (void*) conectar_interrupt, NULL) != 0){
         log_error(logger, "No se pudo crear el hilo para conectar con interrupt");
         exit(ERROR_STATUS);
     }
@@ -29,7 +25,6 @@ bool conectar_dispatch(){
 
     int temp_socket = 0;
 
-    log_info(logger, "Abriendo servidor p dispatch...");
     if(!sockets_abrir_servidor(PUERTO_ESCUCHA_DISPATCH, SOMAXCONN, &temp_socket, logger)){
         log_error(logger, "Error al abrir servidor temporal para conectar a dispatch");
         exit(ERROR_STATUS);
@@ -52,7 +47,6 @@ bool conectar_interrupt(){
 
     int temp_socket_1 = 0;
 
-    log_info(logger, "Abriendo servidor p interrupt...");
     if(!sockets_abrir_servidor(PUERTO_ESCUCHA_INTERRUPT, SOMAXCONN, &temp_socket_1, logger)){
         log_error(logger, "Error al abrir servidor temporal para conectar a interrupt");
         exit(ERROR_STATUS);

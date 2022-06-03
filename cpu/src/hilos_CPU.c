@@ -29,10 +29,10 @@ bool inicializar_semaforos(){
 // hilo
 void esperar_pcb(){
     pcb_t pcb_buffer;
+    pcb_buffer.lista_instrucciones = NULL;
 
     while(true){
         // recibe el pcb en cualquier punto del ciclo de intruccion
-        pcb_buffer.lista_instrucciones = NULL;
         sockets_recibir_pcb(dispatch_socket, &pcb_buffer, logger);
         log_info(logger, "PCB recibido. Se introducira cuando la CPU este vacia.");
 
@@ -41,13 +41,14 @@ void esperar_pcb(){
 
         pthread_mutex_lock(&mutex_PCB);
         en_ejecucion = pcb_buffer;
+        en_ejecucion.lista_instrucciones = malloc(strlen(pcb_buffer.lista_instrucciones)+1);
+        strcpy(en_ejecucion.lista_instrucciones, pcb_buffer.lista_instrucciones);
         pthread_mutex_unlock(&mutex_PCB);
-        log_debug(logger, "PCB introducido a ejecuccion, pid: %d ", en_ejecucion.pid);
 
-        /*
-        no libera la memoria de la lista de instrucciones porque hace que en_ejecucion.lista_instrucciones apunte a esa lista.
-        el free() lo hago siempre cuando desalojo el PCB y lo mando a Kernel
-        */
+        free(pcb_buffer.lista_instrucciones);
+        pcb_buffer.lista_instrucciones = NULL;
+
+        log_debug(logger, "PCB introducido a ejecuccion, pid: %d ", en_ejecucion.pid);
 
         sem_post(&PCB_en_CPU);
     }
@@ -78,7 +79,9 @@ void ciclo_instruccion(){
     while(true){
         log_info(logger, "Esperando PCB...");
         sem_wait(&PCB_en_CPU);
-        log_info(logger, "Comenzando ciclo de instruccion");
+
+        loguear_PC();
+
         while(true){
             fetch(string_instruccion);
             instruccion = decode(string_instruccion);
@@ -89,7 +92,6 @@ void ciclo_instruccion(){
                 log_error(logger, "Error en la ejecucion de la operacion");
             }
             chequear_interrupcion();
-
             if(finalizar){ // lo setean en true las operaciones exit, i_o y la funcion chequear_interrupcion() en el caso de haber una interrupcion
                 finalizar = false;
                 break;

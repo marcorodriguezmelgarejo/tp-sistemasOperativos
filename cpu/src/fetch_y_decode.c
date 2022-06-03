@@ -12,7 +12,7 @@ void instruccion_siguiente(char* retorno){ // testeado
 	program_counter = en_ejecucion.program_counter;
 	pthread_mutex_unlock(&mutex_PCB);
 
-	lista_instrucciones = malloc( largo_lista_instrucciones + 1);
+	lista_instrucciones = malloc(largo_lista_instrucciones + 1);
 
 	pthread_mutex_lock(&mutex_PCB);
 	strcpy(lista_instrucciones, en_ejecucion.lista_instrucciones);

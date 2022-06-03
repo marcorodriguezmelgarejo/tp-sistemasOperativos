@@ -83,3 +83,13 @@ void cargar_config(t_log* logger){
 
 	config_destroy(config);
 }
+
+void loguear_PC(){
+	int pc;
+
+	pthread_mutex_lock(&mutex_PCB);
+	pc = en_ejecucion.program_counter;
+	pthread_mutex_unlock(&mutex_PCB);
+
+	log_info(logger, "Puntero instruccion: %d", pc);
+}

@@ -65,6 +65,7 @@ pthread_mutex_t mutex_PCB;
 // FUNCIONES 
 void cargar_config(t_log* logger);
 void crear_logger();
+void loguear_PC();
 instruccion_t decode(char* string_instruccion);
 operacion_t decode_operacion(char* string_instruccion);
 void chequear_interrupcion();

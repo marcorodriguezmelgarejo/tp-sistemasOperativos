@@ -2,7 +2,16 @@
 
 /* 
 Si no hay pcb ejecutando, ho hace nada
+
 Si hay un error enviando el pcb, igual borra el que esta en ejecucion y deja el cpu esperando otro pcb
+TODO: (ver con los companeros/profes) capaz no quiero hacer eso, capaz quiero en su lugar:
+  - si es por i/o o int que saltee la instruccion? (habria que hacer desalojar() y enviar() por 
+    separado y segun el resultado de enviar(), decidir si desalojar o no. Ya no se podria usar
+    siempre la misma funcion desalojar_y_devolver())
+  - que directamente mate el proceso CPU
+  - que haga lo que hace ahora pero vuelva a intentar conectarse con el kernel, para
+    que sea posible reiniciar el proceso Kernel? (capaz es demasiado)
+
 */
 
 bool desalojar_y_devolver_pcb(char * motivo){
@@ -24,9 +33,7 @@ bool desalojar_y_devolver_pcb(char * motivo){
 
     desalojar_pcb();
 
-    if(sem_post(&CPU_vacia) == 0){
-        log_info(logger, "CPU libre");
-    }else{
+    if(sem_post(&CPU_vacia) != 0){
         log_error(logger, "Error en el semaforo CPU_vacia");
         exit(ERROR_STATUS);
     }
@@ -55,6 +62,5 @@ bool devolver_pcb(char* motivo){
         return false;
     }
 
-    log_info(logger, "PCB devuelto al Kernel");
     return true;
 }
