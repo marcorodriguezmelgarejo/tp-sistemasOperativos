@@ -43,7 +43,8 @@ typedef struct intruccion_t{
 // VARIABLES GLOBALES
 pcb_t en_ejecucion;
 t_log* logger;
-bool interrupcion;
+bool interrupcion; // si llego una interrupcion desde el Kernel
+bool finalizar; // si se debe finalizar la ejecucion al final del ciclo
 // parametros del config
 char IP_MEMORIA[16];
 char PUERTO_MEMORIA[6];
@@ -66,10 +67,11 @@ void cargar_config(t_log* logger);
 void crear_logger();
 instruccion_t decode(char* string_instruccion);
 operacion_t decode_operacion(char* string_instruccion);
-void chequear_interrupcion();
-void desalojar_y_devolver_pcb(char * motivo);
-void *conectar_dispatch(void *arg);
-void *conectar_interrupt(void *arg);
+bool chequear_interrupcion();
+bool desalojar_y_devolver_pcb(char * motivo);
+bool conectar_con_kernel();
+bool conectar_dispatch();
+bool conectar_interrupt();
 bool execute(instruccion_t instruccion);
 void instruccion_siguiente(char* retorno);
 void fetch(char* string_instruccion);
@@ -77,11 +79,12 @@ int primer_parametro(char* line);
 int segundo_parametro(char* line);
 operacion_t decode_operacion(char* string_instruccion);
 instruccion_t decode(char* string_instruccion);
-void inicializar_semaforos();
+bool inicializar_semaforos();
 void esperar_pcb();
 void esperar_interrupcion();
 void ciclo_instruccion();
 bool no_op();
+bool salir();
 
 
 #endif

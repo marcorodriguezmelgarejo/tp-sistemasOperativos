@@ -30,7 +30,7 @@ void instruccion_siguiente(char* retorno){ // testeado
 	free(lista_instrucciones);
 }
 
-void fetch(char* string_instruccion){ // testeado
+void fetch(char* string_instruccion){
 	instruccion_siguiente(string_instruccion);
 
 	pthread_mutex_lock(&mutex_PCB);

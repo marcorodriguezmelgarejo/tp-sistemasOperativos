@@ -6,19 +6,24 @@
         (no se puede cambiar el PCB en ejecucion en el medio de una operacion).
 
 */
-void inicializar_semaforos(){
+bool inicializar_semaforos(){
     if(sem_init(&PCB_en_CPU, 0, 0) != 0){
         log_error(logger, "Error al inicializar semaforo PCB_en_CPU");
+        return false;
     }    
     if(sem_init(&CPU_vacia, 0, 1) != 0){
         log_error(logger, "Error al inicializar semaforo CPU_vacia");
+        return false;
     }        
     if(pthread_mutex_init(&mutex_PCB, NULL) != 0){
         log_error(logger, "Error al inicializar mutex pcb");
+        return false;
     }    
     if(pthread_mutex_init(&mutex_interrupcion, NULL) != 0){
         log_error(logger, "Error al inicializar mutex flag interrupcion");
+        return false;
     }
+    return true;
 }
 
 // hilo
@@ -37,7 +42,7 @@ void esperar_pcb(){
         pthread_mutex_lock(&mutex_PCB);
         en_ejecucion = pcb_buffer;
         pthread_mutex_unlock(&mutex_PCB);
-        log_info(logger, "PCB introducido a ejecuccion:, pid: %d ", en_ejecucion.pid);
+        log_debug(logger, "PCB introducido a ejecuccion, pid: %d ", en_ejecucion.pid);
 
         /*
         no libera la memoria de la lista de instrucciones porque hace que en_ejecucion.lista_instrucciones apunte a esa lista.
@@ -70,20 +75,21 @@ void ciclo_instruccion(){
     char string_instruccion[MAX_INSTRUCCION_SIZE];
     instruccion_t instruccion;
 
-    // ---- para testear ----
-    en_ejecucion.lista_instrucciones = malloc(MAX_INSTRUCCION_SIZE * 50 + 1);
-    en_ejecucion.program_counter = 0;
-    strcpy(en_ejecucion.lista_instrucciones, "NO_OP\nNO_OP\nEXIT\n");
-    en_ejecucion.pid = 1;
-    sem_post(&PCB_en_CPU);
-    log_debug(logger, "PCB inicializado");
-    // ---- para testear ----
+    // // ---- para testear ----
+    // en_ejecucion.lista_instrucciones = malloc(MAX_INSTRUCCION_SIZE * 50 + 1);
+    // en_ejecucion.program_counter = 0;
+    // strcpy(en_ejecucion.lista_instrucciones, "NO_OP\nNO_OP\nEXIT\n");
+    // en_ejecucion.pid = 1;
+    // sem_post(&PCB_en_CPU);
+    // log_debug(logger, "PCB inicializado");
+    // // ---- para testear ----
 
     
 
     while(true){
+        log_info(logger, "Esperando PCB...");
         sem_wait(&PCB_en_CPU);
-        log_debug(logger, "Comenzando ciclo de instruccion");
+        log_info(logger, "Comenzando ciclo de instruccion");
         while(true){
             fetch(string_instruccion);
             instruccion = decode(string_instruccion);
@@ -94,8 +100,11 @@ void ciclo_instruccion(){
                 log_error(logger, "Error en la ejecucion de la operacion");
             }
             chequear_interrupcion();
-        }
 
-        
+            if(finalizar){ // lo setean en true las operaciones exit, i_o y la funcion chequear_interrupcion() en el caso de haber una interrupcion
+                finalizar = false;
+                break;
+            }
+        }
     }
 }

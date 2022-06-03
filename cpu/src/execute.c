@@ -11,6 +11,9 @@ bool execute(instruccion_t instruccion){
             log_error(logger, "Error al ejecutar, operacion invalida");
             respuesta_operacion = false;
             break;
+        case EXIT:
+            respuesta_operacion = salir();
+            break;
         default:
             log_error(logger, "Error al ejecutar, codigo de operacion desconocido");
             respuesta_operacion = false;
