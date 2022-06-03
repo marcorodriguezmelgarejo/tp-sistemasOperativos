@@ -75,17 +75,6 @@ void ciclo_instruccion(){
     char string_instruccion[MAX_INSTRUCCION_SIZE];
     instruccion_t instruccion;
 
-    // // ---- para testear ----
-    // en_ejecucion.lista_instrucciones = malloc(MAX_INSTRUCCION_SIZE * 50 + 1);
-    // en_ejecucion.program_counter = 0;
-    // strcpy(en_ejecucion.lista_instrucciones, "NO_OP\nNO_OP\nEXIT\n");
-    // en_ejecucion.pid = 1;
-    // sem_post(&PCB_en_CPU);
-    // log_debug(logger, "PCB inicializado");
-    // // ---- para testear ----
-
-    
-
     while(true){
         log_info(logger, "Esperando PCB...");
         sem_wait(&PCB_en_CPU);

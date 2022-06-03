@@ -5,7 +5,6 @@ bool no_op(){
     return true;
 }
 
-// TODO: EXIT
 bool salir(){ // es la operacion exit
     if(!desalojar_y_devolver_pcb("EXIT")){
         log_error(logger, "Error en la finalizacion del proceso, no se pudo devolver el PCB a Kernel");
@@ -14,4 +13,8 @@ bool salir(){ // es la operacion exit
     return true;
 }
 
-// TODO: I_O
+bool i_o(int32_t tiempo_bloqueo){
+    
+
+    return true;
+}

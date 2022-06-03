@@ -67,8 +67,10 @@ void cargar_config(t_log* logger);
 void crear_logger();
 instruccion_t decode(char* string_instruccion);
 operacion_t decode_operacion(char* string_instruccion);
-bool chequear_interrupcion();
+void chequear_interrupcion();
 bool desalojar_y_devolver_pcb(char * motivo);
+bool devolver_pcb();
+void desalojar_pcb();
 bool conectar_con_kernel();
 bool conectar_dispatch();
 bool conectar_interrupt();
@@ -85,6 +87,7 @@ void esperar_interrupcion();
 void ciclo_instruccion();
 bool no_op();
 bool salir();
+bool i_o(int32_t tiempo_bloqueo);
 
 
 #endif
