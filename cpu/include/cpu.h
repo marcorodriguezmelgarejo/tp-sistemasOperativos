@@ -61,6 +61,11 @@ sem_t PCB_en_CPU;
 sem_t CPU_vacia;
 pthread_mutex_t mutex_interrupcion;
 pthread_mutex_t mutex_PCB;
+// hilos
+pthread_t hilo_dispatch;
+pthread_t hilo_ciclo_instruccion;
+pthread_t hilo_interrupcion;
+
 
 // FUNCIONES 
 void cargar_config(t_log* logger);
