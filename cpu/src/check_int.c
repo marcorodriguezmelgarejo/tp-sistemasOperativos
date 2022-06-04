@@ -9,5 +9,7 @@ void chequear_interrupcion(){
         pthread_mutex_lock(&mutex_interrupcion);
         interrupcion = false;
         pthread_mutex_unlock(&mutex_interrupcion);
+
+        log_info(logger, "Se desalojo el PCB y se marco el flag interrupcion como false");
     }
 }

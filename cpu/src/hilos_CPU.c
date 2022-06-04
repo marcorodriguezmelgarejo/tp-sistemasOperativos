@@ -68,6 +68,7 @@ void esperar_interrupcion(){
 
         // si el kernel fue cerrado
         if(buffer == FIN_CPU){
+            log_debug(logger, "Cerrando cpu");
             kill(getpid(), SIGINT);
         }
     }
