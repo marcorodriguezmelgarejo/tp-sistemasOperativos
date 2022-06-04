@@ -325,8 +325,8 @@ void *esperar_tiempo_bloqueo(void * arg){
     if (tiempo_bloqueo <= TIEMPO_MAXIMO_BLOQUEADO){
         
         //espero el tiempo de bloqueo
-        usleep(milisegundos_a_microsegundos(TIEMPO_MAXIMO_BLOQUEADO));
-
+        usleep(milisegundos_a_microsegundos(tiempo_bloqueo));
+        
         transicion_bloqueado_ready(pcb_pointer);
 
     }

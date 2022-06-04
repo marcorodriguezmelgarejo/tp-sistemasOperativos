@@ -135,5 +135,6 @@ int32_t milisegundos_a_microsegundos (int32_t);
 void si_es_necesario_enviar_interrupcion_o_ready_ejec(void);
 void si_es_necesario_ready_ejec(void);
 int32_t calcular_estimacion_rafaga(pcb_t *);
+void enviar_fin_cpu(void);
 
 #endif
