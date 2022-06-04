@@ -7,6 +7,7 @@
 #include <commons/config.h>
 #include <stdint.h>
 #include <ctype.h>
+#include <sys/time.h>
 #include <pthread.h>
 #include <semaphore.h>
 
@@ -43,6 +44,7 @@ typedef struct intruccion_t{
 // VARIABLES GLOBALES
 pcb_t en_ejecucion;
 t_log* logger;
+uint64_t timestamp_comienzo_rafaga;
 bool interrupcion; // si llego una interrupcion desde el Kernel
 bool finalizar; // si se debe finalizar la ejecucion al final del ciclo
 // parametros del config
@@ -75,7 +77,7 @@ instruccion_t decode(char* string_instruccion);
 operacion_t decode_operacion(char* string_instruccion);
 void chequear_interrupcion();
 bool desalojar_y_devolver_pcb(char * motivo);
-bool devolver_pcb();
+bool devolver_pcb(char* motivo, int32_t tiempo_rafaga);
 void desalojar_pcb();
 bool conectar_con_kernel();
 bool conectar_dispatch();
@@ -94,6 +96,8 @@ void ciclo_instruccion();
 bool no_op();
 bool salir();
 bool i_o(int32_t tiempo_bloqueo);
+uint64_t actualizar_timestamp();
+int32_t get_tiempo_transcurrido(uint64_t timestamp_anterior);
 
 
 #endif

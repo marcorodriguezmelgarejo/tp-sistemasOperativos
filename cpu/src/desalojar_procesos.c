@@ -14,7 +14,33 @@ TODO: (ver con los companeros/profes) capaz no quiero hacer eso, capaz quiero en
 
 */
 
+/* para contar el tiempo de rafaga*/
+int32_t get_tiempo_transcurrido(uint64_t timestamp_anterior){
+    /*
+        devuelve el tiempo transcurrido entre el tiempo actual y el tiempo pasado como argumento
+    */
+    struct timeval tv;
+    uint64_t timestamp_actual;
+
+    gettimeofday(&tv, NULL);
+
+    timestamp_actual = (uint64_t) (tv.tv_sec * 1000) + (uint64_t) (tv.tv_usec/1000);
+
+    return (int32_t) (timestamp_actual - timestamp_anterior);
+}
+
+uint64_t actualizar_timestamp(){
+
+    struct timeval tv;
+
+    gettimeofday(&tv, NULL);
+    
+    return (uint64_t) (tv.tv_sec * 1000) + (uint64_t) (tv.tv_usec/1000);
+}
+
 bool desalojar_y_devolver_pcb(char * motivo){
+    int32_t tiempo_rafaga;
+    tiempo_rafaga = get_tiempo_transcurrido(timestamp_comienzo_rafaga);
 
     int pid;
     pthread_mutex_lock(&mutex_PCB);
@@ -26,7 +52,7 @@ bool desalojar_y_devolver_pcb(char * motivo){
     }
     log_info(logger, "Desalojando el proceso del CPU por %s", motivo);
 
-    if(!devolver_pcb(motivo)){
+    if(!devolver_pcb(motivo, tiempo_rafaga)){
         desalojar_pcb();
         return false;
     }
@@ -51,9 +77,15 @@ void desalojar_pcb(){
     pthread_mutex_unlock(&mutex_PCB);
 }
 
-bool devolver_pcb(char* motivo){
+bool devolver_pcb(char* motivo, int32_t tiempo_rafaga){
+
     if(!sockets_enviar_string(dispatch_socket, motivo, logger)){
         log_error(logger, "No se pudo enviar el motivo de la devolucion del PCB");
+        return false;
+    }
+
+    if(!sockets_enviar_dato(dispatch_socket, &tiempo_rafaga, sizeof tiempo_rafaga, logger)){
+        log_error(logger, "No se pudo enviar el tiempo de rafaga al Kernel");
         return false;
     }
 

@@ -1,6 +1,7 @@
 #include "cpu.h"
 
-void finalizar_CPU(int signal){
+// TODO: no anda si se hace antes de recibir la conexion del Kernel o si se ejecutaron varias consolas en paralelo
+void finalizar_CPU(int signal){ 
     pthread_cancel(hilo_ciclo_instruccion);
     pthread_cancel(hilo_dispatch);
     pthread_cancel(hilo_interrupcion);

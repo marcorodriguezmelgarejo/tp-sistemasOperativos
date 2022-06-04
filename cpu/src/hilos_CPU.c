@@ -81,6 +81,7 @@ void ciclo_instruccion(){
         sem_wait(&PCB_en_CPU);
 
         loguear_PC();
+        timestamp_comienzo_rafaga = actualizar_timestamp();
 
         while(true){
             fetch(string_instruccion);
