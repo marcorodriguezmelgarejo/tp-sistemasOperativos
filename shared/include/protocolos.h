@@ -16,6 +16,9 @@
 
 #define MAX_INSTRUCCION_SIZE 50
 
+#define INTERRUPCION_CPU 0
+#define FIN_CPU 1
+
 //si se modifica la pcb se deben modificar las funciones que la envian y reciben
 typedef struct pcb_t{
     int32_t pid;

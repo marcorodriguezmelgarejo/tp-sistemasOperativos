@@ -5,6 +5,8 @@ void manejar_sigint(int signal){
         captura sigint para hacer cleanup
     */
 
+    enviar_fin_cpu();
+
     pthread_cancel(h1);
     pthread_cancel(h2);
     pthread_cancel(h3);

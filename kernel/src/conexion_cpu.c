@@ -78,11 +78,21 @@ void conectar_puerto_interrupt(void){
 
 void enviar_interrupcion_cpu(void){
 
-    int32_t dato = DUMMY_VALUE;
+    int32_t dato = INTERRUPCION_CPU;
 
     if (sockets_enviar_dato(interrupt_socket, &dato, sizeof dato, logger) == false){
-        log_error(logger, "Error al enviar interrupcion al CPU");
+        log_error(logger, "Error al enviar INTERRUPCION al CPU");
     }
 
-    log_debug(logger, "Se envio interrupcion al CPU");
+    log_debug(logger, "Se envio INTERRUPCION al CPU");
+}
+
+void enviar_fin_cpu(void){
+    int32_t dato = FIN_CPU;
+
+    if (sockets_enviar_dato(interrupt_socket, &dato, sizeof dato, logger) == false){
+        log_error(logger, "Error al enviar FIN al CPU");
+    }
+
+    log_debug(logger, "Se envio FIN al CPU");
 }
