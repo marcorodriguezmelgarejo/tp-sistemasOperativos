@@ -30,6 +30,8 @@ int main(){
     }
     conectar_con_kernel();
 
+    signal(SIGINT, finalizar_CPU); // lo pongo aca y no al principio como solucion temporal, porque finalizar_CPU no anda si estamos intentando conectarnos con Kernel
+
     if(pthread_create(&hilo_dispatch, NULL, (void*) esperar_pcb, NULL) != 0){
         log_error(logger, "Error al crear el hilo de dispatch");
     }
