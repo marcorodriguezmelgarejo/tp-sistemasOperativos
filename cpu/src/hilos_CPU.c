@@ -64,13 +64,11 @@ void esperar_interrupcion(){
         // si el kernel manda una interrupcion
         if(buffer == INTERRUPCION_CPU){
             recibir_interrupcion_del_kernel();
-            break;
         }
 
         // si el kernel fue cerrado
         if(buffer == FIN_CPU){
             kill(getpid(), SIGINT);
-            break;
         }
     }
 }

@@ -42,14 +42,16 @@ bool desalojar_y_devolver_pcb(char * motivo){
     int32_t tiempo_rafaga;
     tiempo_rafaga = get_tiempo_transcurrido(timestamp_comienzo_rafaga);
 
-    int pid;
-    pthread_mutex_lock(&mutex_PCB);
-    pid = en_ejecucion.pid;
-    pthread_mutex_unlock(&mutex_PCB);
-    if (pid == PID_NULO){
-        log_error(logger, "Se quiso desalojar el proceso pero no hay proceso en ejecucion");
-        return false;
-    }
+    // int pid;
+    // pthread_mutex_lock(&mutex_PCB);
+    // pid = en_ejecucion.pid;
+    // pthread_mutex_unlock(&mutex_PCB);
+    // if (pid == PID_NULO){
+    //     log_error(logger, "Se quiso desalojar el proceso pero no hay proceso en ejecucion");
+    //     return false;
+    // }
+    sem_wait(&PCB_en_CPU);
+
     log_info(logger, "Desalojando el proceso del CPU por %s", motivo);
 
     if(!devolver_pcb(motivo, tiempo_rafaga)){
