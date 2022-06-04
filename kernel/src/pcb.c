@@ -86,6 +86,22 @@ void actualizar_timestamp(pcb_t * pcb_pointer){
     pcb_pointer->timestamp = (uint64_t) (tv.tv_sec * 1000) + (uint64_t) (tv.tv_usec/1000);
 }
 
+/*
+para CPU
+
+#include <sys/time.h>
+
+uint64_t actualizar_timestamp(void){
+
+    struct timeval tv;
+
+    gettimeofday(&tv, NULL);
+    
+    return (uint64_t) (tv.tv_sec * 1000) + (uint64_t) (tv.tv_usec/1000);
+}
+
+*/
+
 int32_t get_tiempo_transcurrido(uint64_t timestamp_anterior){
     /*
         devuelve el tiempo transcurrido entre el tiempo actual y el tiempo pasado como argumento
@@ -100,8 +116,8 @@ int32_t get_tiempo_transcurrido(uint64_t timestamp_anterior){
     return (int32_t) (timestamp_actual - timestamp_anterior);
 }
 
-void sumar_duracion_rafaga(pcb_t * pcb_pointer){
-    pcb_pointer->duracion_real_ultima_rafaga += get_tiempo_transcurrido(pcb_pointer->timestamp);
+void sumar_duracion_rafaga(pcb_t * pcb_pointer, int32_t tiempo_ejecucion){
+    pcb_pointer->duracion_real_ultima_rafaga += tiempo_ejecucion;
 }
 
 int32_t calcular_estimacion_rafaga(pcb_t *pcb_pointer){

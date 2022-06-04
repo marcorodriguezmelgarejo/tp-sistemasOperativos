@@ -87,7 +87,7 @@ void transicion_consola_new(char *lista_instrucciones, int32_t tamanio_proceso, 
     invocar_ingresar_proceso_a_ready();
 }
 
-void transicion_ejec_ready(void){
+void transicion_ejec_ready(int32_t tiempo_bloqueo){
     /*
         Gestiona la transicion EJEC->READY
     */
@@ -100,7 +100,7 @@ void transicion_ejec_ready(void){
         return;
     }
     
-    if (es_algoritmo_srt()) sumar_duracion_rafaga(en_ejecucion);
+    if (es_algoritmo_srt()) sumar_duracion_rafaga(en_ejecucion, tiempo_bloqueo);
 
     list_add(lista_ready, en_ejecucion);
 
@@ -246,7 +246,7 @@ void transicion_ejec_exit(void){
     invocar_ingresar_proceso_a_ready();
 }
 
-void transicion_ejec_bloqueado(int32_t tiempo_bloqueo){
+void transicion_ejec_bloqueado(int32_t tiempo_bloqueo, int32_t tiempo_ejecucion){
     /*
         Gestiona la transicion EJEC->BLOQUEADO
     */
@@ -259,7 +259,7 @@ void transicion_ejec_bloqueado(int32_t tiempo_bloqueo){
 
     //calculo nueva estimacion porque ya termino la rafaga
     if (es_algoritmo_srt()){
-        sumar_duracion_rafaga(en_ejecucion);
+        sumar_duracion_rafaga(en_ejecucion, tiempo_ejecucion);
         en_ejecucion->estimacion_rafaga = calcular_estimacion_rafaga(en_ejecucion);
         en_ejecucion->duracion_real_ultima_rafaga = 0;
     }

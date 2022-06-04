@@ -14,10 +14,14 @@ void *gestionar_dispatch(void *arg){
     */
     pcb_t pcb_buffer;
     int32_t tiempo_bloqueo = 0;
+    int32_t tiempo_ejecucion = 0;
 
     while(1){
         //recibe el motivo del mensaje
         sockets_recibir_string(dispatch_socket, motivo, logger);
+
+        //recibe el tiempo que estuvo ejecutandose
+        sockets_recibir_dato(dispatch_socket, &tiempo_ejecucion, sizeof tiempo_ejecucion, logger);
         
         //recibe el pcb del proceso en ejecucion
         pcb_buffer.lista_instrucciones = NULL;
@@ -33,13 +37,13 @@ void *gestionar_dispatch(void *arg){
             //recibo el tiempo de bloqueo
             sockets_recibir_dato(dispatch_socket, &tiempo_bloqueo, sizeof tiempo_bloqueo, logger);
             
-            transicion_ejec_bloqueado(tiempo_bloqueo);
+            transicion_ejec_bloqueado(tiempo_bloqueo, tiempo_ejecucion);
         }
         else if (strcmp(motivo, "EXIT") == 0){
             transicion_ejec_exit();
         }
         else if (strcmp(motivo, "INT") == 0){
-            transicion_ejec_ready();
+            transicion_ejec_ready(tiempo_bloqueo);
         }
         
     }
