@@ -63,3 +63,10 @@ bool conectar_interrupt(){
     log_debug(logger, "Interrupt conectado!");
     return true;
 }
+
+void matar_kernel(){
+    if(!sockets_enviar_string(dispatch_socket, "FIN_CPU", logger)){
+        log_error(logger, "No se pudo enviar el mensaje de finalizacion al kernel");
+        return false;
+    }
+}

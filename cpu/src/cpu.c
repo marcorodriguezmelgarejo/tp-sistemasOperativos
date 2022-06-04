@@ -2,9 +2,12 @@
 
 // TODO: no anda si se hace antes de recibir la conexion del Kernel o si se ejecutaron varias consolas en paralelo
 void finalizar_CPU(int signal){ 
+
     pthread_cancel(hilo_ciclo_instruccion);
     pthread_cancel(hilo_dispatch);
     pthread_cancel(hilo_interrupcion);
+
+    matar_kernel(); // manda a kernel la string FIN_CPU
 
     pthread_mutex_destroy(&mutex_interrupcion);
     pthread_mutex_destroy(&mutex_PCB);

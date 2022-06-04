@@ -99,6 +99,7 @@ bool i_o(int32_t tiempo_bloqueo);
 uint64_t actualizar_timestamp();
 int32_t get_tiempo_transcurrido(uint64_t timestamp_anterior);
 void recibir_interrupcion_del_kernel();
+void matar_kernel();
 
 
 #endif
