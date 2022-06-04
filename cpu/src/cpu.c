@@ -21,7 +21,7 @@ void finalizar_CPU(int signal){
 }
 
 int main(){
-    signal(SIGINT, finalizar_CPU);
+    // signal(SIGINT, finalizar_CPU);
 
     crear_logger();
     cargar_config(logger);
