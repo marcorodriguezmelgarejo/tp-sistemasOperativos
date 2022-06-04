@@ -77,45 +77,6 @@ void actualizar_program_counter_en_ejecucion(int32_t program_counter){
     en_ejecucion->program_counter = program_counter;
 }
 
-void actualizar_timestamp(pcb_t * pcb_pointer){
-
-    struct timeval tv;
-
-    gettimeofday(&tv, NULL);
-    
-    pcb_pointer->timestamp = (uint64_t) (tv.tv_sec * 1000) + (uint64_t) (tv.tv_usec/1000);
-}
-
-/*
-para CPU
-
-#include <sys/time.h>
-
-uint64_t actualizar_timestamp(void){
-
-    struct timeval tv;
-
-    gettimeofday(&tv, NULL);
-    
-    return (uint64_t) (tv.tv_sec * 1000) + (uint64_t) (tv.tv_usec/1000);
-}
-
-*/
-
-int32_t get_tiempo_transcurrido(uint64_t timestamp_anterior){
-    /*
-        devuelve el tiempo transcurrido entre el tiempo actual y el tiempo pasado como argumento
-    */
-    struct timeval tv;
-    uint64_t timestamp_actual;
-
-    gettimeofday(&tv, NULL);
-
-    timestamp_actual = (uint64_t) (tv.tv_sec * 1000) + (uint64_t) (tv.tv_usec/1000);
-
-    return (int32_t) (timestamp_actual - timestamp_anterior);
-}
-
 void sumar_duracion_rafaga(pcb_t * pcb_pointer, int32_t tiempo_ejecucion){
     pcb_pointer->duracion_real_ultima_rafaga += tiempo_ejecucion;
 }

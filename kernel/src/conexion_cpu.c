@@ -11,6 +11,7 @@ void *gestionar_dispatch(void *arg){
     "I/O" : el proceso llego a instruccion "I/O"
     "EXIT": el proceso llego a instruccion "EXIT"
     "INT" : el kernel previamente mando un mensaje de interrupcion al CPU
+    "FIN_CPU": el cpu finalizo su ejecucion. El kernel debe terminarse.
     */
     pcb_t pcb_buffer;
     int32_t tiempo_bloqueo = 0;
@@ -19,6 +20,11 @@ void *gestionar_dispatch(void *arg){
     while(1){
         //recibe el motivo del mensaje
         sockets_recibir_string(dispatch_socket, motivo, logger);
+
+        //mando SIGINT si el cpu finalizo su ejecucion
+        if (strcmp(motivo, "FIN_CPU") == 0){
+            kill(getpid(), SIGINT);
+        }
 
         //recibe el tiempo que estuvo ejecutandose
         sockets_recibir_dato(dispatch_socket, &tiempo_ejecucion, sizeof tiempo_ejecucion, logger);
