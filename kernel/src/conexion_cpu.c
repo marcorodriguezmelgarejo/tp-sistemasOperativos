@@ -43,7 +43,7 @@ void *gestionar_dispatch(void *arg){
             transicion_ejec_exit();
         }
         else if (strcmp(motivo, "INT") == 0){
-            transicion_ejec_ready(tiempo_bloqueo);
+            transicion_ejec_ready(tiempo_ejecucion);
         }
         
     }
