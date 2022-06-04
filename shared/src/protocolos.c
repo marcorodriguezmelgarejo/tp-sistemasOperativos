@@ -21,6 +21,8 @@ bool sockets_enviar_pcb(int socket, pcb_t pcb, t_log* logger){
         instruccion_buffer = strtok(NULL, delimiter);
     }
 
+    free(lista_instrucciones_aux);
+
     if (sockets_enviar_string(socket, "FIN", logger) == false) return false;
 
     // Envio el resto de la pcb
