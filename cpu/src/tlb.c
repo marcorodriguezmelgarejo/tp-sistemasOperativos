@@ -1,3 +1,5 @@
+#include "kernel.h"
+
 int32_t tlb_get_marco(tlb_t tlb,int32_t pagina){//busca en la tlb o en memoria el marco necesario//----creo que ok
 
     bool igual_pagina(tlb_entrada_t entrada_a_comparar) {
