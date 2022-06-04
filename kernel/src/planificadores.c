@@ -180,6 +180,14 @@ void transicion_ready_ejec(void){
 
     log_info(logger, "READY->EJEC (PID = %d)", en_ejecucion->pid);
 
+    pthread_mutex_lock(&mutex_interrupcion_cpu);
+
+    if (ya_se_envio_interrupcion_cpu == true){
+        ya_se_envio_interrupcion_cpu = false;
+    }
+
+    pthread_mutex_unlock(&mutex_interrupcion_cpu);
+
 }
 
 bool transicion_new_ready(void){

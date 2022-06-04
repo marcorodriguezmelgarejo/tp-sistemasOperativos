@@ -49,6 +49,7 @@ void liberar_memoria(void){
     pthread_mutex_destroy(&mutex_cola_ready_suspendido);
     pthread_mutex_destroy(&mutex_en_ejecucion);
     pthread_mutex_destroy(&mutex_grado_multiprogramacion_actual);
+    pthread_mutex_destroy(&mutex_interrupcion_cpu);
 }
 
 void liberar_threads_cola(t_queue* cola){
@@ -103,6 +104,7 @@ void inicializar_estructuras(void){
     pthread_mutex_init(&mutex_cola_ready_suspendido, NULL);
     pthread_mutex_init(&mutex_en_ejecucion, NULL);
     pthread_mutex_init(&mutex_grado_multiprogramacion_actual, NULL);
+    pthread_mutex_init(&mutex_interrupcion_cpu, NULL);
 
     cola_new = queue_create();
     lista_ready = list_create();
@@ -127,6 +129,8 @@ void inicializar_variables_globales(void){
     interrupt_socket = 0;
 
     en_ejecucion = NULL;
+
+    ya_se_envio_interrupcion_cpu = false;
 }
 
 int main(void)

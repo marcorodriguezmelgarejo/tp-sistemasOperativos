@@ -86,11 +86,20 @@ void enviar_interrupcion_cpu(void){
 
     int32_t dato = INTERRUPCION_CPU;
 
-    if (sockets_enviar_dato(interrupt_socket, &dato, sizeof dato, logger) == false){
-        log_error(logger, "Error al enviar INTERRUPCION al CPU");
+    pthread_mutex_lock(&mutex_interrupcion_cpu);
+
+    if (ya_se_envio_interrupcion_cpu == false){
+
+        if (sockets_enviar_dato(interrupt_socket, &dato, sizeof dato, logger) == false){
+            log_error(logger, "Error al enviar INTERRUPCION al CPU");
+        }
+        
+        log_debug(logger, "Se envio INTERRUPCION al CPU");
+
+        ya_se_envio_interrupcion_cpu = true;
     }
 
-    log_debug(logger, "Se envio INTERRUPCION al CPU");
+    pthread_mutex_unlock(&mutex_interrupcion_cpu);
 }
 
 void enviar_fin_cpu(void){
