@@ -4,7 +4,7 @@
 //TODO: implementar semaforos, si hace falta, cuando se llama a un planificador que sea llamado por varias funciones
 
 bool es_algoritmo_srt(void){
-    return strcmp(ALGORITMO_PLANIFICACION, "STR") == 0;
+    return strcmp(ALGORITMO_PLANIFICACION, "SRT") == 0;
 }
 
 void ingresar_proceso_a_ready(int signal){
@@ -25,11 +25,15 @@ void ingresar_proceso_a_ready(int signal){
         if (transicion_ready_suspendido_ready()){
             grado_multiprogramacion_actual++;
             si_es_necesario_enviar_interrupcion_o_ready_ejec();
-        }
+        } //luego con procesos en NEW
         else if(transicion_new_ready()){
             grado_multiprogramacion_actual++;
             si_es_necesario_enviar_interrupcion_o_ready_ejec();
+        } //si no se cargo ninguno en READY
+        else{
+            si_es_necesario_ready_ejec();
         }
+
     }
     else{
         log_info(logger, "El grado de multiprogramacion actual es el maximo posible");
@@ -49,6 +53,19 @@ void si_es_necesario_enviar_interrupcion_o_ready_ejec(void){
 
     if (es_algoritmo_srt() && en_ejecucion != NULL) enviar_interrupcion_cpu();
     else if (en_ejecucion == NULL) transicion_ready_ejec();
+    
+    pthread_mutex_unlock(&mutex_en_ejecucion);
+    pthread_mutex_unlock(&mutex_lista_ready);
+}
+
+void si_es_necesario_ready_ejec(void){
+    
+    //Si no hay ninguno ejecutandose y hay al menos un proceso en READY entonces mando a EJEC
+
+    pthread_mutex_lock(&mutex_en_ejecucion);
+    pthread_mutex_lock(&mutex_lista_ready);
+
+    if (en_ejecucion == NULL && list_size(lista_ready) > 0) transicion_ready_ejec();
     
     pthread_mutex_unlock(&mutex_en_ejecucion);
     pthread_mutex_unlock(&mutex_lista_ready);
@@ -176,12 +193,11 @@ bool transicion_new_ready(void){
     pcb_t *pcb_pointer;
 
     bool resultado = false;
-
+    
     pthread_mutex_lock(&mutex_cola_new);
     pthread_mutex_lock(&mutex_lista_ready);
-
+    
     if (!queue_is_empty(cola_new)){
-
         pcb_pointer = queue_peek(cola_new);
 
         inicializar_estructuras_memoria(pcb_pointer);
@@ -192,10 +208,10 @@ bool transicion_new_ready(void){
 
         resultado = true;
     }
-
+    
     pthread_mutex_unlock(&mutex_cola_new);
     pthread_mutex_unlock(&mutex_lista_ready);
-
+    
     return resultado;
 }
 
@@ -205,7 +221,8 @@ void transicion_ejec_exit(void){
     */
 
     pthread_mutex_lock(&mutex_en_ejecucion);
-
+    pthread_mutex_lock(&mutex_grado_multiprogramacion_actual);
+    
     if (en_ejecucion == NULL){
         log_error(logger, "error en transicion_ejec_exit(): 'en_ejecucion' es NULL");
         return;
@@ -220,10 +237,11 @@ void transicion_ejec_exit(void){
     liberar_memoria_pcb(en_ejecucion);
         
     en_ejecucion = NULL;
-
+    
     grado_multiprogramacion_actual--;
 
     pthread_mutex_unlock(&mutex_en_ejecucion);
+    pthread_mutex_unlock(&mutex_grado_multiprogramacion_actual);
 
     invocar_ingresar_proceso_a_ready();
 }
@@ -340,6 +358,7 @@ void transicion_bloqueado_bloqueado_suspendido(pcb_t *pcb_pointer){
 
     pthread_mutex_lock(&mutex_lista_bloqueado_suspendido);
     pthread_mutex_lock(&mutex_lista_bloqueado);
+    pthread_mutex_lock(&mutex_grado_multiprogramacion_actual);
 
     list_add(lista_bloqueado_suspendido, list_remove(lista_bloqueado, get_indice_pcb_pointer(lista_bloqueado, pcb_pointer)));
 
@@ -349,6 +368,7 @@ void transicion_bloqueado_bloqueado_suspendido(pcb_t *pcb_pointer){
 
     pthread_mutex_unlock(&mutex_lista_bloqueado_suspendido);
     pthread_mutex_unlock(&mutex_lista_bloqueado);
+    pthread_mutex_unlock(&mutex_grado_multiprogramacion_actual);
 
     invocar_ingresar_proceso_a_ready(); 
 }
