@@ -61,14 +61,28 @@ void esperar_interrupcion(){
     while(true){
         sockets_recibir_dato(interrupt_socket, &buffer, sizeof buffer, logger);
 
-        log_info(logger, "Se recibio interrupcion del kernel");
+        // si el kernel manda una interrupcion
+        if(buffer == INTERRUPCION_CPU){
+            recibir_interrupcion_del_kernel();
+            return;
+        }
 
-        pthread_mutex_lock(&mutex_interrupcion);
-        interrupcion = true;
-        pthread_mutex_unlock(&mutex_interrupcion);
-
-        log_info(logger, "Se marco el flag interrupcion como True");
+        // si el kernel fue cerrado
+        if(buffer == FIN_CPU){
+            kill(getpid(), SIGINT);
+            return;
+        }
     }
+}
+
+void recibir_interrupcion_del_kernel(){
+    log_info(logger, "Se recibio interrupcion del kernel");
+
+    pthread_mutex_lock(&mutex_interrupcion);
+    interrupcion = true;
+    pthread_mutex_unlock(&mutex_interrupcion);
+
+    log_info(logger, "Se marco el flag interrupcion como True");
 }
 
 // un hilo
