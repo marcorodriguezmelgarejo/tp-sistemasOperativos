@@ -41,6 +41,7 @@ pthread_mutex_t mutex_lista_bloqueado_suspendido;
 pthread_mutex_t mutex_cola_ready_suspendido;
 pthread_mutex_t mutex_en_ejecucion;
 pthread_mutex_t mutex_grado_multiprogramacion_actual;
+pthread_mutex_t mutex_interrupcion_cpu;
 
 t_log * logger;
 
@@ -79,6 +80,8 @@ typedef struct datos_tiempo_bloqueo{
     int32_t tiempo_bloqueo;
     pcb_t* pcb_pointer;
 } datos_tiempo_bloqueo;
+
+bool ya_se_envio_interrupcion_cpu;
 
 // *FUNCIONES*
 
