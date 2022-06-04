@@ -13,6 +13,21 @@
 #include "../../shared/include/sockets.h"
 #include "../../shared/include/protocolos.h"
 
+typedef struct dir_logica_t{
+int32_t entrada_tabla_1er_nivel;//esta en pcb
+int32_t entrada_tabla_2do_nivel;
+int32_t desplazamiento;
+} dir_logica_t;
+
+typedef struct tlb_entrada_t{
+int32_t pagina;
+int32_t marco;
+} tlb_entrada_t;
+
+typedef struct tlb_t{
+t_list * entradas; 
+} tlb_t;
+
 // MACROS
 #define SUCCESS_STATUS 0
 #define ERROR_STATUS 1
@@ -45,6 +60,7 @@ pcb_t en_ejecucion;
 t_log* logger;
 bool interrupcion; // si llego una interrupcion desde el Kernel
 bool finalizar; // si se debe finalizar la ejecucion al final del ciclo
+t_list * cola_paginas; 
 // parametros del config
 char IP_MEMORIA[16];
 char PUERTO_MEMORIA[6];
@@ -94,6 +110,14 @@ void ciclo_instruccion();
 bool no_op();
 bool salir();
 bool i_o(int32_t tiempo_bloqueo);
-
-
+int calcular_numero_pagina(int direccion_logica, int tamanio_pagina);
+int calcular_entrada_tabla_1er_nivel(int numero_pagina, int entradas_por_tabla);
+int calcular_entrada_tabla_2do_nivel(int numero_pagina, int entradas_por_tabla);
+int calcular_desplazamiento(int direccion_logica,int numero_pagina, int tamanio_pagina);
+tlb_entrada_t buscar_pagina(pagina);
+tlb_agregar_entrada(tlb_t *tlb,tlb_entrada_t entrada);
+tlb_t * tlb_inicializar();
+tlb_get_marco(tlb_t tlb,int32_t pagina);
+cola_paginas_insertar(t_list * cola_paginas,int num_pagina);
+cargar_en_tlb(tlb_t tlb,tlb_entrada_t entrada);
 #endif
