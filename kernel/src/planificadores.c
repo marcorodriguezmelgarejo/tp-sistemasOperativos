@@ -176,8 +176,6 @@ void transicion_ready_ejec(void){
         return;
     }
 
-    if (es_algoritmo_srt()) actualizar_timestamp(en_ejecucion);
-
     enviar_pcb_cpu(en_ejecucion);
 
     log_info(logger, "READY->EJEC (PID = %d)", en_ejecucion->pid);

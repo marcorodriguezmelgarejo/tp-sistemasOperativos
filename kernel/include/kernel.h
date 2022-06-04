@@ -26,7 +26,7 @@
 #define CONFIG_FILENAME "./cfg/kernel.config"
 #define LOG_FILENAME "./cfg/kernel.log"
 #define MAX_BUFFER_SIZE 100
-#define MOTIVO_LENGTH 5 //para gestionar_dispatch()
+#define MOTIVO_LENGTH 10 //para gestionar_dispatch()
 
 // *VARIABLES GLOBALES*
 
@@ -99,8 +99,6 @@ void inicializar_estructuras(void);
 void agregar_instruccion_a_lista(char **, char*);
 pcb_t *generar_pcb(char *, int32_t, int);
 void actualizar_program_counter_en_ejecucion(int32_t);
-void actualizar_timestamp(pcb_t*);
-int32_t get_tiempo_transcurrido(uint64_t);
 pcb_t* alocar_memoria_pcb(void);
 void *gestionar_dispatch(void *);
 bool es_algoritmo_srt(void);
