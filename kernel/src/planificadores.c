@@ -87,7 +87,7 @@ void transicion_consola_new(char *lista_instrucciones, int32_t tamanio_proceso, 
     invocar_ingresar_proceso_a_ready();
 }
 
-void transicion_ejec_ready(int32_t tiempo_bloqueo){
+void transicion_ejec_ready(int32_t tiempo_ejecucion){
     /*
         Gestiona la transicion EJEC->READY
     */
@@ -100,7 +100,7 @@ void transicion_ejec_ready(int32_t tiempo_bloqueo){
         return;
     }
     
-    if (es_algoritmo_srt()) sumar_duracion_rafaga(en_ejecucion, tiempo_bloqueo);
+    if (es_algoritmo_srt()) sumar_duracion_rafaga(en_ejecucion, tiempo_ejecucion);
 
     list_add(lista_ready, en_ejecucion);
 
