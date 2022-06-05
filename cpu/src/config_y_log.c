@@ -25,10 +25,10 @@ void leer_string_config(t_config* config, char* value, char* return_value, t_log
 	}
 }
 
-void leer_int_config(t_config* config, char* value, int return_value, t_log* logger){
+void leer_int_config(t_config* config, char* value, int *return_value, t_log* logger){
 	if (config_has_property(config, value)){
-		return_value = config_get_int_value(config, value);
-		log_info(logger, "%s: %d", value, return_value);
+		*return_value = config_get_int_value(config, value);
+		log_info(logger, "%s: %d", value, *return_value);
 	} else {
 		log_error(logger, "No se encontro el valor de %s. Finalizando ejecucion.", value);
 		log_destroy(logger);
@@ -75,8 +75,8 @@ void cargar_config(t_log* logger){
 	leer_string_config(config, "PUERTO_MEMORIA", PUERTO_MEMORIA, logger);
 	leer_string_config(config, "PUERTO_ESCUCHA_DISPATCH", PUERTO_ESCUCHA_DISPATCH, logger);
 	leer_string_config(config, "PUERTO_ESCUCHA_INTERRUPT", PUERTO_ESCUCHA_INTERRUPT, logger);
-	leer_int_config(config, "ENTRADAS_TLB", ENTRADAS_TLB, logger);
-	leer_int_config(config, "RETARDO_NOOP", RETARDO_NOOP, logger);
+	leer_int_config(config, "ENTRADAS_TLB", &ENTRADAS_TLB, logger);
+	leer_int_config(config, "RETARDO_NOOP", &RETARDO_NOOP, logger);
 	leer_algoritmo_reemplazo_config(config, REEEMPLAZO_TLB, logger);
 
 	log_debug(logger, "Se ha leido el archivo de config con exito.");
