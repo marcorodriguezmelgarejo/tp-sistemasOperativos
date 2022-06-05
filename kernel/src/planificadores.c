@@ -290,20 +290,16 @@ void transicion_ejec_bloqueado(int32_t tiempo_bloqueo, int32_t tiempo_ejecucion)
 
     //pusheo los datos necesarios (tiempo de bloqueo y pcb_pointer) para el hilo en una cola
 
-    pthread_mutex_lock(&mutex_cola_threads);
     pthread_mutex_lock(&mutex_cola_datos_bloqueo);
 
     queue_push(cola_datos_bloqueo, datos_para_hilo);
 
     pthread_create(&hilo_proceso_bloqueado, NULL, esperar_tiempo_bloqueo, NULL);
 
-    //guardo el pthread en la cola de threads para que estos sean esperados y poder liberar sus recursos
-    queue_push(cola_threads, &hilo_proceso_bloqueado);
+    pthread_detach(hilo_proceso_bloqueado); //para que se liberen los recursos al terminar de ejecutarse
 
-    pthread_mutex_unlock(&mutex_cola_threads);
     pthread_mutex_unlock(&mutex_cola_datos_bloqueo);
 
-    sem_post(&semaforo_cola_threads);
 }
 
 void *esperar_tiempo_bloqueo(void * arg){
@@ -462,27 +458,6 @@ int get_indice_pcb_pointer(t_list* lista, pcb_t* pcb_pointer){
     }
 
     return -1;
-}
-
-void *hacer_join_hilos_mediano_plazo(void *arg){
-    /*
-        Hilo que espera a que terminen los hilos de funcion esperar_tiempo_bloqueo()
-    */
-
-    pthread_t *thread_pointer = NULL;
-
-    while(1){
-
-        sem_wait(&semaforo_cola_threads);
-
-        pthread_mutex_lock(&mutex_cola_threads);
-        thread_pointer = queue_pop(cola_threads);
-        pthread_mutex_unlock(&mutex_cola_threads);
-    
-        pthread_join(*thread_pointer, NULL);
-    }
-
-    return NULL;
 }
 
 int32_t milisegundos_a_microsegundos(int32_t milisegundos){

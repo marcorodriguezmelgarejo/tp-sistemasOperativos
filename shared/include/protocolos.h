@@ -28,7 +28,7 @@ typedef struct pcb_t{
     int32_t tabla_paginas;
     int32_t estimacion_rafaga;
     int32_t duracion_real_ultima_rafaga;
-    uint64_t timestamp; // (en milisegundos) para medir cuanto estuvo ejecutandose el proceso en CPU
+    uint64_t timestamp; // NO SE USA
     int32_t consola_socket; //el fd del socket mediante el cual el kernel se conecta a la consola del proceso
 } pcb_t;
 

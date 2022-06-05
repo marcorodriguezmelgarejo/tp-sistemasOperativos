@@ -30,9 +30,7 @@
 
 // *VARIABLES GLOBALES*
 
-pthread_t h1, h2, h3, h4;
-sem_t semaforo_cola_threads;
-pthread_mutex_t mutex_cola_threads;
+pthread_t h1, h2;
 pthread_mutex_t mutex_cola_datos_bloqueo;
 pthread_mutex_t mutex_cola_new;
 pthread_mutex_t mutex_lista_ready;
@@ -73,7 +71,6 @@ t_list* lista_bloqueado_suspendido;
 t_queue* cola_ready_suspendido;
 pcb_t* en_ejecucion;
 
-t_queue* cola_threads; //aca se guardan punteros a pthreads_t para ir haciendo joins y liberar recursos
 t_queue* cola_datos_bloqueo; //se guardan punteros a datos_tiempo_bloqueo
 
 typedef struct datos_tiempo_bloqueo{

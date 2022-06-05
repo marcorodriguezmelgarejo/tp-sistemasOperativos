@@ -1,4 +1,5 @@
-for i in 1 2 3
-do
-	./consola instrucciones_ejemplo.txt 12000
-done
+./consola SUSPE_1 12000 &
+sleep 0.01
+./consola SUSPE_2 12000 &
+sleep 0.01
+./consola SUSPE_3 12000 &
