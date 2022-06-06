@@ -257,9 +257,9 @@ void transicion_ejec_bloqueado(int32_t tiempo_bloqueo, int32_t tiempo_ejecucion)
         Gestiona la transicion EJEC->BLOQUEADO
     */
 
-    pthread_t hilo_proceso_bloqueado;
+    datos_tiempo_bloqueo *datos_sobre_IO = NULL;
 
-    datos_tiempo_bloqueo *datos_para_hilo = NULL;
+    pthread_t hilo;
 
     pthread_mutex_lock(&mutex_en_ejecucion);
 
@@ -270,13 +270,13 @@ void transicion_ejec_bloqueado(int32_t tiempo_bloqueo, int32_t tiempo_ejecucion)
         en_ejecucion->duracion_real_ultima_rafaga = 0;
     }
 
-    if ((datos_para_hilo = malloc(sizeof *datos_para_hilo)) == NULL){
+    if ((datos_sobre_IO = malloc(sizeof *datos_sobre_IO)) == NULL){
         log_error(logger, "Error al hacer malloc() en transicion_ejec_bloqueado()");
         return;
     }
 
-    datos_para_hilo->tiempo_bloqueo = tiempo_bloqueo;
-    datos_para_hilo->pcb_pointer = en_ejecucion;
+    datos_sobre_IO->tiempo_bloqueo = tiempo_bloqueo;
+    datos_sobre_IO->pcb_pointer = en_ejecucion;
 
     list_add(lista_bloqueado, en_ejecucion);
 
@@ -288,66 +288,157 @@ void transicion_ejec_bloqueado(int32_t tiempo_bloqueo, int32_t tiempo_ejecucion)
 
     si_es_necesario_enviar_interrupcion_o_ready_ejec();
 
-    //pusheo los datos necesarios (tiempo de bloqueo y pcb_pointer) para el hilo en una cola
+    // Inicializo el timer por si despues hace falta suspender el proceso
+    pthread_create(&hilo, NULL, hilo_timer, datos_sobre_IO->pcb_pointer);
 
-    pthread_mutex_lock(&mutex_cola_datos_bloqueo);
+    pthread_detach(hilo);
 
-    queue_push(cola_datos_bloqueo, datos_para_hilo);
+    // Pusheo los datos necesarios (tiempo de bloqueo y pcb_pointer) para hacer IO
 
-    pthread_create(&hilo_proceso_bloqueado, NULL, esperar_tiempo_bloqueo, NULL);
+    pthread_mutex_lock(&mutex_cola_IO);
 
-    pthread_detach(hilo_proceso_bloqueado); //para que se liberen los recursos al terminar de ejecutarse
+    queue_push(cola_IO, datos_sobre_IO);
 
-    pthread_mutex_unlock(&mutex_cola_datos_bloqueo);
+    pthread_mutex_unlock(&mutex_cola_IO);
+
+    // Veo si puedo entrar un proceso a IO
+
+    si_se_puede_entrar_IO();
 
 }
 
-void *esperar_tiempo_bloqueo(void * arg){
+void* hilo_timer(void* pcb_pointer_void){
+
     /*
-        Hilo que maneja un proceso cuando se va a BLOQUEADO.
-        Espera el tiempo de bloqueo y, si esta mas tiempo del permitido, se va a suspendido.
-        Si se va a suspendido espera el tiempo restante de I/O para finalmente pasar a READY_SUSPENDIDO
+        Este hilo espera TIEMPO_MAXIMO_BLOQUEADO milisegundos.
+        Si el proceso asociado sigue en BLOQUEADO entonces se pasa a BLOQUEADO_SUSPENDIDO.
+        Puede pasar que cuando termine el usleep el proceso ya haya terminado IO y este en READY
     */
 
-    datos_tiempo_bloqueo * datos_tiempo_bloqueo_pointer = NULL;
-    pcb_t * pcb_pointer = NULL;
-    int32_t tiempo_bloqueo;
+    pcb_t *pcb_pointer = pcb_pointer_void;
 
-    //obtiene el tiempo de bloqueo y el puntero al pcb correspondiente
+    usleep(milisegundos_a_microsegundos(TIEMPO_MAXIMO_BLOQUEADO));
 
-    pthread_mutex_lock(&mutex_cola_datos_bloqueo);
-    datos_tiempo_bloqueo_pointer = queue_pop(cola_datos_bloqueo);
-    pthread_mutex_unlock(&mutex_cola_datos_bloqueo);    
+    pthread_mutex_lock(&mutex_lista_bloqueado);
 
-    pcb_pointer = datos_tiempo_bloqueo_pointer->pcb_pointer;
-    tiempo_bloqueo = datos_tiempo_bloqueo_pointer->tiempo_bloqueo;
-
-    free(datos_tiempo_bloqueo_pointer);
-
-    if (tiempo_bloqueo <= TIEMPO_MAXIMO_BLOQUEADO){
-        
-        //espero el tiempo de bloqueo
-        usleep(milisegundos_a_microsegundos(tiempo_bloqueo));
-        
-        transicion_bloqueado_ready(pcb_pointer);
-
-    }
-    else{
-        
-        //espero el tiempo maximo de bloqueado
-        usleep(milisegundos_a_microsegundos(TIEMPO_MAXIMO_BLOQUEADO));
-
-        //suspendo el proceso
+    //si el proceso esta en BLOQUEADO
+    if (get_indice_pcb_pointer(lista_bloqueado, pcb_pointer) != -1){
         transicion_bloqueado_bloqueado_suspendido(pcb_pointer);
-
-        //termino de esperar el I/O
-        usleep(milisegundos_a_microsegundos(tiempo_bloqueo - TIEMPO_MAXIMO_BLOQUEADO));
-
-        transicion_bloqueado_suspendido_ready_suspendido(pcb_pointer);
-        
     }
+
+    pthread_mutex_unlock(&mutex_lista_bloqueado);
+    
+    return NULL;
+}
+
+void si_se_puede_entrar_IO(void){
+    /*
+        Busca en la cola cola_IO y si hay procesos esperando entrar en IO y ademas
+        IO no esta ocupada entonces lo entra
+    */
+
+    datos_tiempo_bloqueo datos_sobre_IO, *datos_pointer;
+
+    pthread_mutex_lock(&mutex_cola_IO);
+    pthread_mutex_lock(&mutex_en_IO);
+
+    if(!queue_is_empty(cola_IO) && en_IO.pcb_pointer == NULL){
+
+        datos_pointer = queue_pop(cola_IO);
+        datos_sobre_IO = *datos_pointer;
+
+        free(datos_pointer);
+
+        entrar_IO(datos_sobre_IO.pcb_pointer, datos_sobre_IO.tiempo_bloqueo);
+    }
+
+    pthread_mutex_unlock(&mutex_cola_IO);
+    pthread_mutex_unlock(&mutex_en_IO);
+}
+
+void entrar_IO(pcb_t *pcb_pointer, int32_t tiempo_bloqueo){
+
+    //ACLARACION: no espera un mutex de en_IO porque ya lo hace si_se_puede_entrar_IO() y
+    //esta es la unica funcion que la llama
+
+    pthread_t hilo;
+
+    if (en_IO.pcb_pointer != NULL){
+        log_error(logger, "Se intento entrar en IO un proceso cuando ya hay uno");
+        return;
+    }
+
+    //cargo datos necesarios en en_IO
+    en_IO.pcb_pointer = pcb_pointer;
+    en_IO.tiempo_bloqueo = tiempo_bloqueo;
+
+    //inicializo el timer para esperar el tiempo asignado de IO
+    pthread_create(&hilo, NULL, hilo_timer_IO, NULL);
+
+    pthread_detach(hilo);
+
+    log_debug(logger, "-> I/O (PID = %d)", pcb_pointer->pid);
+
+}
+
+void* hilo_timer_IO(void* arg){
+
+    /*    
+        Hilo que espera el tiempo de bloqueo asignado. Cuando
+        termina la espera llama a terminar_IO
+    */
+
+    pthread_mutex_lock(&mutex_en_IO);
+
+    usleep(milisegundos_a_microsegundos(en_IO.tiempo_bloqueo));
+
+    pthread_mutex_unlock(&mutex_en_IO);
+
+    terminar_IO();
 
     return NULL;
+}
+
+void terminar_IO(void){
+    /*
+        Saca al proceso de IO. Lo mueve a READY o a READY_SUSPENDIDO segun corresponda.
+        Trata de traer otro proceso a IO, si es que hay uno
+    */
+
+    pthread_mutex_lock(&mutex_en_IO);
+    pthread_mutex_lock(&mutex_lista_bloqueado);
+    pthread_mutex_lock(&mutex_lista_bloqueado_suspendido);
+
+    if (en_IO.pcb_pointer == NULL){
+        log_error(logger, "Se intento terminar de IO un proceso cuando no hay uno");
+        return;
+    }
+
+    int indice_bloqueado = get_indice_pcb_pointer(lista_bloqueado, en_IO.pcb_pointer);
+    int indice_bloqueado_suspendido = 0;
+
+    //si el pcb esta en lista_bloqueado
+    if ( indice_bloqueado != -1){
+        transicion_bloqueado_ready(en_IO.pcb_pointer);
+    }//si esta en lista_bloqueado_suspendido
+    else if((indice_bloqueado_suspendido = get_indice_pcb_pointer(lista_bloqueado_suspendido, en_IO.pcb_pointer)) != -1){
+        transicion_bloqueado_suspendido_ready_suspendido(en_IO.pcb_pointer);
+    }//si no esta en ninguna de las dos (error)
+    else{
+        log_error(logger, "Error en terminar_IO(): el pcb no esta ni en BLOQUEADO ni en BLOQUEADO_SUSPENDIDO");
+        return;
+    }
+
+    log_debug(logger, "I/O -> (PID = %d)", en_IO.pcb_pointer->pid);
+
+    en_IO.pcb_pointer = NULL;
+
+    pthread_mutex_unlock(&mutex_en_IO);
+    pthread_mutex_unlock(&mutex_lista_bloqueado);
+    pthread_mutex_unlock(&mutex_lista_bloqueado_suspendido);
+
+    si_se_puede_entrar_IO();
+
 }
 
 void transicion_bloqueado_bloqueado_suspendido(pcb_t *pcb_pointer){
@@ -356,10 +447,12 @@ void transicion_bloqueado_bloqueado_suspendido(pcb_t *pcb_pointer){
         Suspende un proceso
     */
 
+    //ACLARACION: no espera un mutex de la lista de bloqueado porque ya lo hace hilo_timer
+    //y es la unica funcion que llama a esta
+
     memoria_suspender_proceso(pcb_pointer);
 
     pthread_mutex_lock(&mutex_lista_bloqueado_suspendido);
-    pthread_mutex_lock(&mutex_lista_bloqueado);
     pthread_mutex_lock(&mutex_grado_multiprogramacion_actual);
 
     list_add(lista_bloqueado_suspendido, list_remove(lista_bloqueado, get_indice_pcb_pointer(lista_bloqueado, pcb_pointer)));
@@ -369,7 +462,6 @@ void transicion_bloqueado_bloqueado_suspendido(pcb_t *pcb_pointer){
     grado_multiprogramacion_actual--;
 
     pthread_mutex_unlock(&mutex_lista_bloqueado_suspendido);
-    pthread_mutex_unlock(&mutex_lista_bloqueado);
     pthread_mutex_unlock(&mutex_grado_multiprogramacion_actual);
 
     invocar_ingresar_proceso_a_ready(); 
@@ -381,14 +473,15 @@ void transicion_bloqueado_suspendido_ready_suspendido(pcb_t* pcb_pointer){
         Cuando un proceso suspendido cumplio su tiempo de I/O
     */
 
-    pthread_mutex_lock(&mutex_lista_bloqueado_suspendido);
+    //ACLARACION: no espera un mutex de lista_bloqueado_suspendido
+    //porque ya lo hace terminar_IO() y es la unica funcion que llama a esta
+
     pthread_mutex_lock(&mutex_cola_ready_suspendido);
 
     queue_push(cola_ready_suspendido, list_remove(lista_bloqueado_suspendido, get_indice_pcb_pointer(lista_bloqueado_suspendido, pcb_pointer)));
 
     log_info(logger, "BLOQUEADO_SUSPENDIDO -> READY_SUSPENDIDO (PID = %d)", pcb_pointer->pid);
 
-    pthread_mutex_unlock(&mutex_lista_bloqueado_suspendido);
     pthread_mutex_unlock(&mutex_cola_ready_suspendido);
     
     invocar_ingresar_proceso_a_ready();
@@ -400,15 +493,12 @@ void transicion_bloqueado_ready(pcb_t* pcb_pointer){
         Cuando un proceso termina de esperar por I/O sin llegar a ser suspendido
     */
 
-    pthread_mutex_lock(&mutex_lista_ready);
-    pthread_mutex_lock(&mutex_lista_bloqueado);
+    //ACLARACION: no espera un mutex de lista_bloqueado ni de lista_bloqueado_suspendido
+    //porque ya lo hace terminar_IO() y es la unica funcion que llama a esta
 
     list_add(lista_ready, list_remove(lista_bloqueado, get_indice_pcb_pointer(lista_bloqueado, pcb_pointer)));
 
     log_info(logger, "BLOQUEADO -> READY (PID = %d)", pcb_pointer->pid);
-
-    pthread_mutex_unlock(&mutex_lista_ready);
-    pthread_mutex_unlock(&mutex_lista_bloqueado);
 
     si_es_necesario_enviar_interrupcion_o_ready_ejec();
 }
@@ -446,6 +536,8 @@ bool transicion_ready_suspendido_ready(void){
 }
 
 int get_indice_pcb_pointer(t_list* lista, pcb_t* pcb_pointer){
+
+    // Devuelve -1 si no se encuentra en la lista
 
     int i = 0;
 

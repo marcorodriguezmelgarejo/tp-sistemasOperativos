@@ -31,7 +31,6 @@
 // *VARIABLES GLOBALES*
 
 pthread_t h1, h2;
-pthread_mutex_t mutex_cola_datos_bloqueo;
 pthread_mutex_t mutex_cola_new;
 pthread_mutex_t mutex_lista_ready;
 pthread_mutex_t mutex_lista_bloqueado;
@@ -40,6 +39,8 @@ pthread_mutex_t mutex_cola_ready_suspendido;
 pthread_mutex_t mutex_en_ejecucion;
 pthread_mutex_t mutex_grado_multiprogramacion_actual;
 pthread_mutex_t mutex_interrupcion_cpu;
+pthread_mutex_t mutex_cola_IO;
+pthread_mutex_t mutex_en_IO;
 
 t_log * logger;
 
@@ -71,12 +72,13 @@ t_list* lista_bloqueado_suspendido;
 t_queue* cola_ready_suspendido;
 pcb_t* en_ejecucion;
 
-t_queue* cola_datos_bloqueo; //se guardan punteros a datos_tiempo_bloqueo
-
 typedef struct datos_tiempo_bloqueo{
     int32_t tiempo_bloqueo;
-    pcb_t* pcb_pointer;
+    pcb_t *pcb_pointer;
 } datos_tiempo_bloqueo;
+
+t_queue* cola_IO; // cola de 'datos_tiempo_bloqueo'. Son procesos que quieren entrar a IO
+datos_tiempo_bloqueo en_IO; //se guarda los datos del proceso actualmente en IO
 
 bool ya_se_envio_interrupcion_cpu;
 
@@ -114,7 +116,6 @@ void transicion_bloqueado_ready(pcb_t *);
 void transicion_bloqueado_bloqueado_suspendido(pcb_t *);
 void transicion_bloqueado_suspendido_ready_suspendido(pcb_t *);
 bool transicion_ready_suspendido_ready();
-void *esperar_tiempo_bloqueo(void *);
 int get_indice_pcb_pointer(t_list*, pcb_t*);
 void inicializar_estructuras_memoria(pcb_t *);
 void liberar_estructuras_memoria(void);
@@ -124,7 +125,6 @@ void liberar_memoria_cola_pcb(t_queue*);
 void liberar_memoria_pcb(pcb_t*);
 void testear_seleccionar_proceso_menor_estimacion(void);
 void liberar_threads_cola(t_queue*);
-void *hacer_join_hilos_mediano_plazo(void *);
 void memoria_suspender_proceso(pcb_t*);
 void memoria_volver_de_suspendido(pcb_t*);
 void ingresar_proceso_a_ready(int);
@@ -134,5 +134,10 @@ void si_es_necesario_enviar_interrupcion_o_ready_ejec(void);
 void si_es_necesario_ready_ejec(void);
 int32_t calcular_estimacion_rafaga(pcb_t *);
 void enviar_fin_cpu(void);
+void* hilo_timer(void*);
+void si_se_puede_entrar_IO(void);
+void entrar_IO(pcb_t *, int32_t);
+void* hilo_timer_IO(void*);
+void terminar_IO(void);
 
 #endif

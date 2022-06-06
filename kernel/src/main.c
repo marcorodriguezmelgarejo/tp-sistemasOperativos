@@ -31,12 +31,11 @@ void liberar_memoria(void){
     liberar_memoria_cola_pcb(cola_ready_suspendido);
     queue_destroy(cola_ready_suspendido);
 
-    liberar_memoria_cola_pcb(cola_datos_bloqueo);
-    queue_destroy(cola_datos_bloqueo);
+    liberar_memoria_cola_pcb(cola_IO);
+    queue_destroy(cola_IO);
 
     log_destroy(logger);
 
-    pthread_mutex_destroy(&mutex_cola_datos_bloqueo);
     pthread_mutex_destroy(&mutex_cola_new);
     pthread_mutex_destroy(&mutex_lista_ready);
     pthread_mutex_destroy(&mutex_lista_bloqueado);
@@ -45,6 +44,8 @@ void liberar_memoria(void){
     pthread_mutex_destroy(&mutex_en_ejecucion);
     pthread_mutex_destroy(&mutex_grado_multiprogramacion_actual);
     pthread_mutex_destroy(&mutex_interrupcion_cpu);
+    pthread_mutex_destroy(&mutex_cola_IO);
+    pthread_mutex_destroy(&mutex_en_IO);
 }
 
 void liberar_threads_cola(t_queue* cola){
@@ -89,7 +90,6 @@ void liberar_memoria_pcb(pcb_t * pcb_pointer){
 
 void inicializar_estructuras(void){
     
-    pthread_mutex_init(&mutex_cola_datos_bloqueo, NULL);
     pthread_mutex_init(&mutex_cola_new, NULL);
     pthread_mutex_init(&mutex_lista_ready, NULL);
     pthread_mutex_init(&mutex_lista_bloqueado, NULL);
@@ -98,6 +98,8 @@ void inicializar_estructuras(void){
     pthread_mutex_init(&mutex_en_ejecucion, NULL);
     pthread_mutex_init(&mutex_grado_multiprogramacion_actual, NULL);
     pthread_mutex_init(&mutex_interrupcion_cpu, NULL);
+    pthread_mutex_init(&mutex_cola_IO, NULL);
+    pthread_mutex_init(&mutex_en_IO, NULL);
 
     cola_new = queue_create();
     lista_ready = list_create();
@@ -105,7 +107,7 @@ void inicializar_estructuras(void){
     lista_bloqueado_suspendido = list_create();
     cola_ready_suspendido = queue_create();
 
-    cola_datos_bloqueo = queue_create();
+    cola_IO = queue_create();
 
     crear_logger();
 }
@@ -121,6 +123,8 @@ void inicializar_variables_globales(void){
     interrupt_socket = 0;
 
     en_ejecucion = NULL;
+
+    en_IO.pcb_pointer = NULL;
 
     ya_se_envio_interrupcion_cpu = false;
 }
