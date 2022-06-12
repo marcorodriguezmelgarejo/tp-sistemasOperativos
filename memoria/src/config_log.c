@@ -1,4 +1,4 @@
-#include "funciones.h"
+#include "memoria.h"
 
 t_log* crear_logger(){
 
@@ -56,10 +56,4 @@ void leer_config_int(t_config* config, char* key, uint32_t* value){
 		log_error(logger, "No se encontro el valor de %s. Finalizando ejecucion.", key);
 		salir_error(logger, NULL);
 	}
-}
-
-void salir_error(t_log* logger, int* kernel_socket_pointer){
-	if (kernel_socket_pointer != NULL) sockets_cerrar(*kernel_socket_pointer);
-	if (logger != NULL) log_destroy(logger);
-	exit(ERROR_STATUS);
 }
