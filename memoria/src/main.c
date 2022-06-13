@@ -6,17 +6,17 @@ void salir_error(t_log* logger, int* kernel_socket_pointer){
 	exit(ERROR_STATUS);
 }
 
+void crear_hilos(void){
+    pthread_create(&h1, NULL, hilo_escuchar_cpu, NULL);
+    pthread_create(&h2, NULL, hilo_escuchar_kernel, NULL);
+    pthread_create(&h3, NULL, hilo_swap, NULL);
+}
+
 int main() {
 
 	logger = crear_logger();
 
 	cargar_config();
-
-    // Hay que conectar escucha|envia para el Kernel
-	/*if (!sockets_conectar_como_cliente(ip, port, &kernel_socket, logger)){
-		log_error(logger, "Error al intentar conectar con kernel. Finalizando...");
-		salir_error(logger, NULL);
-	}*/
 
     espacio_usuario = malloc(TAM_MEMORIA);
 
@@ -25,19 +25,21 @@ int main() {
     log_info(logger, "Tamanio de cada pagina: %d Bytes.", TAM_PAGINA);
 
     if(TAM_MEMORIA%TAM_PAGINA == 0){ //Chequeamos que sea divisible (resto 0)
-        uint32_t cant_pages = TAM_MEMORIA/TAM_PAGINA;
-        log_info(logger, "Cantidad de paginas: %d Bytes.", cant_pages);
+        cantidad_total_marcos = TAM_MEMORIA/TAM_PAGINA;
+        log_info(logger, "Cantidad total de marcos: %d", cantidad_total_marcos);
 
     } else {
         log_error(logger, "El tamaño de la pagina no es utilizable para este tamanio de memoria.");
 		salir_error(logger, NULL);
     }
 
-    // Arrancar la division de paginacion
-    
+    conectar_cpu_y_kernel();
 
-    log_info(logger, "Se ha terminado de ejecutar el programa. Finalizando.");
-	//finalizar_programa(kernel_socket, logger);
+    crear_hilos();
+	
+    pthread_join(h1, NULL);
+    pthread_join(h2, NULL);
+    pthread_join(h3, NULL);
 
 	return SUCCESS_STATUS;
 }
