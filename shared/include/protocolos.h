@@ -24,15 +24,15 @@ typedef struct pcb_t{
     int32_t pid;
     int32_t tamanio;
     int32_t program_counter;
-    char * lista_instrucciones; //instrucciones separadas por un \n
-    int32_t tabla_paginas;
+    char* lista_instrucciones; //instrucciones separadas por un \n
+    void* tabla_paginas;
     int32_t estimacion_rafaga;
     int32_t duracion_real_ultima_rafaga;
     uint64_t timestamp; // NO SE USA
     int32_t consola_socket; //el fd del socket mediante el cual el kernel se conecta a la consola del proceso
 } pcb_t;
 
-#define TAMANIO_PCB_SERIALIZADA 36 //sin contar la lista de instrucciones
+#define TAMANIO_PCB_SERIALIZADA 40 //sin contar la lista de instrucciones
 
 // ACLARACION: todas las funciones devuelven 'true' en caso de exito. 'false' si hubo un error
 

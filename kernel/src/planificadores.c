@@ -171,11 +171,6 @@ void transicion_ready_ejec(void){
         en_ejecucion = list_remove(lista_ready, 0);
     } 
 
-    if (en_ejecucion->tabla_paginas == -1){
-        log_error(logger, "error en transicion_ready_ejec(): el proceso no posee una tabla de paginas reservada");
-        return;
-    }
-
     enviar_pcb_cpu(en_ejecucion);
 
     log_info(logger, "READY->EJEC (PID = %d)", en_ejecucion->pid);

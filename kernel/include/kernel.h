@@ -123,7 +123,6 @@ void liberar_memoria(void);
 void liberar_memoria_lista_pcb(t_list*);
 void liberar_memoria_cola_pcb(t_queue*);
 void liberar_memoria_pcb(pcb_t*);
-void testear_seleccionar_proceso_menor_estimacion(void);
 void liberar_threads_cola(t_queue*);
 void memoria_suspender_proceso(pcb_t*);
 void memoria_volver_de_suspendido(pcb_t*);

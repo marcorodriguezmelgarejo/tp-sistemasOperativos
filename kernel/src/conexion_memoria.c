@@ -10,7 +10,7 @@ void inicializar_estructuras_memoria(pcb_t* pcb_pointer){
 
     // NOTA: el siguiente codigo es solo de prueba. No es valido
     
-    pcb_pointer->tabla_paginas = 1;
+    pcb_pointer->tabla_paginas = NULL;
 }
 
 void memoria_suspender_proceso(pcb_t* pcb_pointer){

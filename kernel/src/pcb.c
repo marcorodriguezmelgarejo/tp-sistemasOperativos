@@ -12,7 +12,7 @@ pcb_t *generar_pcb(char *lista_instrucciones, int32_t tamanio_proceso, int socke
     tamanio_proceso,
     0,
     lista_instrucciones,
-    -1,
+    NULL,
     ESTIMACION_INICIAL,
     0,
     0,
