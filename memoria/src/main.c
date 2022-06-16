@@ -12,11 +12,19 @@ void crear_hilos(void){
     pthread_create(&h3, NULL, hilo_swap, NULL);
 }
 
+void inicializar_variables_globales(void){
+    cola_instrucciones_swap = queue_create();
+    pthread_mutex_init(&mutex_cola_instrucciones_swap, NULL);
+    sem_init(&contador_cola_instrucciones_swap, 0, 0);
+}
+
 int main() {
 
 	logger = crear_logger();
 
 	cargar_config();
+
+    inicializar_variables_globales();
 
     espacio_usuario = malloc(TAM_MEMORIA);
 

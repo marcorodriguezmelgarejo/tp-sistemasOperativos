@@ -47,7 +47,7 @@ void leer_config_string(t_config* config, char* key, char* value){
 	}
 }
 
-void leer_config_int(t_config* config, char* key, uint32_t* value){
+void leer_config_int(t_config* config, char* key, int32_t* value){
 	
 	if (config_has_property(config, key)){
 		*value = config_get_int_value(config, key);
