@@ -104,12 +104,24 @@ void liberar_memoria_tabla_proceso(tabla_primer_nivel* tabla_pointer){
 
 
 void suspender_proceso(int32_t pid){
-    //TODO: IMPLEMENTAR
+    // TODO: IMPLEMENTAR
     return;
 }
 
-void finalizar_proceso(int32_t pid){
+void finalizar_proceso(tabla_primer_nivel* tabla_pointer){
     //TODO: IMPLEMENTAR
+    // Liberamos las paginas de memoria principal
+    tabla_primer_nivel* tabla_pointer;
+    liberar_memoria_tabla_proceso(tabla_pointer);
+
+    // Borramos el archivo de swap del proceso
+    char swap_file[MAX_STRING_SIZE];
+    sprintf(swap_file, "%s/%d.swap", PATH_SWAP, pid);
+    if(remove(swap_file) == 0){
+        log_info(logger, "Se ha eliminado el archivo %s con exito.", swap_file);
+    } else {
+        log_error(logger, "error al eliminar el archivo swap: %s",swap_file);
+    }
     return;
 }
 
