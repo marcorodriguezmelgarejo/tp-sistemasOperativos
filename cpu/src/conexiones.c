@@ -4,7 +4,6 @@
 bool conectar_con_kernel(){
     pthread_t hilo_conectar_dispatch, hilo_conectar_interrupt;
 
-
     if(pthread_create(&hilo_conectar_dispatch, NULL, (void*) conectar_dispatch, NULL) != 0){
         log_error(logger, "No se pudo crear el hilo para conectar con dispatch");
         exit(ERROR_STATUS);
@@ -19,6 +18,30 @@ bool conectar_con_kernel(){
     pthread_join(hilo_conectar_interrupt, NULL);
 
     return true;
+}
+
+bool conectar_con_memoria(){
+    if(!sockets_conectar_como_cliente(IP_MEMORIA, PUERTO_MEMORIA, &memoria_socket, logger)){
+        log_error(logger, "Error al conectarse con memoria");
+        exit(ERROR_STATUS);
+    }
+
+    if(!handshake_memoria()){
+        log_error(logger, "Error en el handsake con memoria, finalizando ejecucion...");
+        exit(ERROR_STATUS);
+    }
+
+}
+
+bool handshake_memoria(){
+    char string_buffer[100];
+
+    sockets_recibir_string(memoria_socket, string_buffer, logger);
+    if(strcmp(string_buffer, "cantidad de entradas tabla de paginas") != 0){
+        return false;
+    }
+
+    // TODO: IMPLEMENTAR
 }
 
 bool conectar_dispatch(){

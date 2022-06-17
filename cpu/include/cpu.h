@@ -45,6 +45,8 @@ typedef struct intruccion_t{
 pcb_t en_ejecucion;
 t_log* logger;
 uint64_t timestamp_comienzo_rafaga;
+int32_t entradas_tabla_paginas;
+int32_t tamanio_pagina;
 bool interrupcion; // si llego una interrupcion desde el Kernel
 bool finalizar; // si se debe finalizar la ejecucion al final del ciclo
 // parametros del config
@@ -58,6 +60,7 @@ int32_t RETARDO_NOOP; //en ms
 // conexiones
 int dispatch_socket;
 int interrupt_socket;
+int memoria_socket;
 // semaforos
 sem_t PCB_en_CPU;
 sem_t CPU_vacia;
