@@ -8,11 +8,11 @@ void conectar_cpu_y_kernel(void){
         exit(ERROR_STATUS);
     }
 
-
-
-    esperar_conexion_kernel(server_socket);
+  //  esperar_conexion_kernel(server_socket);
     esperar_conexion_cpu(server_socket);
-    handshake_cpu();
+    if(!handshake_cpu()){
+        log_error(logger, "Error en el handshake con el CPU");
+    }
 
     sockets_cerrar(server_socket);
     log_debug(logger, "Conexiones creadas con exito");
@@ -36,8 +36,15 @@ void esperar_conexion_kernel(int socket_escucha){
     return;
 }
 
-void handshake_cpu(){
-    // TODO: IMPLEMENTAR
+bool handshake_cpu(){
+    return 
+    sockets_enviar_string(cpu_socket, "cantidad de entradas tabla de paginas", logger)
+    &&
+    sockets_enviar_dato(cpu_socket, (void*) &ENTRADAS_POR_TABLA, sizeof ENTRADAS_POR_TABLA, logger)
+    &&
+    sockets_enviar_string(cpu_socket, "tamanio pagina", logger)
+    &&
+    sockets_enviar_dato(cpu_socket, (void*) &TAM_PAGINA, sizeof TAM_PAGINA, logger);
 }
 
 void* hilo_escuchar_cpu(void * arg){

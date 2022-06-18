@@ -20,7 +20,7 @@ bool conectar_con_kernel(){
     return true;
 }
 
-bool conectar_con_memoria(){
+void conectar_con_memoria(){
     if(!sockets_conectar_como_cliente(IP_MEMORIA, PUERTO_MEMORIA, &memoria_socket, logger)){
         log_error(logger, "Error al conectarse con memoria");
         exit(ERROR_STATUS);
@@ -30,18 +30,38 @@ bool conectar_con_memoria(){
         log_error(logger, "Error en el handsake con memoria, finalizando ejecucion...");
         exit(ERROR_STATUS);
     }
-
+    
+    log_debug(logger, "Memoria conectada!");
 }
 
 bool handshake_memoria(){
     char string_buffer[100];
+    int32_t int_buffer;
 
     sockets_recibir_string(memoria_socket, string_buffer, logger);
     if(strcmp(string_buffer, "cantidad de entradas tabla de paginas") != 0){
         return false;
     }
 
-    // TODO: IMPLEMENTAR
+    if(!sockets_recibir_dato(memoria_socket, (void*) &int_buffer, sizeof int_buffer, logger)){
+        return false;
+    }
+    entradas_tabla_paginas = int_buffer;
+
+    sockets_recibir_string(memoria_socket, string_buffer, logger);
+    if(strcmp(string_buffer, "tamanio pagina") != 0){
+        return false;
+    }
+
+    if(!sockets_recibir_dato(memoria_socket, (void*) &int_buffer, sizeof int_buffer, logger)){
+        return false;
+    }
+    tamanio_pagina = int_buffer;
+
+    log_info(logger, "Cantidad de entradas tabla de pagina: %d", entradas_tabla_paginas);
+    log_info(logger, "Tamanio pagina: %d", tamanio_pagina);
+
+    return true;
 }
 
 bool conectar_dispatch(){

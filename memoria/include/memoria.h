@@ -118,5 +118,8 @@ void borrar_archivo_swap(int32_t pid);
 void inicializar_variables_globales(void);
 void enviar_instruccion_swap(instruccion_swap);
 int get_indice_tabla_pointer(t_list* lista, tabla_primer_nivel* tabla_pointer);
+void esperar_conexion_cpu(int socket);
+void esperar_conexion_kernel(int socket);
+bool handshake_cpu();
 
 #endif
