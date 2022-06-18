@@ -118,11 +118,9 @@ void finalizar_proceso(tabla_primer_nivel* tabla_pointer, int32_t pid){
     instruccion_swap instruccion;
 
     // Liberamos las paginas de memoria principal
-
     liberar_memoria_tabla_proceso(tabla_pointer);
 
     // Borramos el archivo de swap del proceso
-
     instruccion.numero_instruccion = BORRAR_ARCHIVO_SWAP;
     instruccion.pid = pid;
     enviar_instruccion_swap(instruccion);

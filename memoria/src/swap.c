@@ -73,29 +73,48 @@ void crear_archivo_swap(int32_t pid, int32_t tamanio_proceso){
 }
 
 void trasladar_pagina_a_disco(int32_t numero_marco, int32_t pid){
-    //TODO: IMPLEMENTAR  
 
-    /*
-    
-    Traer puntero al inicio de la pagina
-    memcpy de lo que tiene con su largo
-    chequear si existe el archivo de .swap para este pid (deberia existir, es un check)
-    escribir en el archivo pid.swap
+    void* marco = espacio_usuario + numero_marco * TAM_PAGINA; // Puntero al marco indicado
+    void marco_temp[TAM_PAGINA]; // Marco temporal
+    memcpy(marco_temp, marco, TAM_PAGINA); // Guardo el contenido del marco en el marco temporal
 
-    */
+    FILE f;
+    char swap_file[MAX_STRING_SIZE];
+    sprintf(swap_file, "%s/%d.swap", PATH_SWAP, pid);
+    f = fopen(swap_file, "r+");
+
+    fseek(f, /*TAM_PAGINA * NroDePagina*/, SEEK_SET); //Si tenemos el marco y pid es simplemente buscar en la lista el match
+    fwrite(marco_temp, TAM_PAGINA, 1, f);
+
+    fclose(f);
+    // TODO
+    // Busco la tabla primaria de este pid
+    // Busco la tabla secundaria de esta pagina
+    // Pongo el bit de presencia de esa pag en 0
 
     return;
 }
 
 void trasladar_pagina_a_memoria(int32_t numero_marco, int32_t pid){
     //TODO: IMPLEMENTAR
+    int pag_de_proceso = /*Idem anterior, busco por el marco y pid la pag del proceso*/;
+    void* marco = espacio_usuario + numero_marco * TAM_PAGINA; // Puntero al marco indicado
 
-    /*
-    numero_marco = pagina en la que tengo que escribir
-    memcpy del archivo pid.swap del tamaño de una pagina al marco especificado
-    liberar espacio de ese tamaño en el archivo swap?
+    FILE f;
+    char swap_file[MAX_STRING_SIZE]; 
+    sprintf(swap_file, "%s/%d.swap", PATH_SWAP, pid);
+    f = fopen(swap_file, "r+");
 
-    */
+    fseek(f, /*TAM_PAGINA * NroDePagina*/, SEEK_SET); //Si tenemos el marco y pid es simplemente buscar en la lista el match
+    fread(marco, TAM_PAGINA, 1, f);
+    
+    fclose(f);
+
+    // TODO
+    // Busco la tabla primaria de este pid
+    // Busco la tabla secundaria de esta pagina
+    // Pongo el bit de presencia de esa pag en 0
+
     return;
 }
 
