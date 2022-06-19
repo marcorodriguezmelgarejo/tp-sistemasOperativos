@@ -16,18 +16,16 @@ void *hilo_swap(void *arg){
         sleep(RETARDO_SWAP); //retardo intencional para emular un swap real
 
         // Llamo a la instruccion correspondiente pasandole los parametros que correspondan
-        
-        //TODO: FIJARSE QUE PARAMETROS SE PASAN EN CADA FUNCION (CREO QUE YA ESTAN BIEN!!)
 
         switch (instruccion_pointer->numero_instruccion){
             case CREAR_ARCHIVO_SWAP:
                 crear_archivo_swap(instruccion_pointer->pid, instruccion_pointer->tamanio_proceso);
                 break;
             case TRASLADAR_PAGINA_A_DISCO:
-                trasladar_pagina_a_disco(instruccion_pointer->tabla_primer_nivel_pointer, instruccion_pointer->numero_pagina);
+                trasladar_pagina_a_disco(instruccion_pointer->pid, instruccion_pointer->numero_pagina, instruccion_pointer->numero_marco);
                 break;
             case TRASLADAR_PAGINA_A_MEMORIA:
-                trasladar_pagina_a_memoria(instruccion_pointer->tabla_primer_nivel_pointer, instruccion_pointer->numero_pagina);
+                trasladar_pagina_a_memoria(instruccion_pointer->pid, instruccion_pointer->numero_pagina, instruccion_pointer->numero_marco);
                 break;
             case TRASLADAR_PROCESO_A_DISCO:
                 trasladar_proceso_a_disco(instruccion_pointer->tabla_primer_nivel_pointer);
@@ -74,10 +72,12 @@ void crear_archivo_swap(int32_t pid, int32_t tamanio_proceso){
     return;
 }
 
-void trasladar_pagina_a_disco(tabla_primer_nivel* tabla_pointer, int32_t numero_pagina){
+void trasladar_pagina_a_disco(int32_t pid, int32_t numero_pagina, int32_t numero_marco){
 
-    /*  FIJATE QUE CAMBIE LOS PARAMETROS QUE RECIBE LA FUNCION!!! 
-        EL PID ESTA DENTRO DE LA TABLA DE PRIMER NIVEL
+    /*  
+        FIJATE QUE CAMBIE LOS PARAMETROS QUE RECIBE LA FUNCION
+        HAY QUE PASAR LO QUE ESTA EN EL MARCO A LA PAGINA DEL ARCHIVO SWAP
+        NO HAY QUE CAMBIAR NINGUN BIT DE PRESENCIA NI NADA
         BY: LEAN
     */
     
@@ -102,11 +102,13 @@ void trasladar_pagina_a_disco(tabla_primer_nivel* tabla_pointer, int32_t numero_
     return;
 }
 
-void trasladar_pagina_a_memoria(tabla_primer_nivel* tabla_pointer, int32_t numero_pagina){
+void trasladar_pagina_a_memoria(int32_t pid, int32_t numero_pagina, int32_t numero_marco){
     //TODO: IMPLEMENTAR
     
-    /*  FIJATE QUE CAMBIE LOS PARAMETROS QUE RECIBE LA FUNCION!!! 
-        EL PID ESTA DENTRO DE LA TABLA DE PRIMER NIVEL
+    /*  
+        FIJATE QUE CAMBIE LOS PARAMETROS QUE RECIBE LA FUNCION
+        EL NUMERO DE MARCO YA VIENE COMO PARAMETRO (la eleccion del marco se hace en alguna funcion en acciones.c)
+        NO HAY QUE CAMBIAR NINGUN BIT DE PRESENCIA NI NADA
         BY: LEAN
     */
 
@@ -150,7 +152,7 @@ void trasladar_proceso_a_disco(tabla_primer_nivel* tabla_pointer){
 
             // si la pagina forma parte del conjunto residente la mando a disco
             if (pagina_actual_pointer->presencia == true){
-                trasladar_pagina_a_disco(tabla_pointer, i * ENTRADAS_POR_TABLA + j);
+                trasladar_pagina_a_disco(tabla_pointer->pid, i * ENTRADAS_POR_TABLA + j, pagina_actual_pointer->numero_marco);
             }
         }
 

@@ -173,6 +173,7 @@ void finalizar_proceso(tabla_primer_nivel* tabla_pointer){
 int32_t acceder_tabla_primer_nivel(tabla_primer_nivel* tabla_pointer, int32_t numero_pagina){
     //TODO: IMPLEMENTAR
 
+    // SE DEVUELVE EL INDICE DE LA LISTA tabla_pointer->lista_de_entradas EN DONDE SE ENCUENTRE LA PAGINA
     
     return 0;
 }
@@ -180,26 +181,26 @@ int32_t acceder_tabla_primer_nivel(tabla_primer_nivel* tabla_pointer, int32_t nu
 int32_t acceder_tabla_segundo_nivel(tabla_primer_nivel* tabla_pointer, int32_t pagina){
     //TODO: IMPLEMENTAR
 
-    /*
-    entrada_segundo_nivel entrada= obtener_entrada_segundo_nivel(tabla_segundo_nivel, pagina);
-    
-    if (!se_encuentra_en_memoria(entrada)){
-        cargar_pagina_memoria();
-    }
-    
-    return entrada.numero_marco;
-    */
+    // HAY QUE TRAER LA PAGINA A MEMORIA SI NO LO ESTA (Y ELEGIR UN MARCO A REEMPLAZAR SI NO HAY MAS
+    // ESPACIO EN EL CONJUNTO RESIDENTE DEL PROCESO)
+
+    // PARA EL ALGORITMO DE REEMPLAZO CAPAZ HAY QUE AGREGAR UN NUMERO DE PAGINA EN LA TABLA DE PRIMER NIVEL
+    // QUE SERIA DONDE APUNTA EL CLOCK.
 
     return -1;
 }
 
 int32_t acceder_espacio_usuario_lectura(int32_t numero_marco, int32_t desplazamiento){
     //TODO: IMPLEMENTAR
+
+    // LA PAGINA SIEMPRE ESTA EN MEMORIA
     return 0;
 }
 
 bool acceder_espacio_usuario_escritura(int32_t numero_marco, int32_t desplazamiento, int32_t valor){
     //TODO: IMPLEMENTAR
+
+    // LA PAGINA SIEMPRE ESTA EN MEMORIA
     return false;
 }
 

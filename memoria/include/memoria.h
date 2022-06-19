@@ -58,8 +58,9 @@ typedef struct instruccion_swap{
     int32_t pid;
     int32_t tamanio_proceso;
     int32_t numero_pagina;
+    int32_t numero_marco;
     tabla_primer_nivel* tabla_primer_nivel_pointer;
-    sem_t * semaforo_pointer;
+    sem_t * semaforo_pointer; //un semaforo para dar la señal de cuando se termina de ejecutar la instruccion swap
 } instruccion_swap;
 
 // Variables Globales
@@ -112,8 +113,8 @@ int32_t acceder_espacio_usuario_lectura(int32_t numero_marco, int32_t desplazami
 bool acceder_espacio_usuario_escritura(int32_t numero_marco, int32_t desplazamiento, int32_t valor);
 void *hilo_swap(void *arg);
 void crear_archivo_swap(int32_t pid, int32_t tamanio_proceso);
-void trasladar_pagina_a_disco(tabla_primer_nivel*, int32_t);
-void trasladar_pagina_a_memoria(tabla_primer_nivel*, int32_t);
+void trasladar_pagina_a_disco(int32_t, int32_t, int32_t);
+void trasladar_pagina_a_memoria(int32_t, int32_t, int32_t);
 void trasladar_proceso_a_disco(tabla_primer_nivel*);
 void borrar_archivo_swap(int32_t pid);
 void inicializar_variables_globales(void);
