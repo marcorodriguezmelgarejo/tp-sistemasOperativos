@@ -126,12 +126,14 @@ bool escribir(int32_t dir_destino, int32_t valor);
 bool leer_dir_logica(int32_t direccion_logica, int32_t *valor_leido);
 bool escribir_dir_logica(int32_t direccion_logica, int32_t valor);
 bool leer_dir_fisica(int32_t direccion_fisica, int32_t *puntero_valor_leido);
-bool escribir_dir_fisica(int32_t direccion_fisica, int32_t *puntero_valor_leido);
+bool escribir_dir_fisica(int32_t direccion_fisica, int32_t dato);
 tlb_entrada_t buscar_pagina(int32_t pagina);
 int calcular_numero_pagina(int direccion_logica);
 int32_t calcular_entrada_tabla_1er_nivel(int numero_pagina);
 int32_t calcular_entrada_tabla_2do_nivel(int numero_pagina);
 int calcular_desplazamiento(int direccion_logica, int numero_pagina);
 bool fetch_operandos(instruccion_t *instruccion);
+bool acceder_a_tabla_1_nivel(int32_t indice_primer_nivel, int32_t *tabla_segundo_nivel);
+bool acceder_a_tabla_2_nivel(int32_t tabla_segundo_nivel, int32_t indice_segundo_nivel, int32_t *marco);
 
 #endif

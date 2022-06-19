@@ -30,7 +30,7 @@ bool leer(int32_t destino){
     int32_t valor_leido;
 
     if(!leer_dir_logica(destino, &valor_leido)){
-        log_error("No se pudo leer en memoria la direccion logica %d", destino);
+        log_error(logger, "No se pudo leer en memoria la direccion logica %d", destino);
         return false;
     }
 
@@ -41,7 +41,7 @@ bool leer(int32_t destino){
 bool escribir(int32_t destino, int32_t valor){
 
     if(!escribir_dir_logica(destino, valor)){
-        log_error("No se pudo escribir en memoria el valor %d en la direccion logica %d", valor, destino);
+        log_error(logger, "No se pudo escribir en memoria el valor %d en la direccion logica %d", valor, destino);
         return false;
     }
 

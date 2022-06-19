@@ -28,7 +28,7 @@ bool leer_dir_fisica(int32_t direccion_fisica, int32_t *puntero_valor_leido){
     return(
         sockets_enviar_string(memoria_socket, "Read", logger) // Ver bien si es esto o otra cosa
         &&
-        sockets_enviar_dato(memoria_socket, direccion_fisica, sizeof(direccion_fisica), logger) // esto o el marco y el desp por separado?
+        sockets_enviar_dato(memoria_socket, &direccion_fisica, sizeof(direccion_fisica), logger) // esto o el marco y el desp por separado?
         &&
         sockets_recibir_dato(memoria_socket, puntero_valor_leido, sizeof(*puntero_valor_leido), logger)
     );
@@ -42,7 +42,7 @@ bool escribir_dir_fisica(int32_t direccion_fisica, int32_t dato){
     return(
         sockets_enviar_string(memoria_socket, "Write", logger) // Ver bien si es esto o otra cosa
         &&
-        sockets_enviar_dato(memoria_socket, direccion_fisica, sizeof(direccion_fisica), logger) // esto o el marco y el desp por separado?
+        sockets_enviar_dato(memoria_socket, &direccion_fisica, sizeof(direccion_fisica), logger) // esto o el marco y el desp por separado?
         &&
         sockets_enviar_dato(memoria_socket, &dato, sizeof(dato), logger)
         &&
@@ -54,13 +54,12 @@ bool escribir_dir_fisica(int32_t direccion_fisica, int32_t dato){
 
 // Busca el marco en la memoria. RETORNA MARCO -1 SI HAY UN ERROR EN LA COMUNICACION CON LA MEMORIA
 tlb_entrada_t buscar_pagina(int32_t numPagina){ 
-    dir_logica_t direcccion_logica;
     int32_t tabla_segundo_nivel;
     tlb_entrada_t nueva_entrada;
     nueva_entrada.pagina = numPagina;
 
-    if(!acceder_a_tabla_1_nivel(calcular_entrada_primer_nivel(numPagina), &tabla_segundo_nivel)){
-        log_error(logger, "Error al acceder a la tabla de 1er nivel. Pid: %d, Indice: %d", en_ejecucion.pid, calcular_entrada_primer_nivel(numPagina));
+    if(!acceder_a_tabla_1_nivel(calcular_entrada_tabla_1er_nivel(numPagina), &tabla_segundo_nivel)){
+        log_error(logger, "Error al acceder a la tabla de 1er nivel. Pid: %d, Indice: %d", en_ejecucion.pid, calcular_entrada_tabla_1er_nivel(numPagina));
         nueva_entrada.marco = -1;
         return nueva_entrada;
     }
@@ -79,9 +78,9 @@ bool acceder_a_tabla_1_nivel(int32_t indice_primer_nivel, int32_t *tabla_segundo
 
     return(
         // enviar algo para que sepa el tipo de pedido
-        sockets_enviar_dato(memoria_socket, en_ejecucion.pid, sizeof(en_ejecucion.pid), logger)
+        sockets_enviar_dato(memoria_socket, &en_ejecucion.pid, sizeof(en_ejecucion.pid), logger)
         &&
-        sockets_enviar_dato(memoria_socket, indice_primer_nivel, sizeof(indice_primer_nivel), logger)
+        sockets_enviar_dato(memoria_socket, &indice_primer_nivel, sizeof(indice_primer_nivel), logger)
         &&
         sockets_recibir_dato(memoria_socket, tabla_segundo_nivel, sizeof(*tabla_segundo_nivel), logger)
     );
@@ -92,11 +91,11 @@ bool acceder_a_tabla_2_nivel(int32_t tabla_segundo_nivel, int32_t indice_segundo
 
     return(
         // enviar algo para que sepa el tipo de pedido
-        sockets_enviar_dato(memoria_socket, en_ejecucion.pid, sizeof(en_ejecucion.pid), logger)
+        sockets_enviar_dato(memoria_socket, &en_ejecucion.pid, sizeof(en_ejecucion.pid), logger)
         &&
-        sockets_enviar_dato(memoria_socket, tabla_segundo_nivel, sizeof(tabla_segundo_nivel), logger)
+        sockets_enviar_dato(memoria_socket, &tabla_segundo_nivel, sizeof(tabla_segundo_nivel), logger)
         &&
-        sockets_enviar_dato(memoria_socket, indice_segundo_nivel, sizeof(indice_segundo_nivel), logger)
+        sockets_enviar_dato(memoria_socket, &indice_segundo_nivel, sizeof(indice_segundo_nivel), logger)
         &&
         sockets_recibir_dato(memoria_socket, marco, sizeof(*marco), logger)
     );
