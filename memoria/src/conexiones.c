@@ -49,10 +49,37 @@ bool handshake_cpu(){
 
 void* hilo_escuchar_cpu(void * arg){
     //TODO: IMPLEMENTAR
+    // Esperar mensaje de CPU
+    // Decodear mensaje de CPU
+    // SWITCH CASES -> Interpretar mensaje
+        // ID Tabla 1er nivel
+            // INPUT: ID PROCESO, PAGINA DE PROCESO
+            // OUTPUT: NRO DE ENTRADA DE TABLA DE 2DO NIVEL
+        // ID Tabla de 2do nivel
+            // INPUT: ID PROCESO, ID PAG 2DO NIVEL, PAGINA
+            // OUTPUT: MARCO
+        // Read
+            // INPUT: MARCO, READ
+            // OUTPUT: CONTENIDO MARCO
+        // Write
+            // INPUT: MARCO, WRITE, CONTENT(PARAM)
+            // OUTPUT: "OK"
     return NULL;
 }
 
 void* hilo_escuchar_kernel(void * arg){
     //TODO: IMPLEMENTAR
+    // Esperar mensaje de Kernel
+    // Decodear mensaje de Kernel
+    // SWITCH CASES -> Interpretar mensaje
+        // Crear proceso
+            // INPUT: ID PROCESO, TAMAÑO PROCESO
+            // Call TRASLADAR_PROCESO_A_MEMORIA
+            // OUTPUT: "OK"
+        // Suspender proceso
+            // INPUT: ID PROCESO
+            // Call TRASLADAR_PROCESO_A_DISCO
+            // OUTPUT: "OK"
+
     return NULL;
 }

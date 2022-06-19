@@ -16,24 +16,19 @@ void *hilo_swap(void *arg){
         sleep(RETARDO_SWAP); //retardo intencional para emular un swap real
 
         // Llamo a la instruccion correspondiente pasandole los parametros que correspondan
-        
-        //TODO: FIJARSE QUE PARAMETROS SE PASAN EN CADA FUNCION
 
         switch (instruccion_pointer->numero_instruccion){
             case CREAR_ARCHIVO_SWAP:
                 crear_archivo_swap(instruccion_pointer->pid, instruccion_pointer->tamanio_proceso);
                 break;
             case TRASLADAR_PAGINA_A_DISCO:
-                trasladar_pagina_a_disco(instruccion_pointer->numero_marco, instruccion_pointer->pid);
+                trasladar_pagina_a_disco(instruccion_pointer->pid, instruccion_pointer->numero_pagina, instruccion_pointer->numero_marco);
                 break;
             case TRASLADAR_PAGINA_A_MEMORIA:
-                trasladar_pagina_a_memoria(instruccion_pointer->numero_marco, instruccion_pointer->pid);
+                trasladar_pagina_a_memoria(instruccion_pointer->pid, instruccion_pointer->numero_pagina, instruccion_pointer->numero_marco);
                 break;
             case TRASLADAR_PROCESO_A_DISCO:
-                trasladar_proceso_a_disco(instruccion_pointer->pid);
-                break;
-            case TRASLADAR_PROCESO_A_MEMORIA:
-                trasladar_proceso_a_memoria(instruccion_pointer->pid);
+                trasladar_proceso_a_disco(instruccion_pointer->tabla_primer_nivel_pointer);
                 break;
             case BORRAR_ARCHIVO_SWAP:
                 borrar_archivo_swap(instruccion_pointer->pid);
@@ -41,6 +36,11 @@ void *hilo_swap(void *arg){
             default:
                 log_error(logger, "No existe el codigo de instruccion");
                 break;
+        }
+
+        //indico a memoria que termine de ejecutar una instruccion swap
+        if (instruccion_pointer->semaforo_pointer != NULL){
+            sem_post(instruccion_pointer->semaforo_pointer);
         }
 
         free(instruccion_pointer);
@@ -72,40 +72,92 @@ void crear_archivo_swap(int32_t pid, int32_t tamanio_proceso){
     return;
 }
 
-void trasladar_pagina_a_disco(int32_t numero_marco, int32_t pid){
-    //TODO: IMPLEMENTAR  
+void trasladar_pagina_a_disco(int32_t pid, int32_t numero_pagina, int32_t numero_marco){
 
-    /*
+    /*  
+        FIJATE QUE CAMBIE LOS PARAMETROS QUE RECIBE LA FUNCION
+        HAY QUE PASAR LO QUE ESTA EN EL MARCO A LA PAGINA DEL ARCHIVO SWAP
+        NO HAY QUE CAMBIAR NINGUN BIT DE PRESENCIA NI NADA
+        BY: LEAN
+    */
     
-    Traer puntero al inicio de la pagina
-    memcpy de lo que tiene con su largo
-    chequear si existe el archivo de .swap para este pid (deberia existir, es un check)
-    escribir en el archivo pid.swap
+    void* marco = espacio_usuario + numero_marco * TAM_PAGINA; // Puntero al marco indicado
+    void marco_temp[TAM_PAGINA]; // Marco temporal
+    memcpy(marco_temp, marco, TAM_PAGINA); // Guardo el contenido del marco en el marco temporal
 
-    */
+    FILE f;
+    char swap_file[MAX_STRING_SIZE];
+    sprintf(swap_file, "%s/%d.swap", PATH_SWAP, pid);
+    f = fopen(swap_file, "r+");
+
+    fseek(f, /*TAM_PAGINA * NroDePagina*/, SEEK_SET); //Si tenemos el marco y pid es simplemente buscar en la lista el match
+    fwrite(marco_temp, TAM_PAGINA, 1, f);
+
+    fclose(f);
+    // TODO
+    // Busco la tabla primaria de este pid
+    // Busco la tabla secundaria de esta pagina
+    // Pongo el bit de presencia de esa pag en 0
 
     return;
 }
 
-void trasladar_pagina_a_memoria(int32_t numero_marco, int32_t pid){
+void trasladar_pagina_a_memoria(int32_t pid, int32_t numero_pagina, int32_t numero_marco){
     //TODO: IMPLEMENTAR
+    
+    /*  
+        FIJATE QUE CAMBIE LOS PARAMETROS QUE RECIBE LA FUNCION
+        EL NUMERO DE MARCO YA VIENE COMO PARAMETRO (la eleccion del marco se hace en alguna funcion en acciones.c)
+        NO HAY QUE CAMBIAR NINGUN BIT DE PRESENCIA NI NADA
+        BY: LEAN
+    */
 
+    int pag_de_proceso = /*Idem anterior, busco por el marco y pid la pag del proceso*/;
+    void* marco = espacio_usuario + numero_marco * TAM_PAGINA; // Puntero al marco indicado
+
+    FILE f;
+    char swap_file[MAX_STRING_SIZE]; 
+    sprintf(swap_file, "%s/%d.swap", PATH_SWAP, pid);
+    f = fopen(swap_file, "r+");
+
+    fseek(f, /*TAM_PAGINA * NroDePagina*/, SEEK_SET); //Si tenemos el marco y pid es simplemente buscar en la lista el match
+    fread(marco, TAM_PAGINA, 1, f);
+    
+    fclose(f);
+
+    // TODO
+    // Busco la tabla primaria de este pid
+    // Busco la tabla secundaria de esta pagina
+    // Pongo el bit de presencia de esa pag en 1
+
+    return;
+}
+
+void trasladar_proceso_a_disco(tabla_primer_nivel* tabla_pointer){
     /*
-    numero_marco = pagina en la que tengo que escribir
-    memcpy del archivo pid.swap del tamaño de una pagina al marco especificado
-    liberar espacio de ese tamaño en el archivo swap?
-
+        Itero en todas las paginas de la tabla buscando las que tengan presencia
+        y las mando a disco.
     */
-    return;
-}
 
-void trasladar_proceso_a_disco(int32_t pid){
-    //TODO: IMPLEMENTAR
-    return;
-}
+    int i = 0, j = 0;
+    tabla_segundo_nivel* tabla_segundo_nivel_pointer;
+    entrada_segundo_nivel* pagina_actual_pointer;
 
-void trasladar_proceso_a_memoria(int32_t pid){
-    //TODO: IMPLEMENTAR
+    for (i = 0; i < tabla_pointer->cantidad_entradas; i++){
+
+        tabla_segundo_nivel_pointer = list_get(tabla_pointer->lista_de_tabla_segundo_nivel, i);
+
+        for( j = 0; j < tabla_segundo_nivel_pointer->cantidad_entradas; j++){
+            pagina_actual_pointer = list_get(tabla_segundo_nivel_pointer->lista_de_entradas, j);
+
+            // si la pagina forma parte del conjunto residente la mando a disco
+            if (pagina_actual_pointer->presencia == true){
+                trasladar_pagina_a_disco(tabla_pointer->pid, i * ENTRADAS_POR_TABLA + j, pagina_actual_pointer->numero_marco);
+            }
+        }
+
+    }
+
     return;
 }
 
