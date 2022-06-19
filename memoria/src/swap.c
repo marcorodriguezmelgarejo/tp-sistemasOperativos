@@ -17,23 +17,20 @@ void *hilo_swap(void *arg){
 
         // Llamo a la instruccion correspondiente pasandole los parametros que correspondan
         
-        //TODO: FIJARSE QUE PARAMETROS SE PASAN EN CADA FUNCION
+        //TODO: FIJARSE QUE PARAMETROS SE PASAN EN CADA FUNCION (CREO QUE YA ESTAN BIEN!!)
 
         switch (instruccion_pointer->numero_instruccion){
             case CREAR_ARCHIVO_SWAP:
                 crear_archivo_swap(instruccion_pointer->pid, instruccion_pointer->tamanio_proceso);
                 break;
             case TRASLADAR_PAGINA_A_DISCO:
-                trasladar_pagina_a_disco(instruccion_pointer->numero_marco, instruccion_pointer->pid);
+                trasladar_pagina_a_disco(instruccion_pointer->tabla_primer_nivel_pointer, instruccion_pointer->numero_pagina);
                 break;
             case TRASLADAR_PAGINA_A_MEMORIA:
-                trasladar_pagina_a_memoria(instruccion_pointer->numero_marco, instruccion_pointer->pid);
+                trasladar_pagina_a_memoria(instruccion_pointer->tabla_primer_nivel_pointer, instruccion_pointer->numero_pagina);
                 break;
             case TRASLADAR_PROCESO_A_DISCO:
-                trasladar_proceso_a_disco(instruccion_pointer->pid);
-                break;
-            case TRASLADAR_PROCESO_A_MEMORIA:
-                trasladar_proceso_a_memoria(instruccion_pointer->pid);
+                trasladar_proceso_a_disco(instruccion_pointer->tabla_primer_nivel_pointer);
                 break;
             case BORRAR_ARCHIVO_SWAP:
                 borrar_archivo_swap(instruccion_pointer->pid);
@@ -41,6 +38,11 @@ void *hilo_swap(void *arg){
             default:
                 log_error(logger, "No existe el codigo de instruccion");
                 break;
+        }
+
+        //indico a memoria que termine de ejecutar una instruccion swap
+        if (instruccion_pointer->semaforo_pointer != NULL){
+            sem_post(instruccion_pointer->semaforo_pointer);
         }
 
         free(instruccion_pointer);
@@ -72,8 +74,13 @@ void crear_archivo_swap(int32_t pid, int32_t tamanio_proceso){
     return;
 }
 
-void trasladar_pagina_a_disco(int32_t numero_marco, int32_t pid){
+void trasladar_pagina_a_disco(tabla_primer_nivel* tabla_pointer, int32_t numero_pagina){
 
+    /*  FIJATE QUE CAMBIE LOS PARAMETROS QUE RECIBE LA FUNCION!!! 
+        EL PID ESTA DENTRO DE LA TABLA DE PRIMER NIVEL
+        BY: LEAN
+    */
+    
     void* marco = espacio_usuario + numero_marco * TAM_PAGINA; // Puntero al marco indicado
     void marco_temp[TAM_PAGINA]; // Marco temporal
     memcpy(marco_temp, marco, TAM_PAGINA); // Guardo el contenido del marco en el marco temporal
@@ -95,8 +102,14 @@ void trasladar_pagina_a_disco(int32_t numero_marco, int32_t pid){
     return;
 }
 
-void trasladar_pagina_a_memoria(int32_t numero_marco, int32_t pid){
+void trasladar_pagina_a_memoria(tabla_primer_nivel* tabla_pointer, int32_t numero_pagina){
     //TODO: IMPLEMENTAR
+    
+    /*  FIJATE QUE CAMBIE LOS PARAMETROS QUE RECIBE LA FUNCION!!! 
+        EL PID ESTA DENTRO DE LA TABLA DE PRIMER NIVEL
+        BY: LEAN
+    */
+
     int pag_de_proceso = /*Idem anterior, busco por el marco y pid la pag del proceso*/;
     void* marco = espacio_usuario + numero_marco * TAM_PAGINA; // Puntero al marco indicado
 
@@ -113,18 +126,36 @@ void trasladar_pagina_a_memoria(int32_t numero_marco, int32_t pid){
     // TODO
     // Busco la tabla primaria de este pid
     // Busco la tabla secundaria de esta pagina
-    // Pongo el bit de presencia de esa pag en 0
+    // Pongo el bit de presencia de esa pag en 1
 
     return;
 }
 
-void trasladar_proceso_a_disco(int32_t pid){
-    //TODO: IMPLEMENTAR
-    return;
-}
+void trasladar_proceso_a_disco(tabla_primer_nivel* tabla_pointer){
+    /*
+        Itero en todas las paginas de la tabla buscando las que tengan presencia
+        y las mando a disco.
+    */
 
-void trasladar_proceso_a_memoria(int32_t pid){
-    //TODO: IMPLEMENTAR
+    int i = 0, j = 0;
+    tabla_segundo_nivel* tabla_segundo_nivel_pointer;
+    entrada_segundo_nivel* pagina_actual_pointer;
+
+    for (i = 0; i < tabla_pointer->cantidad_entradas; i++){
+
+        tabla_segundo_nivel_pointer = list_get(tabla_pointer->lista_de_tabla_segundo_nivel, i);
+
+        for( j = 0; j < tabla_segundo_nivel_pointer->cantidad_entradas; j++){
+            pagina_actual_pointer = list_get(tabla_segundo_nivel_pointer->lista_de_entradas, j);
+
+            // si la pagina forma parte del conjunto residente la mando a disco
+            if (pagina_actual_pointer->presencia == true){
+                trasladar_pagina_a_disco(tabla_pointer, i * ENTRADAS_POR_TABLA + j);
+            }
+        }
+
+    }
+
     return;
 }
 

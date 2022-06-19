@@ -1,7 +1,10 @@
 #include "memoria.h"
 
 tabla_primer_nivel* inicializar_proceso(int32_t pid, int32_t tamanio_proceso){
-    //TODO: IMPLEMENTAR
+
+    /*
+        Inicializa el archivo swap y la tabla de paginas para el proceso
+    */
 
     if (tamanio_proceso >= TAM_PAGINA * ENTRADAS_POR_TABLA * ENTRADAS_POR_TABLA){
         log_error(logger, "El tamanio de proceso excede la cantidad de paginas asignables");
@@ -9,22 +12,30 @@ tabla_primer_nivel* inicializar_proceso(int32_t pid, int32_t tamanio_proceso){
 
     tabla_primer_nivel* tabla_primer_nivel_pointer;
     instruccion_swap instruccion;
+    sem_t semaforo;
 
     int32_t cantidad_paginas = ceil(tamanio_proceso / TAM_PAGINA); //de 1 a ENTRADAS_POR_TABLA * ENTRADAS_POR_TABLA
     int32_t cantidad_entradas_primer_nivel = ceil(cantidad_paginas / ENTRADAS_POR_TABLA); //de 1 a ENTRADAS_POR_TABLA
     int32_t cantidad_entradas_segundo_nivel_ultima_entrada = cantidad_paginas % ENTRADAS_POR_TABLA; //de 1 a ENTRADAS_POR_TABLA
 
+    sem_init(&semaforo, 0, 0);
+
     instruccion.numero_instruccion = CREAR_ARCHIVO_SWAP;
     instruccion.pid = pid;
     instruccion.tamanio_proceso = tamanio_proceso;
+    instruccion.semaforo_pointer = &semaforo;
     enviar_instruccion_swap(instruccion);
+
+    sem_wait(&semaforo); //espera a que termine la instruccion swap
+
+    sem_destroy(&semaforo);
     
-    tabla_primer_nivel_pointer = crear_tabla_paginas_proceso(cantidad_entradas_primer_nivel, cantidad_entradas_segundo_nivel_ultima_entrada);
+    tabla_primer_nivel_pointer = crear_tabla_paginas_proceso(pid, cantidad_entradas_primer_nivel, cantidad_entradas_segundo_nivel_ultima_entrada);
 
     return tabla_primer_nivel_pointer;
 }
 
-tabla_primer_nivel* crear_tabla_paginas_proceso(int32_t cantidad_entradas_primer_nivel, int32_t cantidad_entradas_segundo_nivel_ultima_entrada){
+tabla_primer_nivel* crear_tabla_paginas_proceso(int32_t pid, int32_t cantidad_entradas_primer_nivel, int32_t cantidad_entradas_segundo_nivel_ultima_entrada){
     /*
         Reserva memoria para 1 tabla de paginas de primer nivel y para las tablas de segundo nivel necesarias.
     */
@@ -39,6 +50,7 @@ tabla_primer_nivel* crear_tabla_paginas_proceso(int32_t cantidad_entradas_primer
         return NULL;
     }
 
+    (*tabla_primer_nivel_pointer).pid = pid;
     (*tabla_primer_nivel_pointer).cantidad_entradas = cantidad_entradas_primer_nivel;
     (*tabla_primer_nivel_pointer).lista_de_tabla_segundo_nivel = list_create();
 
@@ -87,6 +99,9 @@ tabla_primer_nivel* crear_tabla_paginas_proceso(int32_t cantidad_entradas_primer
 }
 
 void liberar_memoria_tabla_proceso(tabla_primer_nivel* tabla_pointer){
+    /*
+        Hace todos los frees correspondientes para liberar memoria alocada para una tabla de primer nivel
+    */
 
     int i = 0, index = 0;
     tabla_segundo_nivel* tabla_segundo_nivel_pointer;
@@ -107,31 +122,58 @@ void liberar_memoria_tabla_proceso(tabla_primer_nivel* tabla_pointer){
 }
 
 
-void suspender_proceso(int32_t pid){
-    // TODO: IMPLEMENTAR
+void suspender_proceso(tabla_primer_nivel* tabla_pointer){
+    /*
+        Envia instruccion a swap para mandar todo el conjunto residente del proceso a disco
+    */
+
+    instruccion_swap instruccion;
+    sem_t semaforo;
+
+    sem_init(&semaforo, 0, 0);
+
+    instruccion.numero_instruccion = TRASLADAR_PROCESO_A_DISCO;
+    instruccion.tabla_primer_nivel_pointer = tabla_pointer;
+    instruccion.semaforo_pointer = &semaforo;
+    enviar_instruccion_swap(instruccion);
+
+    sem_wait(&semaforo); //espera a que termine de ejecutarse la instruccion en swap
+
+    sem_destroy(&semaforo);
+
     return;
 }
 
-void finalizar_proceso(tabla_primer_nivel* tabla_pointer, int32_t pid){
-    //TODO: IMPLEMENTAR
+void finalizar_proceso(tabla_primer_nivel* tabla_pointer){
+    /*
+        Borra el archivo de swap del proceso y libera la tabla de primer nivel del proceso
+    */
 
     instruccion_swap instruccion;
+    sem_t semaforo;
+
+    sem_init(&semaforo, 0, 0);
+
+    // Borramos el archivo de swap del proceso
+    instruccion.numero_instruccion = BORRAR_ARCHIVO_SWAP;
+    instruccion.pid = tabla_pointer->pid;
+    instruccion.semaforo_pointer = &semaforo;
+    enviar_instruccion_swap(instruccion);
+
+    sem_wait(&semaforo); //espera a que termine de ejecutarse la instruccion en swap
+
+    sem_destroy(&semaforo);
 
     // Liberamos las paginas de memoria principal
     liberar_memoria_tabla_proceso(tabla_pointer);
 
-    // Borramos el archivo de swap del proceso
-    instruccion.numero_instruccion = BORRAR_ARCHIVO_SWAP;
-    instruccion.pid = pid;
-    enviar_instruccion_swap(instruccion);
-
     return;
 }
 
-int32_t acceder_tabla_primer_nivel(tabla_primer_nivel* tabla_pointer, int32_t indice){
+int32_t acceder_tabla_primer_nivel(tabla_primer_nivel* tabla_pointer, int32_t numero_pagina){
     //TODO: IMPLEMENTAR
 
-    //se accede a la tabla y al indice correspondiente para obtener el numero de
+    
     return 0;
 }
 

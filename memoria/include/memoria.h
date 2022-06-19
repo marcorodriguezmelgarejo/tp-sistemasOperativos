@@ -31,12 +31,12 @@
 #define TRASLADAR_PAGINA_A_DISCO 1
 #define TRASLADAR_PAGINA_A_MEMORIA 2
 #define TRASLADAR_PROCESO_A_DISCO 3
-#define TRASLADAR_PROCESO_A_MEMORIA 4
-#define BORRAR_ARCHIVO_SWAP 5
+#define BORRAR_ARCHIVO_SWAP 4
 
 // Estructuras
 
 typedef struct tabla_primer_nivel{
+    int32_t pid;
     int32_t cantidad_entradas; //de 1 a ENTRADAS_POR_TABLA (es el length de lista de entradas)
     t_list *lista_de_tabla_segundo_nivel; //es una lista de punteros a tabla_segundo_nivel
 } tabla_primer_nivel;
@@ -57,7 +57,9 @@ typedef struct instruccion_swap{
     int32_t numero_instruccion;
     int32_t pid;
     int32_t tamanio_proceso;
-    int32_t numero_marco;
+    int32_t numero_pagina;
+    tabla_primer_nivel* tabla_primer_nivel_pointer;
+    sem_t * semaforo_pointer;
 } instruccion_swap;
 
 // Variables Globales
@@ -100,20 +102,19 @@ void conectar_cpu_y_kernel(void);
 void* hilo_escuchar_cpu(void * arg);
 void* hilo_escuchar_kernel(void * arg);
 tabla_primer_nivel* inicializar_proceso(int32_t pid, int32_t tamanio_proceso);
-tabla_primer_nivel* crear_tabla_paginas_proceso(int32_t cantidad_entradas_primer_nivel, int32_t cantidad_entradas_segundo_nivel_ultima_entrada);
+tabla_primer_nivel* crear_tabla_paginas_proceso(int32_t pid, int32_t cantidad_entradas_primer_nivel, int32_t cantidad_entradas_segundo_nivel_ultima_entrada);
 void liberar_memoria_tabla_proceso(tabla_primer_nivel* tabla_pointer);
-void suspender_proceso(int32_t pid);
-void finalizar_proceso(tabla_primer_nivel*, int32_t);
+void suspender_proceso(tabla_primer_nivel*);
+void finalizar_proceso(tabla_primer_nivel*);
 int32_t acceder_tabla_primer_nivel(tabla_primer_nivel* tabla_pointer, int32_t indice);
 int32_t acceder_tabla_segundo_nivel(tabla_primer_nivel* tabla_pointer, int32_t pagina);
 int32_t acceder_espacio_usuario_lectura(int32_t numero_marco, int32_t desplazamiento);
 bool acceder_espacio_usuario_escritura(int32_t numero_marco, int32_t desplazamiento, int32_t valor);
 void *hilo_swap(void *arg);
 void crear_archivo_swap(int32_t pid, int32_t tamanio_proceso);
-void trasladar_pagina_a_disco(int32_t numero_marco, int32_t pid);
-void trasladar_pagina_a_memoria(int32_t numero_marco, int32_t pid);
-void trasladar_proceso_a_disco(int32_t pid);
-void trasladar_proceso_a_memoria(int32_t pid);
+void trasladar_pagina_a_disco(tabla_primer_nivel*, int32_t);
+void trasladar_pagina_a_memoria(tabla_primer_nivel*, int32_t);
+void trasladar_proceso_a_disco(tabla_primer_nivel*);
 void borrar_archivo_swap(int32_t pid);
 void inicializar_variables_globales(void);
 void enviar_instruccion_swap(instruccion_swap);
