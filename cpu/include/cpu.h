@@ -10,6 +10,7 @@
 #include <sys/time.h>
 #include <pthread.h>
 #include <semaphore.h>
+#include <math.h>
 
 #include "../../shared/include/sockets.h"
 #include "../../shared/include/protocolos.h"
@@ -40,6 +41,21 @@ typedef struct intruccion_t{
     //parametros (no siempre se usan todos, cuales se usan depende de la op)
     int32_t tiempo_bloqueo, valor, dir_destino, dir_origen;
 } instruccion_t;
+
+typedef struct dir_logica_t{
+int32_t entrada_tabla_1er_nivel;//esta en pcb
+int32_t entrada_tabla_2do_nivel;
+int32_t desplazamiento;
+} dir_logica_t;
+
+typedef struct tlb_entrada_t{
+int32_t pagina;
+int32_t marco;
+} tlb_entrada_t;
+
+typedef struct tlb_t{
+t_list * entradas; 
+} tlb_t;
 
 // VARIABLES GLOBALES
 pcb_t en_ejecucion;
@@ -105,6 +121,17 @@ void recibir_interrupcion_del_kernel();
 void matar_kernel();
 bool handshake_memoria();
 void conectar_con_memoria();
-
+bool leer(int32_t dir_origen);
+bool escribir(int32_t dir_destino, int32_t valor);
+bool leer_dir_logica(int32_t direccion_logica, int32_t *valor_leido);
+bool escribir_dir_logica(int32_t direccion_logica, int32_t valor);
+bool leer_dir_fisica(int32_t direccion_fisica, int32_t *puntero_valor_leido);
+bool escribir_dir_fisica(int32_t direccion_fisica, int32_t *puntero_valor_leido);
+tlb_entrada_t buscar_pagina(int32_t pagina);
+int calcular_numero_pagina(int direccion_logica);
+int32_t calcular_entrada_tabla_1er_nivel(int numero_pagina);
+int32_t calcular_entrada_tabla_2do_nivel(int numero_pagina);
+int calcular_desplazamiento(int direccion_logica, int numero_pagina);
+bool fetch_operandos(instruccion_t *instruccion);
 
 #endif

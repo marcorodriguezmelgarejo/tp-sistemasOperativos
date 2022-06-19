@@ -25,3 +25,25 @@ bool i_o(int32_t tiempo_bloqueo){
 
     return true;
 }
+
+bool leer(int32_t destino){
+    int32_t valor_leido;
+
+    if(!leer_dir_logica(destino, &valor_leido)){
+        log_error("No se pudo leer en memoria la direccion logica %d", destino);
+        return false;
+    }
+
+    printf("VALOR LEIDO DE MEMORIA: %d", valor_leido);
+    return true;
+}
+
+bool escribir(int32_t destino, int32_t valor){
+
+    if(!escribir_dir_logica(destino, valor)){
+        log_error("No se pudo escribir en memoria el valor %d en la direccion logica %d", valor, destino);
+        return false;
+    }
+
+    return true;
+}

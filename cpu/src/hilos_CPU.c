@@ -99,6 +99,7 @@ void ciclo_instruccion(){
         while(true){
             fetch(string_instruccion);
             instruccion = decode(string_instruccion);
+            fetch_operandos(&instruccion);
             if(execute(instruccion)){
                 log_info(logger, "Operacion ejecutada con exito");
             }

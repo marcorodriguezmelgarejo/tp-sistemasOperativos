@@ -17,6 +17,13 @@ bool execute(instruccion_t instruccion){
             log_error(logger, "Error al ejecutar, operacion invalida");
             respuesta_operacion = false;
             break;
+        case READ:
+            respuesta_operacion = leer(instruccion.dir_origen);
+            break;
+        case WRITE:
+        case COPY:
+            respuesta_operacion = escribir(instruccion.dir_destino, instruccion.valor);
+            break;
         default:
             log_error(logger, "Error al ejecutar, codigo de operacion desconocido");
             respuesta_operacion = false;
