@@ -25,59 +25,87 @@ bool escribir_dir_logica(int32_t direccion_logica, int32_t valor){
 
 bool leer_dir_fisica(int32_t direccion_fisica, int32_t *puntero_valor_leido){
 
-    // acceder a memoria
+    return(
+        sockets_enviar_string(memoria_socket, "Read", logger) // Ver bien si es esto o otra cosa
+        &&
+        sockets_enviar_dato(memoria_socket, direccion_fisica, sizeof(direccion_fisica), logger) // esto o el marco y el desp por separado?
+        &&
+        sockets_recibir_dato(memoria_socket, puntero_valor_leido, sizeof(*puntero_valor_leido), logger)
+    );
+    
 
-    return true;
 }
 
-bool escribir_dir_fisica(int32_t direccion_fisica, int32_t *puntero_valor_leido){
+bool escribir_dir_fisica(int32_t direccion_fisica, int32_t dato){
+    char respuesta_memoria[10];
 
-    // acceder a memoria 
-
-    return true;
+    return(
+        sockets_enviar_string(memoria_socket, "Write", logger) // Ver bien si es esto o otra cosa
+        &&
+        sockets_enviar_dato(memoria_socket, direccion_fisica, sizeof(direccion_fisica), logger) // esto o el marco y el desp por separado?
+        &&
+        sockets_enviar_dato(memoria_socket, &dato, sizeof(dato), logger)
+        &&
+        sockets_recibir_string(memoria_socket, respuesta_memoria, logger)
+        &&
+        strcmp(respuesta_memoria, "OK")
+    );
 }
 
 // Busca el marco en la memoria. RETORNA MARCO -1 SI HAY UN ERROR EN LA COMUNICACION CON LA MEMORIA
-tlb_entrada_t buscar_pagina(int32_t pagina){ 
+tlb_entrada_t buscar_pagina(int32_t numPagina){ 
     dir_logica_t direcccion_logica;
-    tlb_entrada_t nueva_entrada;
     int32_t tabla_segundo_nivel;
+    tlb_entrada_t nueva_entrada;
+    nueva_entrada.pagina = numPagina;
 
-
-    if(!acceder_a_tabla_1_nivel(calcular_entrada_primer_nivel(pagina), &tabla_segundo_nivel)){
+    if(!acceder_a_tabla_1_nivel(calcular_entrada_primer_nivel(numPagina), &tabla_segundo_nivel)){
+        log_error(logger, "Error al acceder a la tabla de 1er nivel. Pid: %d, Indice: %d", en_ejecucion.pid, calcular_entrada_primer_nivel(numPagina));
         nueva_entrada.marco = -1;
         return nueva_entrada;
     }
 
-    // obtener el marco de la memoria
+    if(!acceder_a_tabla_2_nivel(tabla_segundo_nivel, calcular_entrada_tabla_2do_nivel(numPagina), &(nueva_entrada.marco))){
+        log_error(logger, "Error al acceder a la tabla de 2do nivel. Pid: %d, Num tabla 2do nivel: %d, Indice: %d", en_ejecucion.pid, tabla_segundo_nivel, calcular_entrada_tabla_2do_nivel(numPagina));
+        nueva_entrada.marco = -1;
+        return nueva_entrada;
+    }
     
-    nueva_entrada.pagina = pagina;
     return nueva_entrada;
 }
 
 
-// bool acceder_a_tabla_1_nivel(int32_t indice_primer_nivel, int32_t *tabla_segundo_nivel){
+bool acceder_a_tabla_1_nivel(int32_t indice_primer_nivel, int32_t *tabla_segundo_nivel){
 
-//     /*  Se lo pide a memoria. Le pasa:
-//         en_ejecucion.tabla_paginas
-//         indice_primer_nivel
+    return(
+        // enviar algo para que sepa el tipo de pedido
+        sockets_enviar_dato(memoria_socket, en_ejecucion.pid, sizeof(en_ejecucion.pid), logger)
+        &&
+        sockets_enviar_dato(memoria_socket, indice_primer_nivel, sizeof(indice_primer_nivel), logger)
+        &&
+        sockets_recibir_dato(memoria_socket, tabla_segundo_nivel, sizeof(*tabla_segundo_nivel), logger)
+    );
+}
 
-//         Memoria devuelve el indice de la tabla de segundo nivel.
-//         Lo retorno en la variable tabla_segundo_nivel
-//     */
 
-//     return true;
-// }
+bool acceder_a_tabla_2_nivel(int32_t tabla_segundo_nivel, int32_t indice_segundo_nivel, int32_t *marco){
 
-
-// bool acceder_a_tabla_2_nivel(
-
-// }
+    return(
+        // enviar algo para que sepa el tipo de pedido
+        sockets_enviar_dato(memoria_socket, en_ejecucion.pid, sizeof(en_ejecucion.pid), logger)
+        &&
+        sockets_enviar_dato(memoria_socket, tabla_segundo_nivel, sizeof(tabla_segundo_nivel), logger)
+        &&
+        sockets_enviar_dato(memoria_socket, indice_segundo_nivel, sizeof(indice_segundo_nivel), logger)
+        &&
+        sockets_recibir_dato(memoria_socket, marco, sizeof(*marco), logger)
+    );
+}
 
 /////// VERSION MODIFICADA PARA TESTEAR ///////
-int32_t tlb_get_marco(tlb_t tlb, int32_t pagina){//busca en la tlb o en memoria el marco necesario//----creo que ok
+int32_t tlb_get_marco(tlb_t tlb, int32_t numPagina){//busca en la tlb o en memoria el marco necesario//----creo que ok
     tlb_entrada_t entrada;
-    log_info(logger, "Se produjo un fallo de pagina, se buscara en memoria la pagina %d", pagina);
-    entrada = buscar_pagina(pagina);//solicito en memoria la pagina que me falta//TODO salvaguardar
+    log_info(logger, "Se produjo un fallo de numPagina, se buscara en memoria la numPagina %d", numPagina);
+    entrada = buscar_pagina(numPagina);//solicito en memoria la numPagina que me falta//TODO salvaguardar
     return entrada.marco;
 }

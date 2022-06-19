@@ -25,7 +25,7 @@ typedef struct pcb_t{
     int32_t tamanio;
     int32_t program_counter;
     char* lista_instrucciones; //instrucciones separadas por un \n
-    void* tabla_paginas;
+    void* tabla_paginas; // NO SE USA
     int32_t estimacion_rafaga;
     int32_t duracion_real_ultima_rafaga;
     uint64_t timestamp; // NO SE USA
