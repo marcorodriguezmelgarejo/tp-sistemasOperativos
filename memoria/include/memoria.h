@@ -38,6 +38,7 @@
 typedef struct tabla_primer_nivel{
     int32_t pid;
     int32_t cantidad_entradas; //de 1 a ENTRADAS_POR_TABLA (es el length de lista de entradas)
+    int32_t tamanio_conjunto_residente; //de 0 a MARCOS_POR_PROCESO
     t_list *lista_de_tabla_segundo_nivel; //es una lista de punteros a tabla_segundo_nivel
 } tabla_primer_nivel;
 
@@ -108,6 +109,11 @@ void liberar_memoria_tabla_proceso(tabla_primer_nivel* tabla_pointer);
 void suspender_proceso(tabla_primer_nivel*);
 void finalizar_proceso(tabla_primer_nivel*);
 int32_t acceder_tabla_primer_nivel(tabla_primer_nivel* tabla_pointer, int32_t indice);
+entrada_segundo_nivel* get_entrada_segundo_nivel(tabla_primer_nivel* tabla_pointer, int32_t numero_pagina);
+int32_t elegir_pagina_para_reemplazar(tabla_primer_nivel* tabla_pointer);
+int32_t elegir_marco_libre(tabla_primer_nivel* tabla_pointer);
+void acciones_trasladar_pagina_a_disco(int32_t pid, int32_t numero_pagina, int32_t numero_marco);
+void acciones_trasladar_pagina_a_memoria(int32_t pid, int32_t numero_pagina, int32_t numero_marco);
 int32_t acceder_tabla_segundo_nivel(tabla_primer_nivel* tabla_pointer, int32_t pagina);
 int32_t acceder_espacio_usuario_lectura(int32_t numero_marco, int32_t desplazamiento);
 bool acceder_espacio_usuario_escritura(int32_t numero_marco, int32_t desplazamiento, int32_t valor);

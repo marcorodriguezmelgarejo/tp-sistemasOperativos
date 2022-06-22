@@ -52,6 +52,7 @@ tabla_primer_nivel* crear_tabla_paginas_proceso(int32_t pid, int32_t cantidad_en
 
     (*tabla_primer_nivel_pointer).pid = pid;
     (*tabla_primer_nivel_pointer).cantidad_entradas = cantidad_entradas_primer_nivel;
+    (*tabla_primer_nivel_pointer).tamanio_conjunto_residente = 0;
     (*tabla_primer_nivel_pointer).lista_de_tabla_segundo_nivel = list_create();
 
     //reservo memoria e inicializo las tablas de segundo nivel
@@ -175,10 +176,26 @@ int32_t acceder_tabla_primer_nivel(tabla_primer_nivel* tabla_pointer, int32_t nu
 
     // SE DEVUELVE EL INDICE DE LA LISTA tabla_pointer->lista_de_entradas EN DONDE SE ENCUENTRE LA PAGINA
     
-    return 0;
+    int32_t indice_tabla_segundo_nivel;
+
+    if (numero_pagina < 0){
+        log_error(logger, "El numero de pagina no puede ser menor a cero");
+        return -1;
+    }
+
+    if (excede_la_tabla(tabla_pointer, numero_pagina)){
+        log_error(logger, "El numero de pagina excede la cantidad de paginas asignadas al proceso");
+        return -1;
+    }
+
+    indice_tabla_segundo_nivel = floor(numero_pagina / ENTRADAS_POR_TABLA);
+
+    log_debug(logger, "acceder_tabla_primer_nivel PID = %d, indice devuelto = %d", tabla_pointer->pid, indice_tabla_segundo_nivel);
+    
+    return indice_tabla_segundo_nivel;
 }
 
-int32_t acceder_tabla_segundo_nivel(tabla_primer_nivel* tabla_pointer, int32_t pagina){
+int32_t acceder_tabla_segundo_nivel(tabla_primer_nivel* tabla_pointer, int32_t numero_pagina){
     //TODO: IMPLEMENTAR
 
     // HAY QUE TRAER LA PAGINA A MEMORIA SI NO LO ESTA (Y ELEGIR UN MARCO A REEMPLAZAR SI NO HAY MAS
@@ -187,20 +204,154 @@ int32_t acceder_tabla_segundo_nivel(tabla_primer_nivel* tabla_pointer, int32_t p
     // PARA EL ALGORITMO DE REEMPLAZO CAPAZ HAY QUE AGREGAR UN NUMERO DE PAGINA EN LA TABLA DE PRIMER NIVEL
     // QUE SERIA DONDE APUNTA EL CLOCK.
 
+    instruccion_swap instruccion;
+    
+    bool se_reemplazo_pagina = false;
+
+    int32_t numero_marco;
+
+    entrada_segundo_nivel* entrada_segundo_nivel_pointer = get_entrada_segundo_nivel(tabla_pointer, numero_pagina);
+
+    //si la pagina no esta en memoria la traigo desde disco
+    if (entrada_segundo_nivel_pointer->presencia == false){
+
+        //si hace falta reemplazar una pagina
+        if (tabla_pointer->tamanio_conjunto_residente == MARCOS_POR_PROCESO){
+            numero_pagina = elegir_pagina_para_reemplazar(tabla_pointer);
+
+            numero_marco = get_entrada_segundo_nivel(tabla_pointer, numero_pagina)->numero_marco;
+
+            acciones_trasladar_pagina_a_disco(tabla_pointer->pid, numero_pagina, numero_marco);
+
+            se_reemplazo_pagina = true;
+        }
+        else{
+            numero_marco = elegir_marco_libre(tabla_pointer);
+        }
+
+        acciones_trasladar_pagina_a_memoria(tabla_pointer->pid, numero_pagina, numero_marco);
+
+        entrada_segundo_nivel_pointer->presencia = true;
+
+        if (se_reemplazo_pagina == false){
+            tabla_pointer->tamanio_conjunto_residente += 1;
+        }
+    }
+    else{
+        numero_marco = entrada_segundo_nivel_pointer->numero_marco;
+    }
+
+    return numero_marco;
+}
+
+entrada_segundo_nivel* get_entrada_segundo_nivel(tabla_primer_nivel* tabla_pointer, int32_t numero_pagina){
+    /*
+        Obtiene un puntero la entrada de segundo nivel que corresponde a la pagina numero 'numero_pagina'
+        dentro de la tabla 'tabla_pointer'.
+    */
+
+    int32_t indice_tabla_segundo_nivel = floor(numero_pagina / ENTRADAS_POR_TABLA);
+    
+    int32_t indice_entrada_segundo_nivel = numero_pagina % ENTRADAS_POR_TABLA;
+
+    tabla_segundo_nivel* tabla_segundo_nivel_pointer = list_get(tabla_pointer->lista_de_tabla_segundo_nivel, indice_tabla_segundo_nivel);
+
+    entrada_segundo_nivel* entrada_segundo_nivel_pointer = list_get(tabla_segundo_nivel_pointer->lista_de_entradas, indice_entrada_segundo_nivel);
+
+    return entrada_segundo_nivel_pointer;
+
+}
+
+int32_t elegir_pagina_para_reemplazar(tabla_primer_nivel* tabla_pointer){
+    /*
+        Elige una pagina a reemplazar de las que forman parte del conjunto residente.
+        Esto ocurre cuando el conjunto residente tiene el maximo tamanio posible y se debe
+        trasladar una pagina a disco para traer otra pagina a memoria.
+        Devuelve el numero de pagina a reemplazar.
+    */
+
+    //TODO : IMPLEMENTAR
+
     return -1;
+}
+
+int32_t elegir_marco_libre(tabla_primer_nivel* tabla_pointer){
+    
+    /*
+        Devuelve el numero de un marco libre en el cual colocar una pagina que se va a traer desde disco
+    */
+
+    //TODO: IMPLEMENTAR
+
+    return -1;
+}
+
+void acciones_trasladar_pagina_a_disco(int32_t pid, int32_t numero_pagina, int32_t numero_marco){
+    /*
+        Envia instruccion a swap para trasladar la pagina numero 'numero_pagina' del proceso asociado a 'tabla_pointer' a disco.
+        La misma esta ubicada en el marco numero 'numero_marco'.
+        Espera que la accion en swap se realize.
+    */
+
+    instruccion_swap instruccion;
+    sem_t semaforo;
+
+    sem_init(&semaforo, 0, 0);
+
+    instruccion.numero_instruccion = TRASLADAR_PAGINA_A_DISCO;
+    instruccion.pid = pid;
+    instruccion.numero_pagina = numero_pagina;
+    instruccion.numero_marco = numero_marco;
+    instruccion.semaforo_pointer = &semaforo;
+
+    enviar_instruccion_swap(instruccion);
+
+    sem_wait(&semaforo);
+
+    sem_destroy(&semaforo);
+
+    return;
+}
+
+void acciones_trasladar_pagina_a_memoria(int32_t pid, int32_t numero_pagina, int32_t numero_marco){
+
+    /*
+        Envia instruccion a swap para trasladar la pagina numero 'numero_pagina' del proceso asociado a 'tabla_pointer' a memoria
+        en el marco numero 'numero_marco'.
+        Espera que la accion en swap se realize.
+    */
+
+    instruccion_swap instruccion;
+    sem_t semaforo;
+
+    sem_init(&semaforo, 0, 0);
+
+    instruccion.numero_instruccion = TRASLADAR_PAGINA_A_MEMORIA;
+    instruccion.pid = pid;
+    instruccion.numero_pagina = numero_pagina;
+    instruccion.numero_marco = numero_marco;
+    instruccion.semaforo_pointer = &semaforo;
+
+    enviar_instruccion_swap(instruccion);
+
+    sem_wait(&semaforo);
+
+    sem_destroy(&semaforo);
+
+    return;
 }
 
 int32_t acceder_espacio_usuario_lectura(int32_t numero_marco, int32_t desplazamiento){
     //TODO: IMPLEMENTAR
 
-    // LA PAGINA SIEMPRE ESTA EN MEMORIA
+    // LA PAGINA SIEMPRE ESTA EN MEMORIA (LA TRAE acceder_tabla_segundo_nivel())
     return 0;
 }
 
 bool acceder_espacio_usuario_escritura(int32_t numero_marco, int32_t desplazamiento, int32_t valor){
     //TODO: IMPLEMENTAR
 
-    // LA PAGINA SIEMPRE ESTA EN MEMORIA
+    // LA PAGINA SIEMPRE ESTA EN MEMORIA (LA TRAE acceder_tabla_segundo_nivel())
     return false;
 }
 
@@ -242,4 +393,11 @@ void enviar_instruccion_swap(instruccion_swap instruccion){
 
     sem_post(&contador_cola_instrucciones_swap);
 
+}
+
+bool excede_la_tabla(tabla_primer_nivel* tabla_pointer, int32_t indice){
+
+    tabla_segundo_nivel* ultima_tabla_segundo_nivel_pointer = list_get(tabla_pointer->lista_de_tabla_segundo_nivel, tabla_pointer->cantidad_entradas-1);
+
+    return (indice >= (tabla_pointer->cantidad_entradas-1) * ENTRADAS_POR_TABLA + ultima_tabla_segundo_nivel_pointer->cantidad_entradas);
 }
