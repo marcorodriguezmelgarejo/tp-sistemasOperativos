@@ -73,6 +73,7 @@ void crear_archivo_swap(int32_t pid, int32_t tamanio_proceso){
 }
 
 void trasladar_pagina_a_disco(int32_t pid, int32_t numero_pagina, int32_t numero_marco){
+    //TODO: CHECKEAR/TESTEAR
 
     /*  
         FIJATE QUE CAMBIE LOS PARAMETROS QUE RECIBE LA FUNCION
@@ -90,20 +91,16 @@ void trasladar_pagina_a_disco(int32_t pid, int32_t numero_pagina, int32_t numero
     sprintf(swap_file, "%s/%d.swap", PATH_SWAP, pid);
     f = fopen(swap_file, "r+");
 
-    fseek(f, /*TAM_PAGINA * NroDePagina*/, SEEK_SET); //Si tenemos el marco y pid es simplemente buscar en la lista el match
+    fseek(f, TAM_PAGINA * numero_pagina, SEEK_SET); //Si tenemos el marco y pid es simplemente buscar en la lista el match
     fwrite(marco_temp, TAM_PAGINA, 1, f);
 
     fclose(f);
-    // TODO
-    // Busco la tabla primaria de este pid
-    // Busco la tabla secundaria de esta pagina
-    // Pongo el bit de presencia de esa pag en 0
 
     return;
 }
 
 void trasladar_pagina_a_memoria(int32_t pid, int32_t numero_pagina, int32_t numero_marco){
-    //TODO: IMPLEMENTAR
+    //TODO: CHECKEAR/TESTEAR
     
     /*  
         FIJATE QUE CAMBIE LOS PARAMETROS QUE RECIBE LA FUNCION
@@ -112,7 +109,7 @@ void trasladar_pagina_a_memoria(int32_t pid, int32_t numero_pagina, int32_t nume
         BY: LEAN
     */
 
-    int pag_de_proceso = /*Idem anterior, busco por el marco y pid la pag del proceso*/;
+    int pag_de_proceso = numero_pagina;
     void* marco = espacio_usuario + numero_marco * TAM_PAGINA; // Puntero al marco indicado
 
     FILE f;
@@ -120,15 +117,10 @@ void trasladar_pagina_a_memoria(int32_t pid, int32_t numero_pagina, int32_t nume
     sprintf(swap_file, "%s/%d.swap", PATH_SWAP, pid);
     f = fopen(swap_file, "r+");
 
-    fseek(f, /*TAM_PAGINA * NroDePagina*/, SEEK_SET); //Si tenemos el marco y pid es simplemente buscar en la lista el match
+    fseek(f, TAM_PAGINA * numero_pagina, SEEK_SET); //Si tenemos el marco y pid es simplemente buscar en la lista el match
     fread(marco, TAM_PAGINA, 1, f);
     
     fclose(f);
-
-    // TODO
-    // Busco la tabla primaria de este pid
-    // Busco la tabla secundaria de esta pagina
-    // Pongo el bit de presencia de esa pag en 1
 
     return;
 }

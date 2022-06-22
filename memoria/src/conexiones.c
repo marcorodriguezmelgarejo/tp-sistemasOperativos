@@ -48,7 +48,7 @@ bool handshake_cpu(){
 }
 
 void* hilo_escuchar_cpu(void * arg){
-    //TODO: IMPLEMENTAR
+    // TODO: IMPLEMENTAR
     // Esperar mensaje de CPU
     // Decodear mensaje de CPU
     // SWITCH CASES -> Interpretar mensaje
@@ -68,7 +68,7 @@ void* hilo_escuchar_cpu(void * arg){
 }
 
 void* hilo_escuchar_kernel(void * arg){
-    //TODO: IMPLEMENTAR
+    // TODO: IMPLEMENTAR
     // Esperar mensaje de Kernel
     // Decodear mensaje de Kernel
     // SWITCH CASES -> Interpretar mensaje
