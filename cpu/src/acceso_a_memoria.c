@@ -24,9 +24,10 @@ bool escribir_dir_logica(int32_t direccion_logica, int32_t valor){
 }
 
 bool leer_dir_fisica(int32_t direccion_fisica, int32_t *puntero_valor_leido){
+    int32_t motivo = LECTURA_EN_ESPACIO_USUARIO;
 
     return(
-        sockets_enviar_string(memoria_socket, "Read", logger) // Ver bien si es esto o otra cosa
+        sockets_enviar_dato(memoria_socket, &motivo, sizeof motivo, logger)
         &&
         sockets_enviar_dato(memoria_socket, &direccion_fisica, sizeof(direccion_fisica), logger) // esto o el marco y el desp por separado?
         &&
@@ -38,9 +39,10 @@ bool leer_dir_fisica(int32_t direccion_fisica, int32_t *puntero_valor_leido){
 
 bool escribir_dir_fisica(int32_t direccion_fisica, int32_t dato){
     char respuesta_memoria[10];
+    int32_t motivo = ESCRITURA_EN_ESPACIO_USUARIO;
 
     return(
-        sockets_enviar_string(memoria_socket, "Write", logger) // Ver bien si es esto o otra cosa
+        sockets_enviar_dato(memoria_socket, &motivo, sizeof motivo, logger)
         &&
         sockets_enviar_dato(memoria_socket, &direccion_fisica, sizeof(direccion_fisica), logger) // esto o el marco y el desp por separado?
         &&
@@ -75,10 +77,13 @@ tlb_entrada_t buscar_pagina(int32_t numPagina){
 
 
 bool acceder_a_tabla_1_nivel(int32_t indice_primer_nivel, int32_t *tabla_segundo_nivel){
+    int32_t motivo = ACCESO_TABLA_PRIMER_NIVEL;
+    int32_t pid = en_ejecucion.pid;
 
     return(
-        // enviar algo para que sepa el tipo de pedido
-        sockets_enviar_dato(memoria_socket, &en_ejecucion.pid, sizeof(en_ejecucion.pid), logger)
+        sockets_enviar_dato(memoria_socket, &motivo, sizeof motivo, logger)
+        &&
+        sockets_enviar_dato(memoria_socket, &pid, sizeof(pid), logger)
         &&
         sockets_enviar_dato(memoria_socket, &indice_primer_nivel, sizeof(indice_primer_nivel), logger)
         &&
@@ -88,10 +93,13 @@ bool acceder_a_tabla_1_nivel(int32_t indice_primer_nivel, int32_t *tabla_segundo
 
 
 bool acceder_a_tabla_2_nivel(int32_t tabla_segundo_nivel, int32_t indice_segundo_nivel, int32_t *marco){
+    int32_t motivo = ACCESO_TABLA_SEGUNDO_NIVEL;
+    int32_t pid = en_ejecucion.pid;
 
     return(
-        // enviar algo para que sepa el tipo de pedido
-        sockets_enviar_dato(memoria_socket, &en_ejecucion.pid, sizeof(en_ejecucion.pid), logger)
+        sockets_enviar_dato(memoria_socket, &motivo, sizeof motivo, logger)
+        &&
+        sockets_enviar_dato(memoria_socket, &pid, sizeof(pid), logger)
         &&
         sockets_enviar_dato(memoria_socket, &tabla_segundo_nivel, sizeof(tabla_segundo_nivel), logger)
         &&

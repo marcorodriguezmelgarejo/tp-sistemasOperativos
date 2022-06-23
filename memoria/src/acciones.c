@@ -355,6 +355,17 @@ bool acceder_espacio_usuario_escritura(int32_t numero_marco, int32_t desplazamie
     return false;
 }
 
+
+
+
+bool tiene_tabla_primer_nivel(int32_t pid){
+    // TODO    
+}
+
+tabla_primer_nivel* obtener_tabla_con_pid(int32_t pid){
+    // TODO
+}
+
 int get_indice_tabla_pointer(t_list* lista, tabla_primer_nivel* tabla_pointer){
 
     // Devuelve -1 si no se encuentra en la lista

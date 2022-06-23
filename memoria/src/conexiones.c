@@ -47,7 +47,64 @@ bool handshake_cpu(){
     sockets_enviar_dato(cpu_socket, (void*) &TAM_PAGINA, sizeof TAM_PAGINA, logger);
 }
 
+
+bool atender_acceso_tabla_primer_nivel(){
+    int32_t buffer_pid;
+    int32_t buffer_num_pagina;
+
+    tabla_primer_nivel* tabla_del_proceso;
+    int32_t numero_tabla_segundo_nivel;
+
+    if(!sockets_recibir_dato(cpu_socket, &buffer_pid, sizeof buffer_pid, logger)){
+        log_error(logger, "Error al recibir pid");
+        return false;
+    }
+    if(!sockets_recibir_dato(cpu_socket, &buffer_num_pagina, sizeof buffer_num_pagina, logger)){
+        log_error(logger, "Error al recibir el numero de pagina");
+        return false;
+    }
+
+    // numero_tabla_segundo_nivel = 
+
+    // if(!sockets_enviar_dato(cpu_socket, )){
+    //     log_error(logger, "Error al enviar el numero de tabla de segundo nivel");
+    //     return false;
+    // }
+
+    return true;
+}
+
 void* hilo_escuchar_cpu(void * arg){
+    int32_t motivo;
+
+    while(true){
+        sockets_recibir_dato(cpu_socket, &motivo, sizeof(motivo), logger);
+
+        switch(motivo){
+            case ACCESO_TABLA_PRIMER_NIVEL:
+                atender_acceso_tabla_primer_nivel();
+                break;
+
+            case ACCESO_TABLA_SEGUNDO_NIVEL:
+
+                break;
+            case LECTURA_EN_ESPACIO_USUARIO:
+
+                break;
+            case ESCRITURA_EN_ESPACIO_USUARIO:
+
+                break;
+            default:
+                log_error(logger, "Error al recibir el motivo de comunicacion de la CPU");
+                break;
+        }
+
+
+    }
+
+
+
+
     // TODO: IMPLEMENTAR
     // Esperar mensaje de CPU
     // Decodear mensaje de CPU

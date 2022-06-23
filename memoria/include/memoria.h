@@ -129,5 +129,6 @@ int get_indice_tabla_pointer(t_list* lista, tabla_primer_nivel* tabla_pointer);
 void esperar_conexion_cpu(int socket);
 void esperar_conexion_kernel(int socket);
 bool handshake_cpu();
+bool excede_la_tabla(tabla_primer_nivel* tabla_pointer, int32_t indice);
 
 #endif
