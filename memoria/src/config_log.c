@@ -6,7 +6,7 @@ t_log* crear_logger(){
 
 	if((logger = log_create("./cfg/memoria.log","memoria_log",1,LOG_LEVEL_TRACE)) == NULL){
 		puts("No se ha podido crear el archivo de log.\nTerminando ejecucion.");
-		salir_error(NULL, NULL);
+		return NULL;
 	}
 
 	log_debug(logger, "Se ha creado el archivo de log con exito.");
@@ -18,7 +18,7 @@ void cargar_config(){
 
 	if((config = config_create("./cfg/memoria.config")) == NULL){
 		log_error(logger, "No se ha podido leer el archivo de config. \nFinalizando Ejecucion.");
-		salir_error(logger, NULL);
+		return;
 	}
 
 	leer_config_string(config, "PUERTO_ESCUCHA", PUERTO_ESCUCHA);
@@ -43,7 +43,7 @@ void leer_config_string(t_config* config, char* key, char* value){
 		log_info(logger, "%s: %s", key, value);
 	} else {
 		log_error(logger, "No se encontro el valor de %s. Finalizando ejecucion.", key);
-		salir_error(logger, NULL);
+		return;
 	}
 }
 
@@ -54,6 +54,6 @@ void leer_config_int(t_config* config, char* key, int32_t* value){
 		log_info(logger, "%s: %d", key, *value);
 	} else {
 		log_error(logger, "No se encontro el valor de %s. Finalizando ejecucion.", key);
-		salir_error(logger, NULL);
+		return;
 	}
 }

@@ -1,5 +1,11 @@
 #include "memoria.h"
 
+/*
+    TODO: TESTEAR TODAS LAS FUNCIONES
+
+    funciones testeadas hasta ahora: ninguna
+*/
+
 tabla_primer_nivel* inicializar_proceso(int32_t pid, int32_t tamanio_proceso){
 
     /*
@@ -30,12 +36,12 @@ tabla_primer_nivel* inicializar_proceso(int32_t pid, int32_t tamanio_proceso){
 
     sem_destroy(&semaforo);
     
-    tabla_primer_nivel_pointer = crear_tabla_paginas_proceso(pid, cantidad_entradas_primer_nivel, cantidad_entradas_segundo_nivel_ultima_entrada);
+    tabla_primer_nivel_pointer = crear_tabla_paginas_proceso(pid, cantidad_paginas, cantidad_entradas_primer_nivel, cantidad_entradas_segundo_nivel_ultima_entrada);
 
     return tabla_primer_nivel_pointer;
 }
 
-tabla_primer_nivel* crear_tabla_paginas_proceso(int32_t pid, int32_t cantidad_entradas_primer_nivel, int32_t cantidad_entradas_segundo_nivel_ultima_entrada){
+tabla_primer_nivel* crear_tabla_paginas_proceso(int32_t pid, int32_t cantidad_paginas, int32_t cantidad_entradas_primer_nivel, int32_t cantidad_entradas_segundo_nivel_ultima_entrada){
     /*
         Reserva memoria para 1 tabla de paginas de primer nivel y para las tablas de segundo nivel necesarias.
     */
@@ -53,6 +59,8 @@ tabla_primer_nivel* crear_tabla_paginas_proceso(int32_t pid, int32_t cantidad_en
     (*tabla_primer_nivel_pointer).pid = pid;
     (*tabla_primer_nivel_pointer).cantidad_entradas = cantidad_entradas_primer_nivel;
     (*tabla_primer_nivel_pointer).tamanio_conjunto_residente = 0;
+    (*tabla_primer_nivel_pointer).puntero_clock = 0;
+    (*tabla_primer_nivel_pointer).cantidad_paginas = cantidad_paginas;
     (*tabla_primer_nivel_pointer).lista_de_tabla_segundo_nivel = list_create();
 
     //reservo memoria e inicializo las tablas de segundo nivel
@@ -172,7 +180,6 @@ void finalizar_proceso(tabla_primer_nivel* tabla_pointer){
 }
 
 int32_t acceder_tabla_primer_nivel(tabla_primer_nivel* tabla_pointer, int32_t numero_pagina){
-    //TODO: IMPLEMENTAR
 
     // SE DEVUELVE EL INDICE DE LA LISTA tabla_pointer->lista_de_entradas EN DONDE SE ENCUENTRE LA PAGINA
     
@@ -195,49 +202,69 @@ int32_t acceder_tabla_primer_nivel(tabla_primer_nivel* tabla_pointer, int32_t nu
     return indice_tabla_segundo_nivel;
 }
 
-int32_t acceder_tabla_segundo_nivel(tabla_primer_nivel* tabla_pointer, int32_t numero_pagina){
-    //TODO: IMPLEMENTAR
+int32_t acceder_tabla_segundo_nivel(tabla_primer_nivel* tabla_pointer, int32_t numero_pagina_solicitada){
 
-    // HAY QUE TRAER LA PAGINA A MEMORIA SI NO LO ESTA (Y ELEGIR UN MARCO A REEMPLAZAR SI NO HAY MAS
-    // ESPACIO EN EL CONJUNTO RESIDENTE DEL PROCESO)
+    /*
+        Retorna el numero de marco en donde se encuentra la pagina solicitada.
+        Si la misma no se encuentra en memoria se trae, reemplazando una pagina si es necesario.
+    */
 
-    // PARA EL ALGORITMO DE REEMPLAZO CAPAZ HAY QUE AGREGAR UN NUMERO DE PAGINA EN LA TABLA DE PRIMER NIVEL
-    // QUE SERIA DONDE APUNTA EL CLOCK.
-
-    instruccion_swap instruccion;
     
     bool se_reemplazo_pagina = false;
 
+    int32_t numero_pagina_a_reemplazar;
+
+    entrada_segundo_nivel* entrada_segundo_nivel_a_reemplazar_pointer;
+
     int32_t numero_marco;
 
-    entrada_segundo_nivel* entrada_segundo_nivel_pointer = get_entrada_segundo_nivel(tabla_pointer, numero_pagina);
+    entrada_segundo_nivel* entrada_segundo_nivel_pointer = get_entrada_segundo_nivel(tabla_pointer, numero_pagina_solicitada);
 
     //si la pagina no esta en memoria la traigo desde disco
     if (entrada_segundo_nivel_pointer->presencia == false){
 
         //si hace falta reemplazar una pagina
         if (tabla_pointer->tamanio_conjunto_residente == MARCOS_POR_PROCESO){
-            numero_pagina = elegir_pagina_para_reemplazar(tabla_pointer);
+            numero_pagina_a_reemplazar = elegir_pagina_para_reemplazar(tabla_pointer);
 
-            numero_marco = get_entrada_segundo_nivel(tabla_pointer, numero_pagina)->numero_marco;
+            entrada_segundo_nivel_a_reemplazar_pointer = get_entrada_segundo_nivel(tabla_pointer, numero_pagina_a_reemplazar);
 
-            acciones_trasladar_pagina_a_disco(tabla_pointer->pid, numero_pagina, numero_marco);
+            numero_marco = entrada_segundo_nivel_a_reemplazar_pointer->numero_marco;
+
+            //si fue modificada la traslado a disco
+            if (entrada_segundo_nivel_a_reemplazar_pointer->modificado == true){
+                acciones_trasladar_pagina_a_disco(tabla_pointer->pid, numero_pagina_a_reemplazar, numero_marco);
+            }
+
+            entrada_segundo_nivel_a_reemplazar_pointer->presencia = false;
 
             se_reemplazo_pagina = true;
         }
         else{
             numero_marco = elegir_marco_libre(tabla_pointer);
+
+            if (numero_marco == -1){
+                log_error(logger, "No hay mas memoria disponible");
+                return -1;
+            }
         }
 
-        acciones_trasladar_pagina_a_memoria(tabla_pointer->pid, numero_pagina, numero_marco);
+        acciones_trasladar_pagina_a_memoria(tabla_pointer->pid, numero_pagina_solicitada, numero_marco);
 
         entrada_segundo_nivel_pointer->presencia = true;
+        entrada_segundo_nivel_pointer->numero_marco = numero_marco;
+        entrada_segundo_nivel_pointer->usado = true;
+        entrada_segundo_nivel_pointer->modificado = false;
 
         if (se_reemplazo_pagina == false){
+            log_info(logger, "Reemplazo pagina hecho (pid=%d) (numero de pagina reemplazada=%d) (numero de pagina actual=%d) (numero de marco=%d)", tabla_pointer->pid, numero_pagina_a_reemplazar, numero_pagina_solicitada, numero_marco);
             tabla_pointer->tamanio_conjunto_residente += 1;
         }
+        else{
+            log_info(logger, "Se trajo pagina a memoria (pid=%d) (numero de pagina=%d) (numero de marco=%d)", tabla_pointer->pid, numero_pagina_solicitada, numero_marco);
+        }
     }
-    else{
+    else{ //si la pagina ya esta en memoria
         numero_marco = entrada_segundo_nivel_pointer->numero_marco;
     }
 
@@ -270,20 +297,176 @@ int32_t elegir_pagina_para_reemplazar(tabla_primer_nivel* tabla_pointer){
         Devuelve el numero de pagina a reemplazar.
     */
 
-    //TODO : IMPLEMENTAR
+    int32_t pagina_elegida = -1;
+    
+    if (es_algoritmo_reemplazo_clock() == true){
+        pagina_elegida = algoritmo_reemplazo_clock(tabla_pointer);
+    }
+    else{
+        pagina_elegida = algoritmo_reemplazo_clock_mejorado(tabla_pointer);
+    }
 
-    return -1;
+    //en caso de error
+    if (pagina_elegida == -1){
+        log_error(logger, "No se encontro una pagina a reemplazar con el algoritmo: %s", ALGORITMO_REEMPLAZO);
+    }
+
+    return pagina_elegida;
+}
+
+int32_t algoritmo_reemplazo_clock(tabla_primer_nivel* tabla_pointer){
+
+    int32_t pagina_elegida = -1;
+    bool se_eligio_pagina = false;
+
+    entrada_segundo_nivel* entrada_segundo_nivel_pointer;
+
+    while(se_eligio_pagina == false){
+
+        // Veo si la pagina apuntada tiene el bit de usado en false
+
+        entrada_segundo_nivel_pointer = get_entrada_segundo_nivel(tabla_pointer, tabla_pointer->puntero_clock);
+
+        if((entrada_segundo_nivel_pointer-> presencia == true) && (entrada_segundo_nivel_pointer->usado == true)){
+            entrada_segundo_nivel_pointer->usado = false;
+        }
+        else if ((entrada_segundo_nivel_pointer-> presencia == true) && (entrada_segundo_nivel_pointer->usado == false)){
+            pagina_elegida = tabla_pointer->puntero_clock;
+            se_eligio_pagina = true;
+        }
+        
+        algoritmo_reemplazo_actualizar_puntero(tabla_pointer);
+        
+    }
+
+    return pagina_elegida;
+}
+
+int32_t algoritmo_reemplazo_clock_mejorado(tabla_primer_nivel* tabla_pointer){
+
+    int32_t pagina_elegida = -1;
+
+    if ((pagina_elegida = clock_mejorado_primer_paso(tabla_pointer)) != -1){
+        return pagina_elegida;
+    }
+    else if ((pagina_elegida = clock_mejorado_segundo_paso(tabla_pointer)) != -1){
+        return pagina_elegida;
+    }
+    else if ((pagina_elegida = clock_mejorado_primer_paso(tabla_pointer)) != -1){
+        return pagina_elegida;
+    }
+    else{
+        return clock_mejorado_segundo_paso(tabla_pointer);
+    }
+
+}
+
+int32_t clock_mejorado_primer_paso(tabla_primer_nivel* tabla_pointer){
+
+    int i = 0;
+
+    entrada_segundo_nivel* entrada_segundo_nivel_pointer;
+
+    bool se_eligio_pagina = false;
+
+    int32_t pagina_elegida = -1;
+
+    // se busca usado = false, modificado = false
+
+    while(se_eligio_pagina == false && i < tabla_pointer->cantidad_paginas){
+
+        entrada_segundo_nivel_pointer = get_entrada_segundo_nivel(tabla_pointer, tabla_pointer->puntero_clock);
+
+        if((entrada_segundo_nivel_pointer-> presencia == true) && (entrada_segundo_nivel_pointer->usado == false)
+            &&(entrada_segundo_nivel_pointer->modificado == false)){
+
+            pagina_elegida = tabla_pointer->puntero_clock;
+            se_eligio_pagina = true;
+        }
+        
+        algoritmo_reemplazo_actualizar_puntero(tabla_pointer);
+
+        i++;
+        
+    }
+
+    return pagina_elegida;
+}
+
+int32_t clock_mejorado_segundo_paso(tabla_primer_nivel * tabla_pointer){
+
+    int i = 0;
+
+    entrada_segundo_nivel* entrada_segundo_nivel_pointer;
+
+    bool se_eligio_pagina = false;
+
+    int32_t pagina_elegida = -1;
+
+    // se busca usado = false, modificado = true
+
+    while(se_eligio_pagina == false && i < tabla_pointer->cantidad_paginas){
+
+        entrada_segundo_nivel_pointer = get_entrada_segundo_nivel(tabla_pointer, tabla_pointer->puntero_clock);
+
+        if((entrada_segundo_nivel_pointer-> presencia == true) && (entrada_segundo_nivel_pointer->usado == false)
+            &&(entrada_segundo_nivel_pointer->modificado == true)){
+            
+            //se eligio una pagina
+            pagina_elegida = tabla_pointer->puntero_clock;
+            se_eligio_pagina = true;
+        }
+        else if((entrada_segundo_nivel_pointer-> presencia == true) && (entrada_segundo_nivel_pointer->usado == true)){
+            
+            //seteo bit de usado en false
+            entrada_segundo_nivel_pointer->usado = false;
+        }
+        
+        algoritmo_reemplazo_actualizar_puntero(tabla_pointer);
+
+        //'i' se utiliza para saber cuando se regresa a la posicion inicial del puntero
+        i++;
+        
+    }
+
+    return pagina_elegida;
+}
+
+void algoritmo_reemplazo_actualizar_puntero(tabla_primer_nivel* tabla_pointer){
+
+    if (tabla_pointer->puntero_clock + 1 < tabla_pointer->cantidad_paginas){
+        tabla_pointer->puntero_clock++;
+    }
+    else{
+        tabla_pointer->puntero_clock = 0;
+    }
+}
+
+bool es_algoritmo_reemplazo_clock(void){
+    return strcmp(ALGORITMO_REEMPLAZO, "CLOCK") == 0;
 }
 
 int32_t elegir_marco_libre(tabla_primer_nivel* tabla_pointer){
     
     /*
-        Devuelve el numero de un marco libre en el cual colocar una pagina que se va a traer desde disco
+        Devuelve el numero de un marco libre en el cual colocar una pagina que se va a traer desde disco.
+        Elige el primero que vea disponible.
+        Retorna -1 en caso de no haber mas memoria disponible.
     */
 
-    //TODO: IMPLEMENTAR
+    int i = 0;
+    int tamanio_bitarray = bitarray_get_max_bit(marcos_libres);
+    int marco_elegido = -1;
 
-    return -1;
+    for(i = 0; i < tamanio_bitarray; i++){
+        
+        if (bitarray_test_bit(marcos_libres, i) == false){
+            marco_elegido = i;
+            break;
+        }
+    }
+
+    return marco_elegido;
 }
 
 void acciones_trasladar_pagina_a_disco(int32_t pid, int32_t numero_pagina, int32_t numero_marco){
@@ -345,6 +528,8 @@ int32_t acceder_espacio_usuario_lectura(int32_t numero_marco, int32_t desplazami
     //TODO: IMPLEMENTAR
 
     // LA PAGINA SIEMPRE ESTA EN MEMORIA (LA TRAE acceder_tabla_segundo_nivel())
+    
+    //TODO: PONER BIT DE USADO EN TRUE
     return 0;
 }
 
@@ -352,6 +537,9 @@ bool acceder_espacio_usuario_escritura(int32_t numero_marco, int32_t desplazamie
     //TODO: IMPLEMENTAR
 
     // LA PAGINA SIEMPRE ESTA EN MEMORIA (LA TRAE acceder_tabla_segundo_nivel())
+
+    //TODO: PONER BIT DE USADO EN TRUE
+    //TODO: PONER BIT DE MODIFICADO EN TRUE
     return false;
 }
 
@@ -360,10 +548,12 @@ bool acceder_espacio_usuario_escritura(int32_t numero_marco, int32_t desplazamie
 
 bool tiene_tabla_primer_nivel(int32_t pid){
     // TODO    
+    return false;
 }
 
 tabla_primer_nivel* obtener_tabla_con_pid(int32_t pid){
     // TODO
+    return NULL;
 }
 
 int get_indice_tabla_pointer(t_list* lista, tabla_primer_nivel* tabla_pointer){

@@ -11,6 +11,7 @@
 #include <commons/log.h>
 #include <commons/config.h>
 #include <commons/string.h>
+#include <commons/bitarray.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <ctype.h>
@@ -39,6 +40,8 @@ typedef struct tabla_primer_nivel{
     int32_t pid;
     int32_t cantidad_entradas; //de 1 a ENTRADAS_POR_TABLA (es el length de lista de entradas)
     int32_t tamanio_conjunto_residente; //de 0 a MARCOS_POR_PROCESO
+    int32_t puntero_clock; //guarda el numero de pagina
+    int32_t cantidad_paginas;
     t_list *lista_de_tabla_segundo_nivel; //es una lista de punteros a tabla_segundo_nivel
 } tabla_primer_nivel;
 
@@ -91,6 +94,9 @@ int32_t cantidad_total_marcos;
 void* espacio_usuario;
 t_list* lista_tabla_primer_nivel;
 
+void* bitarray_aux;
+t_bitarray * marcos_libres;
+
 t_queue* cola_instrucciones_swap;
 
 // Funciones
@@ -98,13 +104,12 @@ t_log* crear_logger(void);
 void cargar_config();
 void leer_config_string(t_config* , char* , char* );
 void leer_config_int(t_config* , char* , int32_t* );
-void salir_error(t_log*, int*);
 void crear_hilos(void);
 void conectar_cpu_y_kernel(void);
 void* hilo_escuchar_cpu(void * arg);
 void* hilo_escuchar_kernel(void * arg);
 tabla_primer_nivel* inicializar_proceso(int32_t pid, int32_t tamanio_proceso);
-tabla_primer_nivel* crear_tabla_paginas_proceso(int32_t pid, int32_t cantidad_entradas_primer_nivel, int32_t cantidad_entradas_segundo_nivel_ultima_entrada);
+tabla_primer_nivel* crear_tabla_paginas_proceso(int32_t pid, int32_t cantidad_paginas, int32_t cantidad_entradas_primer_nivel, int32_t cantidad_entradas_segundo_nivel_ultima_entrada);
 void liberar_memoria_tabla_proceso(tabla_primer_nivel* tabla_pointer);
 void suspender_proceso(tabla_primer_nivel*);
 void finalizar_proceso(tabla_primer_nivel*);
@@ -130,5 +135,13 @@ void esperar_conexion_cpu(int socket);
 void esperar_conexion_kernel(int socket);
 bool handshake_cpu();
 bool excede_la_tabla(tabla_primer_nivel* tabla_pointer, int32_t indice);
+void liberar_memoria(void);
+void manejar_sigint(int);
+bool es_algoritmo_reemplazo_clock(void);
+int32_t algoritmo_reemplazo_clock(tabla_primer_nivel* tabla_pointer);
+int32_t algoritmo_reemplazo_clock_mejorado(tabla_primer_nivel* tabla_pointer);
+int32_t clock_mejorado_primer_paso(tabla_primer_nivel * tabla_pointer);
+int32_t clock_mejorado_segundo_paso(tabla_primer_nivel * tabla_pointer);
+void algoritmo_reemplazo_actualizar_puntero(tabla_primer_nivel* tabla_pointer);
 
 #endif
