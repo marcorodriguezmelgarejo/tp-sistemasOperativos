@@ -202,7 +202,7 @@ int32_t acceder_tabla_primer_nivel(tabla_primer_nivel* tabla_pointer, int32_t nu
     return indice_tabla_segundo_nivel;
 }
 
-int32_t acceder_tabla_segundo_nivel(tabla_primer_nivel* tabla_pointer, int32_t numero_pagina_solicitada){
+int32_t acceder_tabla_segundo_nivel(tabla_primer_nivel* tabla_pointer, int32_t indice_tabla_segundo_nivel, int32_t numero_pagina_solicitada){
 
     /*
         Retorna el numero de marco en donde se encuentra la pagina solicitada.
@@ -214,11 +214,19 @@ int32_t acceder_tabla_segundo_nivel(tabla_primer_nivel* tabla_pointer, int32_t n
 
     int32_t numero_pagina_a_reemplazar;
 
+    tabla_segundo_nivel * tabla_segundo_nivel_pointer;
+
+    entrada_segundo_nivel* entrada_segundo_nivel_pointer;
+
     entrada_segundo_nivel* entrada_segundo_nivel_a_reemplazar_pointer;
 
     int32_t numero_marco;
-
-    entrada_segundo_nivel* entrada_segundo_nivel_pointer = get_entrada_segundo_nivel(tabla_pointer, numero_pagina_solicitada);
+    
+    
+    // entrada_segundo_nivel_pointer = get_entrada_segundo_nivel(tabla_pointer, numero_pagina_solicitada); 
+    // lo cambio porque se supone que el numero de pagina de segundo nivel lo manda el cpu:
+    tabla_segundo_nivel_pointer = list_get(tabla_pointer->lista_de_tabla_segundo_nivel, indice_tabla_segundo_nivel);
+    entrada_segundo_nivel_pointer = list_get(tabla_segundo_nivel_pointer->lista_de_entradas, numero_pagina_solicitada % ENTRADAS_POR_TABLA);
 
     //si la pagina no esta en memoria la traigo desde disco
     if (entrada_segundo_nivel_pointer->presencia == false){
@@ -546,13 +554,12 @@ bool acceder_espacio_usuario_escritura(int32_t numero_marco, int32_t desplazamie
 
 
 
-bool tiene_tabla_primer_nivel(int32_t pid){
-    // TODO    
-    return false;
-}
 
 tabla_primer_nivel* obtener_tabla_con_pid(int32_t pid){
-    // TODO
+
+    // Buscar en la lista de tablas de primer nivel la tabla que tenga el pid pasado. 
+    // Retornar -1 y logear un error si no se encuentra la tabla (no deberia pasar pero chequear por las dudas).
+
     return NULL;
 }
 

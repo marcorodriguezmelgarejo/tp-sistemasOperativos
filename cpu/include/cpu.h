@@ -133,7 +133,8 @@ int32_t calcular_entrada_tabla_1er_nivel(int numero_pagina);
 int32_t calcular_entrada_tabla_2do_nivel(int numero_pagina);
 int calcular_desplazamiento(int direccion_logica, int numero_pagina);
 bool fetch_operandos(instruccion_t *instruccion);
-bool acceder_a_tabla_1_nivel(int32_t indice_primer_nivel, int32_t *tabla_segundo_nivel);
-bool acceder_a_tabla_2_nivel(int32_t tabla_segundo_nivel, int32_t indice_segundo_nivel, int32_t *marco);
+bool acceder_a_tabla_1_nivel(int32_t numero_pagina, int32_t *tabla_segundo_nivel);
+bool acceder_a_tabla_2_nivel(int32_t tabla_segundo_nivel, int32_t numero_pagina, int32_t *marco);
+int32_t tlb_get_marco(int32_t numero_pagina);
 
 #endif

@@ -59,29 +59,29 @@ void enviar_dispatch(pcb_t, char *);
 //     return NULL;
 // }
 
-void probar_enviar_pcb(void){
-    //ya se probo esto
+// void probar_enviar_pcb(void){
+//     //ya se probo esto
 
-    pcb_t pcb = {
-    1,
-    64,
-    0,
-    malloc(1000),
-    -1,
-    10000,
-    };
+//     pcb_t pcb = {
+//     1,
+//     64,
+//     0,
+//     malloc(1000),
+//     -1,
+//     10000,
+//     };
 
-    char instruccion[50] = "READ 1 50\nEXIT\n";
-    pcb.lista_instrucciones = instruccion;
+//     char instruccion[50] = "READ 1 50\nEXIT\n";
+//     pcb.lista_instrucciones = instruccion;
 
-    while(true){
-        sockets_enviar_string(dispatch_socket, "I/0", logger);
-        sockets_enviar_pcb(dispatch_socket, pcb, logger);
-        pcb.estimacion_rafaga = 15000;
-        sleep(5);
-    }
-    free(pcb.lista_instrucciones);
-}
+//     while(true){
+//         sockets_enviar_string(dispatch_socket, "I/0", logger);
+//         sockets_enviar_pcb(dispatch_socket, pcb, logger);
+//         pcb.estimacion_rafaga = 15000;
+//         sleep(5);
+//     }
+//     free(pcb.lista_instrucciones);
+// }
 
 int contar_instrucciones(pcb_t pcb){
     return strspn(pcb.lista_instrucciones, "\n") + 1;

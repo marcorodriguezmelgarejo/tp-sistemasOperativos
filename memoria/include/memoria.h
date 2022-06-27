@@ -119,7 +119,7 @@ int32_t elegir_pagina_para_reemplazar(tabla_primer_nivel* tabla_pointer);
 int32_t elegir_marco_libre(tabla_primer_nivel* tabla_pointer);
 void acciones_trasladar_pagina_a_disco(int32_t pid, int32_t numero_pagina, int32_t numero_marco);
 void acciones_trasladar_pagina_a_memoria(int32_t pid, int32_t numero_pagina, int32_t numero_marco);
-int32_t acceder_tabla_segundo_nivel(tabla_primer_nivel* tabla_pointer, int32_t pagina);
+int32_t acceder_tabla_segundo_nivel(tabla_primer_nivel* tabla_pointer, int32_t numero_tabla_segundo_nivel, int32_t numero_pagina_solicitada);
 int32_t acceder_espacio_usuario_lectura(int32_t numero_marco, int32_t desplazamiento);
 bool acceder_espacio_usuario_escritura(int32_t numero_marco, int32_t desplazamiento, int32_t valor);
 void *hilo_swap(void *arg);
@@ -131,8 +131,8 @@ void borrar_archivo_swap(int32_t pid);
 void inicializar_variables_globales(void);
 void enviar_instruccion_swap(instruccion_swap);
 int get_indice_tabla_pointer(t_list* lista, tabla_primer_nivel* tabla_pointer);
-void esperar_conexion_cpu(int socket);
-void esperar_conexion_kernel(int socket);
+void esperar_conexion_cpu(int socket_escucha);
+void esperar_conexion_kernel(int socket_escucha);
 bool handshake_cpu();
 bool excede_la_tabla(tabla_primer_nivel* tabla_pointer, int32_t indice);
 void liberar_memoria(void);
@@ -143,5 +143,6 @@ int32_t algoritmo_reemplazo_clock_mejorado(tabla_primer_nivel* tabla_pointer);
 int32_t clock_mejorado_primer_paso(tabla_primer_nivel * tabla_pointer);
 int32_t clock_mejorado_segundo_paso(tabla_primer_nivel * tabla_pointer);
 void algoritmo_reemplazo_actualizar_puntero(tabla_primer_nivel* tabla_pointer);
+tabla_primer_nivel* obtener_tabla_con_pid(int32_t pid);
 
 #endif
