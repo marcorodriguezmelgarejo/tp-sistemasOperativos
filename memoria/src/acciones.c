@@ -557,7 +557,7 @@ bool acceder_espacio_usuario_escritura(int32_t numero_marco, int32_t desplazamie
 
 tabla_primer_nivel* obtener_tabla_con_pid(int32_t pid){
 
-    // Buscar en la lista de tablas de primer nivel la tabla que tenga el pid pasado. 
+    // Buscar en la lista de tablas de primer nivel la tabla que tenga el pid pasado como parametro. 
     // Retornar -1 y logear un error si no se encuentra la tabla (no deberia pasar pero chequear por las dudas).
 
     return NULL;

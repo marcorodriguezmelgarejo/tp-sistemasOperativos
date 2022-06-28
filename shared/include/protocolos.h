@@ -26,6 +26,11 @@
 #define LECTURA_EN_ESPACIO_USUARIO 2
 #define ESCRITURA_EN_ESPACIO_USUARIO 3
 
+// motivos de los mensajes que manda kernel a memoria
+#define INICIALIZAR_PROCESO 0
+#define SUSPENDER_PROCESO 1
+#define FINALIZAR_PROCESO 2
+
 //si se modifica la pcb se deben modificar las funciones que la envian y reciben
 typedef struct pcb_t{
     int32_t pid;

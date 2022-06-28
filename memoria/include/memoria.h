@@ -144,5 +144,8 @@ int32_t clock_mejorado_primer_paso(tabla_primer_nivel * tabla_pointer);
 int32_t clock_mejorado_segundo_paso(tabla_primer_nivel * tabla_pointer);
 void algoritmo_reemplazo_actualizar_puntero(tabla_primer_nivel* tabla_pointer);
 tabla_primer_nivel* obtener_tabla_con_pid(int32_t pid);
+void atender_finalizacion_proceso(int32_t pid);
+void atender_suspension_proceso(int32_t pid);
+void atender_inicializacion_proceso(int32_t pid);
 
 #endif

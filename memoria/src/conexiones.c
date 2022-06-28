@@ -37,7 +37,7 @@ void conectar_cpu_y_kernel(void){
         exit(ERROR_STATUS);
     }
 
-  //  esperar_conexion_kernel(server_socket);
+    esperar_conexion_kernel(server_socket);
     esperar_conexion_cpu(server_socket);
     if(!handshake_cpu()){
         log_error(logger, "Error en el handshake con el CPU");
@@ -72,7 +72,7 @@ bool atender_acceso_tabla_primer_nivel(){
 
     tabla_del_proceso = obtener_tabla_con_pid(buffer_pid);
 
-    if(tabla_del_proceso == -1){
+    if((int)tabla_del_proceso == -1){
         return false;
     }
 
@@ -119,7 +119,7 @@ bool atender_acceso_tabla_segundo_nivel(){
 
     tabla_del_proceso = obtener_tabla_con_pid(buffer_pid);
 
-    if(tabla_del_proceso == -1){
+    if((int)tabla_del_proceso == -1){
         return false;
     }
 
@@ -156,10 +156,12 @@ void* hilo_escuchar_cpu(void * arg){
                 }
                 break;
             case LECTURA_EN_ESPACIO_USUARIO:
-
+                    // INPUT: MARCO, READ
+                    // OUTPUT: CONTENIDO MARCO
                 break;
             case ESCRITURA_EN_ESPACIO_USUARIO:
-
+                    // INPUT: MARCO, WRITE, CONTENT(PARAM)
+                    // OUTPUT: "OK"
                 break;
             default:
                 log_error(logger, "Error al recibir el motivo de comunicacion de la CPU");
@@ -168,42 +170,73 @@ void* hilo_escuchar_cpu(void * arg){
 
 
     }
-
-
-
-
-    // TODO: IMPLEMENTAR
-    // Esperar mensaje de CPU
-    // Decodear mensaje de CPU
-    // SWITCH CASES -> Interpretar mensaje
-        // ID Tabla 1er nivel
-            // INPUT: ID PROCESO, PAGINA DE PROCESO
-            // OUTPUT: NRO DE ENTRADA DE TABLA DE 2DO NIVEL
-        // ID Tabla de 2do nivel
-            // INPUT: ID PROCESO, ID PAG 2DO NIVEL, PAGINA
-            // OUTPUT: MARCO
-        // Read
-            // INPUT: MARCO, READ
-            // OUTPUT: CONTENIDO MARCO
-        // Write
-            // INPUT: MARCO, WRITE, CONTENT(PARAM)
-            // OUTPUT: "OK"
     return NULL;
 }
 
 void* hilo_escuchar_kernel(void * arg){
-    // TODO: IMPLEMENTAR
-    // Esperar mensaje de Kernel
-    // Decodear mensaje de Kernel
-    // SWITCH CASES -> Interpretar mensaje
-        // Crear proceso
-            // INPUT: ID PROCESO, TAMAÑO PROCESO
-            // Call TRASLADAR_PROCESO_A_MEMORIA
-            // OUTPUT: "OK"
-        // Suspender proceso
-            // INPUT: ID PROCESO
-            // Call TRASLADAR_PROCESO_A_DISCO
-            // OUTPUT: "OK"
+    int32_t motivo;
+    int32_t pid;
+
+    while(true){
+        if(!sockets_recibir_dato(kernel_socket, &motivo, sizeof motivo, logger)){
+            log_error(logger, "Error al recibir motivo de comunicacion por parte de kernel");
+            continue;
+        }
+        if(!sockets_recibir_dato(kernel_socket, &pid, sizeof pid, logger)){
+            log_error(logger, "Error al recibir pid de kernel");
+            continue;
+        }
+
+        switch(motivo){
+            case INICIALIZAR_PROCESO:
+                atender_inicializacion_proceso(pid);
+                break;
+            case SUSPENDER_PROCESO:
+                atender_suspension_proceso(pid);
+                break;
+            case FINALIZAR_PROCESO:
+                atender_finalizacion_proceso(pid);
+                break;
+            default:
+                log_error(logger, "Motivo invalido");
+        }
+    }
 
     return NULL;
+}
+
+void atender_finalizacion_proceso(int32_t pid){
+    tabla_primer_nivel* tabla_primer_nivel_pointer = obtener_tabla_con_pid(pid);
+    finalizar_proceso(tabla_primer_nivel_pointer);
+
+    if(!sockets_enviar_string(kernel_socket, "OK", logger)){
+        log_error(logger, "Error al enviar mensaje de confirmacion a memoria");
+    }
+}
+
+void atender_suspension_proceso(int32_t pid){
+    tabla_primer_nivel* tabla_primer_nivel_pointer = obtener_tabla_con_pid(pid);
+    suspender_proceso(tabla_primer_nivel_pointer);
+
+    if(!sockets_enviar_string(kernel_socket, "OK", logger)){
+        log_error(logger, "Error al enviar mensaje de confirmacion a memoria");
+    }
+}
+
+void atender_inicializacion_proceso(int32_t pid){
+    int32_t tamanio_proceso;
+
+    if(!sockets_recibir_dato(kernel_socket, &tamanio_proceso, sizeof tamanio_proceso, logger)){
+        log_error(logger, "Error al recibir tamanio_proceso de kernel");
+    }
+
+    if(inicializar_proceso(pid, tamanio_proceso) == NULL){
+        log_error(logger, "No se pudo inicializar el proceso pid %d", pid);
+        sockets_enviar_string(kernel_socket, "ERROR", logger);
+        return;
+    }
+
+    if(!sockets_enviar_string(kernel_socket, "OK", logger)){
+        log_error(logger, "Error al enviar mensaje de confirmacion a memoria");
+    }
 }

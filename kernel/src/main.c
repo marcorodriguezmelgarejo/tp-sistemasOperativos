@@ -148,7 +148,7 @@ int main(void)
     
     conectar_puerto_interrupt();
 
-    //TODO: conectar con MEMORIA
+    conectar_puerto_memoria();
 
     pthread_create(&h1, NULL, gestionar_dispatch, NULL);
     pthread_create(&h2, NULL, gestionar_nuevas_consolas, NULL);
