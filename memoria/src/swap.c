@@ -81,7 +81,7 @@ void trasladar_pagina_a_disco(int32_t pid, int32_t numero_pagina, int32_t numero
         NO HAY QUE CAMBIAR NINGUN BIT DE PRESENCIA NI NADA
         BY: LEAN
     */
-    
+
     void* marco = espacio_usuario + numero_marco * TAM_PAGINA; // Puntero al marco indicado
     void marco_temp[TAM_PAGINA]; // Marco temporal
     memcpy(marco_temp, marco, TAM_PAGINA); // Guardo el contenido del marco en el marco temporal
@@ -129,6 +129,7 @@ void trasladar_proceso_a_disco(tabla_primer_nivel* tabla_pointer){
     /*
         Itero en todas las paginas de la tabla buscando las que tengan presencia
         y las mando a disco.
+        IMPORTANTE: CAMBIA EL VALOR DE PRESENCIA A FALSE DE LAS PAGINAS CON PRESENCIA
     */
 
     int i = 0, j = 0;
@@ -145,6 +146,7 @@ void trasladar_proceso_a_disco(tabla_primer_nivel* tabla_pointer){
             // si la pagina forma parte del conjunto residente la mando a disco
             if (pagina_actual_pointer->presencia == true){
                 trasladar_pagina_a_disco(tabla_pointer->pid, i * ENTRADAS_POR_TABLA + j, pagina_actual_pointer->numero_marco);
+                pagina_actual_pointer->presencia = false;
             }
         }
 

@@ -41,7 +41,7 @@ typedef struct tabla_primer_nivel{
     int32_t cantidad_entradas; //de 1 a ENTRADAS_POR_TABLA (es el length de lista de entradas)
     int32_t tamanio_conjunto_residente; //de 0 a MARCOS_POR_PROCESO
     int32_t puntero_clock; //guarda el numero de pagina
-    int32_t cantidad_paginas;
+    int32_t cantidad_paginas; //cantidad de paginas totales del proceso (es igual al tamanio del archivo swap / TAM_PAGINA)
     t_list *lista_de_tabla_segundo_nivel; //es una lista de punteros a tabla_segundo_nivel
 } tabla_primer_nivel;
 
@@ -92,7 +92,6 @@ int cpu_socket;
 int32_t cantidad_total_marcos;
 
 void* espacio_usuario;
-t_list* lista_tabla_primer_nivel;
 
 void* bitarray_aux;
 t_bitarray * marcos_libres;
@@ -120,8 +119,8 @@ int32_t elegir_marco_libre(tabla_primer_nivel* tabla_pointer);
 void acciones_trasladar_pagina_a_disco(int32_t pid, int32_t numero_pagina, int32_t numero_marco);
 void acciones_trasladar_pagina_a_memoria(int32_t pid, int32_t numero_pagina, int32_t numero_marco);
 int32_t acceder_tabla_segundo_nivel(tabla_primer_nivel* tabla_pointer, int32_t numero_tabla_segundo_nivel, int32_t numero_pagina_solicitada);
-int32_t acceder_espacio_usuario_lectura(int32_t numero_marco, int32_t desplazamiento);
-bool acceder_espacio_usuario_escritura(int32_t numero_marco, int32_t desplazamiento, int32_t valor);
+int32_t acceder_espacio_usuario_lectura(tabla_primer_nivel* tabla_pointer, int32_t numero_pagina, int32_t numero_marco, int32_t desplazamiento);
+bool acceder_espacio_usuario_escritura(tabla_primer_nivel* tabla_pointer, int32_t numero_pagina, int32_t numero_marco, int32_t desplazamiento, int32_t valor);
 void *hilo_swap(void *arg);
 void crear_archivo_swap(int32_t pid, int32_t tamanio_proceso);
 void trasladar_pagina_a_disco(int32_t, int32_t, int32_t);
@@ -147,5 +146,10 @@ tabla_primer_nivel* obtener_tabla_con_pid(int32_t pid);
 void atender_finalizacion_proceso(int32_t pid);
 void atender_suspension_proceso(int32_t pid);
 void atender_inicializacion_proceso(int32_t pid);
-
+void marcar_marcos_como_libres_proceso(tabla_primer_nivel* tabla_pointer);
+void marcar_marco_como_libre(int32_t numero_marco);
+void marcar_marco_como_ocupado(int32_t numero_marco);
+int32_t* get_puntero_a_entero_de_espacio_usuario(int32_t numero_marco, int32_t desplazamiento);
+void poner_bit_usado_true(tabla_primer_nivel * tabla_pointer, int32_t numero_pagina);
+void poner_bit_modificado_true(tabla_primer_nivel * tabla_pointer, int32_t numero_pagina);
 #endif
