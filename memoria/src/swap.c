@@ -1,5 +1,16 @@
 #include "memoria.h"
 
+/*
+
+    Funciones testeadas:
+    crear_archivo_swap()
+
+*/
+
+int32_t milisegundos_a_microsegundos(int32_t milisegundos){
+    return milisegundos * 1000;
+}
+
 void *hilo_swap(void *arg){
 
     // Implementa un productor-consumidor con todas las instrucciones que debe hacer
@@ -13,7 +24,7 @@ void *hilo_swap(void *arg){
         instruccion_pointer = queue_pop(cola_instrucciones_swap);
         pthread_mutex_unlock(&mutex_cola_instrucciones_swap);
 
-        sleep(RETARDO_SWAP); //retardo intencional para emular un swap real
+        usleep(milisegundos_a_microsegundos(RETARDO_SWAP)); //retardo intencional para emular un swap real
 
         // Llamo a la instruccion correspondiente pasandole los parametros que correspondan
 
@@ -59,7 +70,7 @@ void crear_archivo_swap(int32_t pid, int32_t tamanio_proceso){
     char cero = 0;
     
     sprintf(filename, "%s/%d.swap", PATH_SWAP, pid);
-    
+
     if ((archivo_swap = fopen(filename, "w")) == NULL){
         log_error(logger, "Error en 'crear_archivo_swap()': no se pudo crear el archivo swap");
         return;
@@ -81,7 +92,7 @@ void trasladar_pagina_a_disco(int32_t pid, int32_t numero_pagina, int32_t numero
         NO HAY QUE CAMBIAR NINGUN BIT DE PRESENCIA NI NADA
         BY: LEAN
     */
-
+   /*
     void* marco = espacio_usuario + numero_marco * TAM_PAGINA; // Puntero al marco indicado
     void marco_temp[TAM_PAGINA]; // Marco temporal
     memcpy(marco_temp, marco, TAM_PAGINA); // Guardo el contenido del marco en el marco temporal
@@ -94,7 +105,7 @@ void trasladar_pagina_a_disco(int32_t pid, int32_t numero_pagina, int32_t numero
     fseek(f, TAM_PAGINA * numero_pagina, SEEK_SET); //Si tenemos el marco y pid es simplemente buscar en la lista el match
     fwrite(marco_temp, TAM_PAGINA, 1, f);
 
-    fclose(f);
+    fclose(f);*/
 
     return;
 }
@@ -108,7 +119,7 @@ void trasladar_pagina_a_memoria(int32_t pid, int32_t numero_pagina, int32_t nume
         NO HAY QUE CAMBIAR NINGUN BIT DE PRESENCIA NI NADA
         BY: LEAN
     */
-
+   /*
     int pag_de_proceso = numero_pagina;
     void* marco = espacio_usuario + numero_marco * TAM_PAGINA; // Puntero al marco indicado
 
@@ -120,7 +131,7 @@ void trasladar_pagina_a_memoria(int32_t pid, int32_t numero_pagina, int32_t nume
     fseek(f, TAM_PAGINA * numero_pagina, SEEK_SET); //Si tenemos el marco y pid es simplemente buscar en la lista el match
     fread(marco, TAM_PAGINA, 1, f);
     
-    fclose(f);
+    fclose(f);*/
 
     return;
 }

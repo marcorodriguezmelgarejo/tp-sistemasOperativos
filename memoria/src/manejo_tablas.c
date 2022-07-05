@@ -1,5 +1,12 @@
 #include "memoria.h"
 
+/*
+
+    Funciones testeadas:
+    crear_tabla_paginas_proceso()
+
+*/
+
 tabla_primer_nivel* crear_tabla_paginas_proceso(int32_t pid, int32_t cantidad_paginas, int32_t cantidad_entradas_primer_nivel, int32_t cantidad_entradas_segundo_nivel_ultima_entrada){
     /*
         Reserva memoria para 1 tabla de paginas de primer nivel, para las tablas de segundo nivel
@@ -16,15 +23,15 @@ tabla_primer_nivel* crear_tabla_paginas_proceso(int32_t pid, int32_t cantidad_pa
         return NULL;
     }
 
-    (*tabla_primer_nivel_pointer).pid = pid;
-    (*tabla_primer_nivel_pointer).cantidad_entradas = cantidad_entradas_primer_nivel;
-    (*tabla_primer_nivel_pointer).tamanio_conjunto_residente = 0;
-    (*tabla_primer_nivel_pointer).puntero_clock = 0;
-    (*tabla_primer_nivel_pointer).cantidad_paginas = cantidad_paginas;
-    (*tabla_primer_nivel_pointer).lista_de_tabla_segundo_nivel = list_create();
+    tabla_primer_nivel_pointer->pid = pid;
+    tabla_primer_nivel_pointer->cantidad_entradas = cantidad_entradas_primer_nivel;
+    tabla_primer_nivel_pointer->tamanio_conjunto_residente = 0;
+    tabla_primer_nivel_pointer->puntero_clock = 0;
+    tabla_primer_nivel_pointer->cantidad_paginas = cantidad_paginas;
+    tabla_primer_nivel_pointer->lista_de_tabla_segundo_nivel = list_create();
 
     //reservo memoria e inicializo las tablas de segundo nivel
-    for (i = 0; i > cantidad_entradas_primer_nivel; i++){
+    for (i = 0; i < cantidad_entradas_primer_nivel; i++){
 
         if ((tabla_segundo_nivel_pointer = malloc(sizeof *tabla_segundo_nivel_pointer)) == NULL){
             log_error(logger, "error al hacer malloc");
@@ -39,8 +46,8 @@ tabla_primer_nivel* crear_tabla_paginas_proceso(int32_t pid, int32_t cantidad_pa
             entradas_a_crear = cantidad_entradas_segundo_nivel_ultima_entrada;
         }
 
-        (*tabla_segundo_nivel_pointer).cantidad_entradas = entradas_a_crear;
-        (*tabla_segundo_nivel_pointer).lista_de_entradas = list_create();
+        tabla_segundo_nivel_pointer->cantidad_entradas = entradas_a_crear;
+        tabla_segundo_nivel_pointer->lista_de_entradas = list_create();
 
         //reservo memoria e inicializo las entradas de segundo nivel
         for (j = 0; j < entradas_a_crear; j++){
@@ -55,8 +62,10 @@ tabla_primer_nivel* crear_tabla_paginas_proceso(int32_t pid, int32_t cantidad_pa
             (*entrada_segundo_nivel_pointer).usado = false;
             (*entrada_segundo_nivel_pointer).modificado = false;
 
-            list_add((*tabla_segundo_nivel_pointer).lista_de_entradas, entrada_segundo_nivel_pointer);
+            list_add(tabla_segundo_nivel_pointer->lista_de_entradas, entrada_segundo_nivel_pointer);
         }
+
+        list_add(tabla_primer_nivel_pointer->lista_de_tabla_segundo_nivel, tabla_segundo_nivel_pointer);
 
     }
 

@@ -17,6 +17,8 @@ void liberar_memoria(void){
     bitarray_destroy(marcos_libres);
     
     log_destroy(logger);
+
+    dictionary_destroy(diccionario_tabla_pointers);
 }
 
 void crear_hilos(void){
@@ -30,8 +32,12 @@ void inicializar_variables_globales(void){
     //primero cargar config antes de llamar a esta funcion
 
     cola_instrucciones_swap = queue_create();
+
     pthread_mutex_init(&mutex_cola_instrucciones_swap, NULL);
+    
     sem_init(&contador_cola_instrucciones_swap, 0, 0);
+
+    diccionario_tabla_pointers = dictionary_create();
 
     // Inicializo el bitmap de los marcos libres en espacio de usuario
 
@@ -68,6 +74,8 @@ int main() {
         log_error(logger, "El tamaño de la pagina no es utilizable para este tamanio de memoria.");
 		return ERROR_STATUS;
     }
+
+    //test_inicializar_proceso();
 
     conectar_cpu_y_kernel();
 

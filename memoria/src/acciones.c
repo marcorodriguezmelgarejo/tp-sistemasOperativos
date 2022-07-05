@@ -3,7 +3,8 @@
 /*
     TODO: TESTEAR TODAS LAS FUNCIONES
 
-    funciones testeadas hasta ahora: ninguna
+    funciones testeadas:
+    inicializar_proceso()
 */
 
 tabla_primer_nivel* inicializar_proceso(int32_t pid, int32_t tamanio_proceso){
@@ -17,13 +18,13 @@ tabla_primer_nivel* inicializar_proceso(int32_t pid, int32_t tamanio_proceso){
     if (tamanio_proceso >= TAM_PAGINA * ENTRADAS_POR_TABLA * ENTRADAS_POR_TABLA){
         log_error(logger, "El tamanio de proceso excede la cantidad de paginas asignables");
     }
-
+    
     tabla_primer_nivel* tabla_primer_nivel_pointer;
     instruccion_swap instruccion;
     sem_t semaforo;
-
-    int32_t cantidad_paginas = ceil(tamanio_proceso / TAM_PAGINA); //de 1 a ENTRADAS_POR_TABLA * ENTRADAS_POR_TABLA
-    int32_t cantidad_entradas_primer_nivel = ceil(cantidad_paginas / ENTRADAS_POR_TABLA); //de 1 a ENTRADAS_POR_TABLA
+    
+    int32_t cantidad_paginas = ceil((float)tamanio_proceso /(float) TAM_PAGINA); //de 1 a ENTRADAS_POR_TABLA * ENTRADAS_POR_TABLA
+    int32_t cantidad_entradas_primer_nivel = ceil((float)cantidad_paginas /(float) ENTRADAS_POR_TABLA); //de 1 a ENTRADAS_POR_TABLA
     int32_t cantidad_entradas_segundo_nivel_ultima_entrada = cantidad_paginas % ENTRADAS_POR_TABLA; //de 1 a ENTRADAS_POR_TABLA
 
     sem_init(&semaforo, 0, 0);
@@ -33,14 +34,25 @@ tabla_primer_nivel* inicializar_proceso(int32_t pid, int32_t tamanio_proceso){
     instruccion.tamanio_proceso = tamanio_proceso;
     instruccion.semaforo_pointer = &semaforo;
     enviar_instruccion_swap(instruccion);
-
+    
     sem_wait(&semaforo); //espera a que termine la instruccion swap
-
+    
     sem_destroy(&semaforo);
     
     tabla_primer_nivel_pointer = crear_tabla_paginas_proceso(pid, cantidad_paginas, cantidad_entradas_primer_nivel, cantidad_entradas_segundo_nivel_ultima_entrada);
 
+    crear_entrada_diccionario_tabla_pointers(pid, tabla_primer_nivel_pointer);
+    
     return tabla_primer_nivel_pointer;
+}
+
+void crear_entrada_diccionario_tabla_pointers(int32_t pid, tabla_primer_nivel* tabla_pointer){
+
+    char dictionary_key[MAX_STRING_SIZE];
+    
+    sprintf(dictionary_key, "%d", pid);
+
+    dictionary_put(diccionario_tabla_pointers, dictionary_key, tabla_pointer);
 }
 
 void suspender_proceso(tabla_primer_nivel* tabla_pointer){
@@ -70,8 +82,8 @@ void suspender_proceso(tabla_primer_nivel* tabla_pointer){
 
 void finalizar_proceso(tabla_primer_nivel* tabla_pointer){
     /*
-        Borra el archivo de swap del proceso, marca los marcos ocupados por el proceso como libres
-        y libera la tabla de primer nivel del proceso
+        Borra el archivo de swap del proceso, marca los marcos ocupados por el proceso como libres,
+        libera la tabla de primer nivel del proceso y borra la entrada correspondiente del diccionario
     */
 
     instruccion_swap instruccion;
@@ -93,9 +105,19 @@ void finalizar_proceso(tabla_primer_nivel* tabla_pointer){
 
     liberar_memoria_tabla_proceso(tabla_pointer);
 
+    borrar_entrada_diccionario_tabla_pointers(tabla_pointer->pid);
+
     log_info(logger, "Se finalizo el proceso con PID = %d", pid);
 
     return;
+}
+
+void borrar_entrada_diccionario_tabla_pointers(int32_t pid){
+    char dictionary_key[MAX_STRING_SIZE];
+    
+    sprintf(dictionary_key, "%d", pid);
+
+    dictionary_remove(diccionario_tabla_pointers, dictionary_key);
 }
 
 int32_t acceder_tabla_primer_nivel(tabla_primer_nivel* tabla_pointer, int32_t numero_pagina){
@@ -305,11 +327,23 @@ bool acceder_espacio_usuario_escritura(tabla_primer_nivel* tabla_pointer, int32_
 }
 
 tabla_primer_nivel* obtener_tabla_con_pid(int32_t pid){
+    /*
+        Busca en el diccionario de tabla pointers el puntero correspondiente al pid.
+        Retorna NULL en caso de fallo.
+    */
 
-    // Buscar en la lista de tablas de primer nivel la tabla que tenga el pid pasado como parametro. 
-    // Retornar -1 y logear un error si no se encuentra la tabla (no deberia pasar pero chequear por las dudas).
+    // Paso el pid a string
 
-    return NULL;
+    char dictionary_key[MAX_STRING_SIZE];
+    
+    sprintf(dictionary_key, "%d", pid);
+
+    if (dictionary_has_key(diccionario_tabla_pointers, dictionary_key) == false){
+        log_error(logger, "Error en obtener_tabla_con_pid(): no se encuentra la entrada del diccionario correspondiente al pid = %d", pid);
+        return NULL;
+    }
+
+    return dictionary_get(diccionario_tabla_pointers, dictionary_key);
 }
 
 
