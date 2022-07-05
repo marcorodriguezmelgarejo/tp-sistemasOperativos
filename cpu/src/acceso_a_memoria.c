@@ -3,7 +3,7 @@
 bool leer_dir_logica(int32_t direccion_logica, int32_t *puntero_valor_leido){
     int32_t num_pagina = calcular_numero_pagina(direccion_logica);
     int32_t desplazamiento = calcular_desplazamiento(direccion_logica, num_pagina);
-    int32_t marco = buscar_pagina(direccion_logica).marco;
+    int32_t marco = buscar_pagina(num_pagina).marco;
 
     if(!leer_dir_fisica(num_pagina, marco, desplazamiento, puntero_valor_leido)){
         log_error(logger, "Error en el acceso a memoria");
@@ -19,8 +19,8 @@ bool leer_dir_logica(int32_t direccion_logica, int32_t *puntero_valor_leido){
 bool escribir_dir_logica(int32_t direccion_logica, int32_t valor){
     int32_t num_pagina = calcular_numero_pagina(direccion_logica);
     int32_t desplazamiento = calcular_desplazamiento(direccion_logica, num_pagina);
-    int32_t marco = buscar_pagina(direccion_logica).marco;
-    
+    int32_t marco = buscar_pagina(num_pagina).marco;
+
     if(!escribir_dir_fisica(num_pagina, marco, desplazamiento, valor)){
         log_error(logger, "Error en el acceso a memoria");
         return false;

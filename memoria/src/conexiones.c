@@ -172,7 +172,7 @@ bool atender_acceso_lectura_espacio_usuario(){
 
     tabla_del_proceso = obtener_tabla_con_pid(buffer_pid);
     log_info(logger,"Leyendo marco %d desplazamiento %d", buffer_marco, buffer_desplazamiento);
-    acceder_espacio_usuario_lectura(tabla_del_proceso, buffer_num_pagina, buffer_marco, buffer_desplazamiento);
+    valor_leido = acceder_espacio_usuario_lectura(tabla_del_proceso, buffer_num_pagina, buffer_marco, buffer_desplazamiento);
 
     if(!sockets_enviar_dato(cpu_socket, &valor_leido, sizeof valor_leido, logger)){
         log_error(logger, "Error al enviar el dato leido");

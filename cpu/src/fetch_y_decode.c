@@ -167,6 +167,7 @@ instruccion_t decode(char* string_instruccion){
 			break;
 		case WRITE:
 			instruccion.dir_destino = primer_parametro(string_instruccion);
+			instruccion.valor = segundo_parametro(string_instruccion);	
 			break;
 		case COPY:
 			instruccion.dir_destino = primer_parametro(string_instruccion);

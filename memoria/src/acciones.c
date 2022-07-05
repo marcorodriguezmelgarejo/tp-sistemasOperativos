@@ -134,7 +134,7 @@ int32_t acceder_tabla_primer_nivel(tabla_primer_nivel* tabla_pointer, int32_t nu
     }
 
     if (excede_la_tabla(tabla_pointer, numero_pagina)){
-        log_error(logger, "El numero de pagina excede la cantidad de paginas asignadas al proceso");
+        log_error(logger, "El numero de pagina '%d' excede la cantidad de paginas asignadas al proceso", numero_pagina);
         return -1;
     }
 
