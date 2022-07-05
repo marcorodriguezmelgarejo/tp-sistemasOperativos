@@ -31,8 +31,8 @@ int main(){
     if(!inicializar_semaforos()){
         log_error(logger, "Error en la creacion de los semaforos");
     }
-    conectar_con_kernel();
     conectar_con_memoria();
+    conectar_con_kernel();
 
     signal(SIGINT, finalizar_CPU); // lo pongo aca y no al principio como solucion temporal, porque finalizar_CPU no anda si estamos intentando conectarnos con Kernel
 

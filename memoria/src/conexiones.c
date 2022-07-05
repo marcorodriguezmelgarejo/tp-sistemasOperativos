@@ -29,6 +29,7 @@ bool handshake_cpu(){
     sockets_enviar_dato(cpu_socket, (void*) &TAM_PAGINA, sizeof TAM_PAGINA, logger);
 }
 
+// Testeado
 void conectar_cpu_y_kernel(void){
     int server_socket;
 
@@ -37,17 +38,17 @@ void conectar_cpu_y_kernel(void){
         exit(ERROR_STATUS);
     }
 
-    esperar_conexion_kernel(server_socket);
     esperar_conexion_cpu(server_socket);
     if(!handshake_cpu()){
         log_error(logger, "Error en el handshake con el CPU");
     }
+    esperar_conexion_kernel(server_socket);
 
     sockets_cerrar(server_socket);
     log_debug(logger, "Conexiones creadas con exito");
 }
 
-
+// testear
 bool atender_acceso_tabla_primer_nivel(){
 
     // ID Tabla 1er nivel
@@ -90,6 +91,7 @@ bool atender_acceso_tabla_primer_nivel(){
     return true;
 }
 
+// testear
 bool atender_acceso_tabla_segundo_nivel(){
 
     // ID Tabla de 2do nivel
@@ -182,14 +184,17 @@ void* hilo_escuchar_kernel(void * arg){
             log_error(logger, "Error al recibir motivo de comunicacion por parte de kernel");
             continue;
         }
+        log_warning(logger, "hola1");
         if(!sockets_recibir_dato(kernel_socket, &pid, sizeof pid, logger)){
             log_error(logger, "Error al recibir pid de kernel");
             continue;
         }
+        log_warning(logger, "hola2");
 
         switch(motivo){
             case INICIALIZAR_PROCESO:
                 atender_inicializacion_proceso(pid);
+                log_warning(logger, "hola3");
                 break;
             case SUSPENDER_PROCESO:
                 atender_suspension_proceso(pid);
@@ -205,6 +210,7 @@ void* hilo_escuchar_kernel(void * arg){
     return NULL;
 }
 
+// testear
 void atender_finalizacion_proceso(int32_t pid){
     tabla_primer_nivel* tabla_primer_nivel_pointer = obtener_tabla_con_pid(pid);
     finalizar_proceso(tabla_primer_nivel_pointer);
@@ -214,6 +220,7 @@ void atender_finalizacion_proceso(int32_t pid){
     }
 }
 
+// testear
 void atender_suspension_proceso(int32_t pid){
     tabla_primer_nivel* tabla_primer_nivel_pointer = obtener_tabla_con_pid(pid);
     suspender_proceso(tabla_primer_nivel_pointer);
@@ -223,6 +230,7 @@ void atender_suspension_proceso(int32_t pid){
     }
 }
 
+// testear
 void atender_inicializacion_proceso(int32_t pid){
     int32_t tamanio_proceso;
 
@@ -230,11 +238,15 @@ void atender_inicializacion_proceso(int32_t pid){
         log_error(logger, "Error al recibir tamanio_proceso de kernel");
     }
 
+    log_warning(logger, "Recibido tamanio");
+
     if(inicializar_proceso(pid, tamanio_proceso) == NULL){
         log_error(logger, "No se pudo inicializar el proceso pid %d", pid);
         sockets_enviar_string(kernel_socket, "ERROR", logger);
         return;
     }
+
+    log_debug(logger, "Proceso inicializado");
 
     if(!sockets_enviar_string(kernel_socket, "OK", logger)){
         log_error(logger, "Error al enviar mensaje de confirmacion a memoria");

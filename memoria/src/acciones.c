@@ -8,6 +8,8 @@
 
 tabla_primer_nivel* inicializar_proceso(int32_t pid, int32_t tamanio_proceso){
 
+    // TODO: agregar (tabla*, pid) al diccionario
+
     /*
         Inicializa el archivo swap y la tabla de paginas para el proceso
     */

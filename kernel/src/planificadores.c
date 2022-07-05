@@ -229,7 +229,7 @@ void transicion_ejec_exit(void){
         return;
     }
 
-    liberar_estructuras_memoria();
+    memoria_finalizar_proceso(en_ejecucion);
 
     log_info(logger, "EJEC->EXIT (PID=%d)", en_ejecucion->pid);
 
@@ -513,8 +513,6 @@ bool transicion_ready_suspendido_ready(void){
     if (!queue_is_empty(cola_ready_suspendido)){
 
         pcb_pointer = queue_pop(cola_ready_suspendido);
-
-        memoria_volver_de_suspendido(pcb_pointer);
 
         list_add(lista_ready, pcb_pointer);
 

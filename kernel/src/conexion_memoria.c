@@ -14,10 +14,14 @@ void solicitar_operacion_a_memoria(int32_t pid, int32_t motivo){
     if(!sockets_enviar_dato(memoria_socket, &motivo, sizeof motivo, logger)){
         log_error(logger, "Error al enviar el motivo de la comunicacion a memoria");
     }
+
+    log_warning(logger, "Enviado motivo %d", motivo);
     
     if(!sockets_enviar_dato(memoria_socket, &pid, sizeof pid, logger)){
         log_error(logger, "Error al enviar el pid del proceso");
     }
+
+    log_warning(logger, "Enviado pid %d", pid);
 }
 // la usan las tres funciones de comunicacion con memoria
 bool recibir_respuesta_memoria(){
@@ -49,9 +53,13 @@ void inicializar_estructuras_memoria(pcb_t* pcb_pointer){
         log_error(logger, "Error al enviar el tamanio del proceso");
     }
 
+    log_warning(logger, "Enviado tamanio %d", tamanio_proceso);
+
     if(!recibir_respuesta_memoria()){
         log_error(logger, "Error en memoria al inicializar estructuras de pid %d", pcb_pointer->pid);
     }
+
+    log_warning(logger, "Estructuras inicializadas");
 }
 
 void memoria_suspender_proceso(pcb_t* pcb_pointer){
@@ -66,14 +74,4 @@ void memoria_finalizar_proceso(pcb_t* pcb_pointer){
     if(!recibir_respuesta_memoria()){
         log_error(logger, "Error en memoria al liberar la memoria de pid %d", pcb_pointer->pid);
     }
-}
-
-void memoria_volver_de_suspendido(pcb_t* pcb_pointer){
-    // no hace nada    
-    return;
-}
-
-void liberar_estructuras_memoria(void){
-    
-    return;
 }
