@@ -23,13 +23,20 @@ bool escribir_dir_logica(int32_t direccion_logica, int32_t valor){
     return true;
 }
 
-bool leer_dir_fisica(int32_t direccion_fisica, int32_t *puntero_valor_leido){
+bool leer_dir_fisica(int32_t num_pag, int32_t marco, int32_t desplazamiento, int32_t *puntero_valor_leido){
     int32_t motivo = LECTURA_EN_ESPACIO_USUARIO;
+    int32_t pid = en_ejecucion.pid;
 
     return(
         sockets_enviar_dato(memoria_socket, &motivo, sizeof motivo, logger)
         &&
-        sockets_enviar_dato(memoria_socket, &direccion_fisica, sizeof(direccion_fisica), logger) // esto o el marco y el desp por separado?
+        sockets_enviar_dato(memoria_socket, &pid, sizeof pid, logger)
+        &&
+        sockets_enviar_dato(memoria_socket, &num_pag, sizeof num_pag, logger)
+        &&
+        sockets_enviar_dato(memoria_socket, &marco, sizeof marco, logger)
+        &&
+        sockets_enviar_dato(memoria_socket, &desplazamiento, sizeof desplazamiento, logger)
         &&
         sockets_recibir_dato(memoria_socket, puntero_valor_leido, sizeof(*puntero_valor_leido), logger)
     );
@@ -37,20 +44,27 @@ bool leer_dir_fisica(int32_t direccion_fisica, int32_t *puntero_valor_leido){
 
 }
 
-bool escribir_dir_fisica(int32_t direccion_fisica, int32_t dato){
+bool escribir_dir_fisica(int32_t num_pag, int32_t marco, int32_t desplazamiento, int32_t dato){
     char respuesta_memoria[10];
     int32_t motivo = ESCRITURA_EN_ESPACIO_USUARIO;
+    int32_t pid = en_ejecucion.pid;
 
     return(
         sockets_enviar_dato(memoria_socket, &motivo, sizeof motivo, logger)
         &&
-        sockets_enviar_dato(memoria_socket, &direccion_fisica, sizeof(direccion_fisica), logger) // esto o el marco y el desp por separado?
+        sockets_enviar_dato(memoria_socket, &pid, sizeof pid, logger)
+        &&
+        sockets_enviar_dato(memoria_socket, &num_pag, sizeof num_pag, logger)
+        &&
+        sockets_enviar_dato(memoria_socket, &marco, sizeof marco, logger)
+        &&
+        sockets_enviar_dato(memoria_socket, &desplazamiento, sizeof desplazamiento, logger)
         &&
         sockets_enviar_dato(memoria_socket, &dato, sizeof(dato), logger)
         &&
         sockets_recibir_string(memoria_socket, respuesta_memoria, logger)
         &&
-        strcmp(respuesta_memoria, "OK")
+        (strcmp(respuesta_memoria, "OK") == 0)
     );
 }
 
