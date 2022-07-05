@@ -1,11 +1,11 @@
 #include "cpu.h"
 
 bool leer_dir_logica(int32_t direccion_logica, int32_t *puntero_valor_leido){
-    int32_t direccion_fisica = -1;
+    int32_t num_pagina = calcular_numero_pagina(direccion_logica);
+    int32_t desplazamiento = calcular_desplazamiento(direccion_logica, num_pagina);
+    int32_t marco = buscar_pagina(direccion_logica).marco;
 
-    // traducir direccion
-
-    if(!leer_dir_fisica(direccion_fisica, puntero_valor_leido)){
+    if(!leer_dir_fisica(num_pagina, marco, desplazamiento, puntero_valor_leido)){
         log_error(logger, "Error en el acceso a memoria");
         return false;
     }
@@ -17,8 +17,15 @@ bool leer_dir_logica(int32_t direccion_logica, int32_t *puntero_valor_leido){
 
 
 bool escribir_dir_logica(int32_t direccion_logica, int32_t valor){
-
-    // traducir direccion
+    int32_t num_pagina = calcular_numero_pagina(direccion_logica);
+    int32_t desplazamiento = calcular_desplazamiento(direccion_logica, num_pagina);
+    int32_t marco = buscar_pagina(direccion_logica).marco;
+    
+    if(!escribir_dir_fisica(num_pagina, marco, desplazamiento, valor)){
+        log_error(logger, "Error en el acceso a memoria");
+        return false;
+    }
+    log_info(logger, "Valor escrito en memoria");
 
     return true;
 }
@@ -68,7 +75,7 @@ bool escribir_dir_fisica(int32_t num_pag, int32_t marco, int32_t desplazamiento,
     );
 }
 
-// Busca el marco en la memoria. RETORNA MARCO -1 SI HAY UN ERROR EN LA COMUNICACION CON LA MEMORIA
+// Retorna un tlb_entrada_t que contiene el marco en donde esta la pagina buscada. RETORNA MARCO -1 SI HAY UN ERROR EN LA COMUNICACION CON LA MEMORIA
 tlb_entrada_t buscar_pagina(int32_t numero_pagina){ 
     int32_t tabla_segundo_nivel;
     tlb_entrada_t nueva_entrada;
