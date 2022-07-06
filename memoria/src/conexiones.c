@@ -46,6 +46,7 @@ void conectar_cpu_y_kernel(void){
 
     sockets_cerrar(server_socket);
     log_debug(logger, "Conexiones creadas con exito");
+    log_info(logger, "------------------------------------");
 }
 
 // testear
@@ -178,7 +179,7 @@ bool atender_acceso_lectura_espacio_usuario(){
         log_error(logger, "Error al enviar el dato leido");
         return false;
     }
-    log_info(logger, "Dato leido (%d) enviado a cpu", valor_leido);
+    log_debug(logger, "Dato leido (%d) enviado a cpu", valor_leido);
 
     return true;
 }
@@ -336,8 +337,6 @@ void atender_inicializacion_proceso(int32_t pid){
         sockets_enviar_string(kernel_socket, "ERROR", logger);
         return;
     }
-
-    log_debug(logger, "Proceso inicializado");
 
     if(!sockets_enviar_string(kernel_socket, "OK", logger)){
         log_error(logger, "Error al enviar mensaje de confirmacion a memoria");

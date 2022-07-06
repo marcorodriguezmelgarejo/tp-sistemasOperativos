@@ -170,7 +170,7 @@ void borrar_archivo_swap(int32_t pid){
     sprintf(swap_file, "%s/%d.swap", PATH_SWAP, pid);
 
     if(remove(swap_file) == 0){
-        log_info(logger, "Se ha eliminado el archivo %s con exito.", swap_file);
+        log_debug(logger, "ELIMINAR ARCHIVO SWAP (PID = %d)", pid);
     } else {
         log_error(logger, "error al eliminar el archivo swap: %s",swap_file);
     }

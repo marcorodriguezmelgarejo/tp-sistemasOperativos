@@ -64,7 +64,7 @@ int main() {
 
     espacio_usuario = malloc(TAM_MEMORIA);
 
-    log_debug(logger, "Se aloco la memoria de usuario correspondiente.", TAM_MEMORIA);
+    log_debug(logger, "Se aloco la memoria de usuario correspondiente");
     log_debug(logger, "Tamanio total de la memoria: %d Bytes.", TAM_MEMORIA);
     log_debug(logger, "Tamanio de cada pagina: %d Bytes.", TAM_PAGINA);
     log_debug(logger, "Cantidad de marcos en espacio de usuario: %d", bitarray_get_max_bit(marcos_libres));
@@ -74,7 +74,7 @@ int main() {
 		return ERROR_STATUS;
     }
 
-    iniciar_test();
+    //iniciar_test();
 
     conectar_cpu_y_kernel();
 

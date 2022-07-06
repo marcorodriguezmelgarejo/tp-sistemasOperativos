@@ -1,12 +1,84 @@
 #include "memoria.h"
 
-void acciones_trasladar_pagina_a_disco(int32_t pid, int32_t numero_pagina, int32_t numero_marco){
-    /*
-        Envia instruccion a swap para trasladar la pagina numero 'numero_pagina' del proceso asociado a 'tabla_pointer' a disco.
-        La misma esta ubicada en el marco numero 'numero_marco'.
-        Espera que la accion en swap se realize.
-    */
+void acciones_trasladar_pagina_a_disco(tabla_primer_nivel* tabla_pointer, int32_t numero_pagina, int32_t numero_marco){
 
+    enviar_instruccion_swap_TRASLADAR_PAGINA_A_DISCO(tabla_pointer->pid, numero_pagina, numero_pagina);
+    
+    quitar_pagina_lista_paginas_cargadas(tabla_pointer, numero_pagina);
+
+    marcar_marco_como_libre(numero_marco);
+    
+    tabla_pointer->tamanio_conjunto_residente -= 1;
+
+    return;
+}
+
+void acciones_trasladar_pagina_a_memoria(tabla_primer_nivel* tabla_pointer, int32_t numero_pagina, int32_t numero_marco){
+
+    enviar_instruccion_swap_TRASLADAR_PAGINA_A_MEMORIA(tabla_pointer->pid, numero_pagina, numero_marco);
+
+    agregar_pagina_lista_paginas_cargadas(tabla_pointer, numero_pagina);
+
+    marcar_marco_como_ocupado(numero_marco);
+    
+    tabla_pointer->tamanio_conjunto_residente += 1;
+
+    return;
+}
+
+void enviar_instruccion_swap_CREAR_ARCHIVO_SWAP(int32_t pid, int32_t tamanio_proceso){
+    
+    instruccion_swap instruccion;
+    sem_t semaforo;
+    
+    sem_init(&semaforo, 0, 0);
+
+    instruccion.numero_instruccion = CREAR_ARCHIVO_SWAP;
+    instruccion.pid = pid;
+    instruccion.tamanio_proceso = tamanio_proceso;
+    instruccion.semaforo_pointer = &semaforo;
+    enviar_instruccion_swap(instruccion);
+    
+    sem_wait(&semaforo); //espera a que termine la instruccion swap
+    
+    sem_destroy(&semaforo);
+}
+
+void enviar_instruccion_swap_TRASLADAR_PROCESO_A_DISCO(tabla_primer_nivel* tabla_pointer){
+
+    instruccion_swap instruccion;
+    sem_t semaforo;
+
+    sem_init(&semaforo, 0, 0);
+
+    instruccion.numero_instruccion = TRASLADAR_PROCESO_A_DISCO;
+    instruccion.tabla_primer_nivel_pointer = tabla_pointer;
+    instruccion.semaforo_pointer = &semaforo;
+    enviar_instruccion_swap(instruccion);
+
+    sem_wait(&semaforo); //espera a que termine de ejecutarse la instruccion en swap
+
+    sem_destroy(&semaforo);
+}
+
+void enviar_instruccion_swap_BORRAR_ARCHIVO_SWAP(int32_t pid){
+
+    instruccion_swap instruccion;
+    sem_t semaforo;
+    
+    sem_init(&semaforo, 0, 0);
+
+    instruccion.numero_instruccion = BORRAR_ARCHIVO_SWAP;
+    instruccion.pid = pid;
+    instruccion.semaforo_pointer = &semaforo;
+    enviar_instruccion_swap(instruccion);
+
+    sem_wait(&semaforo); //espera a que termine de ejecutarse la instruccion en swap
+
+    sem_destroy(&semaforo);
+}
+
+void enviar_instruccion_swap_TRASLADAR_PAGINA_A_DISCO(int32_t pid, int32_t numero_pagina, int32_t numero_marco){
     instruccion_swap instruccion;
     sem_t semaforo;
 
@@ -23,18 +95,9 @@ void acciones_trasladar_pagina_a_disco(int32_t pid, int32_t numero_pagina, int32
     sem_wait(&semaforo);
 
     sem_destroy(&semaforo);
-
-    return;
 }
 
-void acciones_trasladar_pagina_a_memoria(int32_t pid, int32_t numero_pagina, int32_t numero_marco){
-
-    /*
-        Envia instruccion a swap para trasladar la pagina numero 'numero_pagina' del proceso asociado a 'tabla_pointer' a memoria
-        en el marco numero 'numero_marco'.
-        Espera que la accion en swap se realize.
-    */
-
+void enviar_instruccion_swap_TRASLADAR_PAGINA_A_MEMORIA(int32_t pid, int32_t numero_pagina, int32_t numero_marco){
     instruccion_swap instruccion;
     sem_t semaforo;
 
@@ -51,8 +114,6 @@ void acciones_trasladar_pagina_a_memoria(int32_t pid, int32_t numero_pagina, int
     sem_wait(&semaforo);
 
     sem_destroy(&semaforo);
-
-    return;
 }
 
 void enviar_instruccion_swap(instruccion_swap instruccion){

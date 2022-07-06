@@ -40,7 +40,8 @@ typedef struct tabla_primer_nivel{
     int32_t pid;
     int32_t cantidad_entradas; //de 1 a ENTRADAS_POR_TABLA (es el length de lista de entradas)
     int32_t tamanio_conjunto_residente; //de 0 a MARCOS_POR_PROCESO
-    int32_t puntero_clock; //guarda el numero de pagina
+    int32_t puntero_clock; //guarda un indice de la lista_paginas_cargadas
+    t_list *lista_paginas_cargadas;//lista de paginas con presencia ordenadas por orden ascendente de carga(para algo de reemplazo)
     int32_t cantidad_paginas; //cantidad de paginas totales del proceso (es igual al tamanio del archivo swap / TAM_PAGINA)
     t_list *lista_de_tabla_segundo_nivel; //es una lista de punteros a tabla_segundo_nivel
 } tabla_primer_nivel;
@@ -101,6 +102,16 @@ t_queue* cola_instrucciones_swap;
 t_dictionary * diccionario_tabla_pointers;
 
 // Funciones
+void inicializar_valores_tabla_primer_nivel(tabla_primer_nivel* tabla_primer_nivel_pointer, int32_t pid, int32_t cantidad_paginas, int32_t cantidad_entradas_primer_nivel);
+void entrada_segundo_nivel_setear_bits_al_traer_a_memoria(entrada_segundo_nivel* entrada_segundo_nivel_pointer, int32_t numero_marco);
+void enviar_instruccion_swap_CREAR_ARCHIVO_SWAP(int32_t pid, int32_t tamanio_proceso);
+void enviar_instruccion_swap_BORRAR_ARCHIVO_SWAP(int32_t pid);
+void enviar_instruccion_swap_TRASLADAR_PAGINA_A_DISCO(int32_t pid, int32_t numero_pagina, int32_t numero_marco);
+void enviar_instruccion_swap_TRASLADAR_PAGINA_A_MEMORIA(int32_t pid, int32_t numero_pagina, int32_t numero_marco);
+void enviar_instruccion_swap_TRASLADAR_PROCESO_A_DISCO(tabla_primer_nivel * tabla_pointer);
+void agregar_pagina_lista_paginas_cargadas(tabla_primer_nivel *tabla_pointer, int32_t numero_pagina);
+void quitar_pagina_lista_paginas_cargadas(tabla_primer_nivel *tabla_pointer, int32_t numero_pagina);
+void limpiar_lista_paginas_cargadas(tabla_primer_nivel* tabla_pointer);
 void iniciar_test(void);
 void test_acceder_tabla_primer_nivel(tabla_primer_nivel* tabla_pointer);
 void borrar_entrada_diccionario_tabla_pointers(int32_t pid);
@@ -124,8 +135,8 @@ int32_t acceder_tabla_primer_nivel(tabla_primer_nivel* tabla_pointer, int32_t in
 entrada_segundo_nivel* get_entrada_segundo_nivel(tabla_primer_nivel* tabla_pointer, int32_t numero_pagina);
 int32_t elegir_pagina_para_reemplazar(tabla_primer_nivel* tabla_pointer);
 int32_t elegir_marco_libre(tabla_primer_nivel* tabla_pointer);
-void acciones_trasladar_pagina_a_disco(int32_t pid, int32_t numero_pagina, int32_t numero_marco);
-void acciones_trasladar_pagina_a_memoria(int32_t pid, int32_t numero_pagina, int32_t numero_marco);
+void acciones_trasladar_pagina_a_disco(tabla_primer_nivel* tabla_pointer, int32_t numero_pagina, int32_t numero_marco);
+void acciones_trasladar_pagina_a_memoria(tabla_primer_nivel* tabla_pointer, int32_t numero_pagina, int32_t numero_marco);
 int32_t acceder_tabla_segundo_nivel(tabla_primer_nivel* tabla_pointer, int32_t numero_tabla_segundo_nivel, int32_t numero_pagina_solicitada);
 int32_t acceder_espacio_usuario_lectura(tabla_primer_nivel* tabla_pointer, int32_t numero_pagina, int32_t numero_marco, int32_t desplazamiento);
 bool acceder_espacio_usuario_escritura(tabla_primer_nivel* tabla_pointer, int32_t numero_pagina, int32_t numero_marco, int32_t desplazamiento, int32_t valor);
@@ -137,7 +148,7 @@ void trasladar_proceso_a_disco(tabla_primer_nivel*);
 void borrar_archivo_swap(int32_t pid);
 void inicializar_variables_globales(void);
 void enviar_instruccion_swap(instruccion_swap);
-int get_indice_tabla_pointer(t_list* lista, tabla_primer_nivel* tabla_pointer);
+int get_indice_lista_int32(t_list* lista, int32_t elemento_buscado);
 void esperar_conexion_cpu(int socket_escucha);
 void esperar_conexion_kernel(int socket_escucha);
 bool handshake_cpu();

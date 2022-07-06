@@ -53,7 +53,7 @@ tabla_primer_nivel* test_inicializar_proceso(void){
 
     //testeo la tabla generada
 
-    log_warning(logger,"pid=%d (tiene que ser '4'), tamanio_lista:%d (tiene que ser '5')", tabla_pointer->pid, list_size(tabla_pointer->lista_de_tabla_segundo_nivel));
+    log_warning(logger,"pid=%d (tiene que ser '4'), tamanio_lista:%d (tiene que ser '2')", tabla_pointer->pid, list_size(tabla_pointer->lista_de_tabla_segundo_nivel));
 
     for (i = 0; i < list_size(tabla_pointer->lista_de_tabla_segundo_nivel); i++){
         tabla_segundo_nivel_pointer = list_get(tabla_pointer->lista_de_tabla_segundo_nivel, i);

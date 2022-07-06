@@ -23,12 +23,7 @@ tabla_primer_nivel* crear_tabla_paginas_proceso(int32_t pid, int32_t cantidad_pa
         return NULL;
     }
 
-    tabla_primer_nivel_pointer->pid = pid;
-    tabla_primer_nivel_pointer->cantidad_entradas = cantidad_entradas_primer_nivel;
-    tabla_primer_nivel_pointer->tamanio_conjunto_residente = 0;
-    tabla_primer_nivel_pointer->puntero_clock = 0;
-    tabla_primer_nivel_pointer->cantidad_paginas = cantidad_paginas;
-    tabla_primer_nivel_pointer->lista_de_tabla_segundo_nivel = list_create();
+    inicializar_valores_tabla_primer_nivel(tabla_primer_nivel_pointer, pid, cantidad_paginas, cantidad_entradas_primer_nivel);
 
     //reservo memoria e inicializo las tablas de segundo nivel
     for (i = 0; i < cantidad_entradas_primer_nivel; i++){
@@ -72,6 +67,16 @@ tabla_primer_nivel* crear_tabla_paginas_proceso(int32_t pid, int32_t cantidad_pa
     return tabla_primer_nivel_pointer;
 }
 
+void inicializar_valores_tabla_primer_nivel(tabla_primer_nivel* tabla_primer_nivel_pointer, int32_t pid, int32_t cantidad_paginas, int32_t cantidad_entradas_primer_nivel){
+    tabla_primer_nivel_pointer->pid = pid;
+    tabla_primer_nivel_pointer->cantidad_entradas = cantidad_entradas_primer_nivel;
+    tabla_primer_nivel_pointer->tamanio_conjunto_residente = 0;
+    tabla_primer_nivel_pointer->puntero_clock = 0;
+    tabla_primer_nivel_pointer->lista_paginas_cargadas = list_create();
+    tabla_primer_nivel_pointer->cantidad_paginas = cantidad_paginas;
+    tabla_primer_nivel_pointer->lista_de_tabla_segundo_nivel = list_create();
+}
+
 void liberar_memoria_tabla_proceso(tabla_primer_nivel* tabla_pointer){
     /*
         Hace todos los frees correspondientes para liberar memoria alocada para una tabla de primer nivel
@@ -85,8 +90,10 @@ void liberar_memoria_tabla_proceso(tabla_primer_nivel* tabla_pointer){
         list_destroy_and_destroy_elements(tabla_segundo_nivel_pointer->lista_de_entradas, free);
     }
 
+    list_destroy_and_destroy_elements(tabla_pointer->lista_paginas_cargadas, free);
     list_destroy(tabla_pointer->lista_de_tabla_segundo_nivel);
 
+    free(tabla_pointer);
 }
 
 void poner_bit_usado_true(tabla_primer_nivel* tabla_pointer, int32_t numero_pagina){
@@ -121,18 +128,24 @@ entrada_segundo_nivel* get_entrada_segundo_nivel(tabla_primer_nivel* tabla_point
 
 }
 
-int get_indice_tabla_pointer(t_list* lista, tabla_primer_nivel* tabla_pointer){
+int get_indice_lista_int32(t_list* lista, int32_t elemento_buscado){
 
     // Devuelve -1 si no se encuentra en la lista
 
     int i = 0;
+    int32_t *elemento_actual_pointer;
 
-    if (list_is_empty(lista)) return -1;
+    if (list_is_empty(lista)){
+        return -1;
+    }
 
     for (i = 0; i < list_size(lista); i++){
 
-        if (list_get(lista, i) == tabla_pointer) return i;
+        elemento_actual_pointer = list_get(lista, i);
 
+        if (*elemento_actual_pointer == elemento_buscado){
+            return i;
+        }
     }
 
     return -1;
@@ -163,4 +176,30 @@ tabla_primer_nivel* obtener_tabla_con_pid(int32_t pid){
     }
 
     return dictionary_get(diccionario_tabla_pointers, dictionary_key);
+}
+
+void agregar_pagina_lista_paginas_cargadas(tabla_primer_nivel *tabla_pointer, int32_t numero_pagina){
+    int32_t * numero_pagina_pointer = malloc(sizeof numero_pagina);
+    *numero_pagina_pointer = numero_pagina;
+
+    list_add(tabla_pointer->lista_paginas_cargadas, numero_pagina_pointer);
+}
+
+void quitar_pagina_lista_paginas_cargadas(tabla_primer_nivel *tabla_pointer, int32_t numero_pagina){
+    int32_t indice = get_indice_lista_int32(tabla_pointer->lista_paginas_cargadas, numero_pagina);
+
+    int32_t *elemento_pointer = list_remove(tabla_pointer->lista_paginas_cargadas, indice);
+
+    free(elemento_pointer);
+}
+
+void limpiar_lista_paginas_cargadas(tabla_primer_nivel* tabla_pointer){
+    list_clean(tabla_pointer->lista_paginas_cargadas);
+}
+
+void entrada_segundo_nivel_setear_bits_al_traer_a_memoria(entrada_segundo_nivel* entrada_segundo_nivel_pointer, int32_t numero_marco){
+    entrada_segundo_nivel_pointer->presencia = true;
+    entrada_segundo_nivel_pointer->numero_marco = numero_marco;
+    entrada_segundo_nivel_pointer->usado = true;
+    entrada_segundo_nivel_pointer->modificado = false;
 }
