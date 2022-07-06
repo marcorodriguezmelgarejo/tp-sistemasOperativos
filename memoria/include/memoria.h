@@ -102,6 +102,7 @@ t_queue* cola_instrucciones_swap;
 t_dictionary * diccionario_tabla_pointers;
 
 // Funciones
+void escribir_ceros_archivo(FILE * archivo, int32_t cantidad_ceros);
 void inicializar_valores_tabla_primer_nivel(tabla_primer_nivel* tabla_primer_nivel_pointer, int32_t pid, int32_t cantidad_paginas, int32_t cantidad_entradas_primer_nivel);
 void entrada_segundo_nivel_setear_bits_al_traer_a_memoria(entrada_segundo_nivel* entrada_segundo_nivel_pointer, int32_t numero_marco);
 void enviar_instruccion_swap_CREAR_ARCHIVO_SWAP(int32_t pid, int32_t tamanio_proceso);

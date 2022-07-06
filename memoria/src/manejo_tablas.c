@@ -82,7 +82,7 @@ void liberar_memoria_tabla_proceso(tabla_primer_nivel* tabla_pointer){
         Hace todos los frees correspondientes para liberar memoria alocada para una tabla de primer nivel
     */
 
-    int i = 0, index = 0;
+    int i = 0;
     tabla_segundo_nivel* tabla_segundo_nivel_pointer;
 
     for (i = 0; i < tabla_pointer->cantidad_entradas; i++){

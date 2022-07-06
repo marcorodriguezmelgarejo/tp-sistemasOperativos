@@ -64,7 +64,6 @@ void crear_archivo_swap(int32_t pid, int32_t tamanio_proceso){
 
     char filename[MAX_STRING_SIZE];
     FILE * archivo_swap;
-    char cero = 0;
     
     sprintf(filename, "%s/%d.swap", PATH_SWAP, pid);
 
@@ -73,11 +72,18 @@ void crear_archivo_swap(int32_t pid, int32_t tamanio_proceso){
         return;
     }
 
-    fwrite(&cero, sizeof cero, tamanio_proceso, archivo_swap);
+    escribir_ceros_archivo(archivo_swap, tamanio_proceso);
 
     fclose(archivo_swap);
 
     return;
+}
+
+void escribir_ceros_archivo(FILE * archivo, int32_t cantidad_ceros){
+    char * ceros = malloc(cantidad_ceros);
+    memset(ceros, 0, cantidad_ceros);
+    fwrite(ceros, 1, cantidad_ceros, archivo);
+    free(ceros);
 }
 
 void trasladar_pagina_a_disco(int32_t pid, int32_t numero_pagina, int32_t numero_marco){
