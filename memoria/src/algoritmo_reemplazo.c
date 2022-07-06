@@ -9,6 +9,12 @@ int32_t elegir_pagina_para_reemplazar(tabla_primer_nivel* tabla_pointer){
     */
 
     int32_t pagina_elegida = -1;
+
+    //si funciona bien nunca se deberia entrar en este if
+    if(list_size(tabla_pointer->lista_paginas_cargadas) == 0){
+        log_error(logger, "No hay paginas para reemplazar (PID = %d)", tabla_pointer->pid);
+        return -1;
+    }
     
     if (es_algoritmo_reemplazo_clock() == true){
         pagina_elegida = algoritmo_reemplazo_clock(tabla_pointer);
@@ -28,6 +34,7 @@ int32_t elegir_pagina_para_reemplazar(tabla_primer_nivel* tabla_pointer){
 int32_t algoritmo_reemplazo_clock(tabla_primer_nivel* tabla_pointer){
 
     int32_t pagina_elegida = -1;
+    int32_t pagina_actual = 0;
     bool se_eligio_pagina = false;
 
     entrada_segundo_nivel* entrada_segundo_nivel_pointer;
@@ -36,13 +43,14 @@ int32_t algoritmo_reemplazo_clock(tabla_primer_nivel* tabla_pointer){
 
         // Veo si la pagina apuntada tiene el bit de usado en false
 
-        entrada_segundo_nivel_pointer = get_entrada_segundo_nivel(tabla_pointer, tabla_pointer->puntero_clock);
+        pagina_actual = get_pagina_apuntada_lista_paginas_cargadas(tabla_pointer);
+        entrada_segundo_nivel_pointer = get_entrada_segundo_nivel(tabla_pointer, pagina_actual);
 
         if((entrada_segundo_nivel_pointer-> presencia == true) && (entrada_segundo_nivel_pointer->usado == true)){
             entrada_segundo_nivel_pointer->usado = false;
         }
         else if ((entrada_segundo_nivel_pointer-> presencia == true) && (entrada_segundo_nivel_pointer->usado == false)){
-            pagina_elegida = tabla_pointer->puntero_clock;
+            pagina_elegida = pagina_actual;
             se_eligio_pagina = true;
         }
         
@@ -81,17 +89,19 @@ int32_t clock_mejorado_primer_paso(tabla_primer_nivel* tabla_pointer){
     bool se_eligio_pagina = false;
 
     int32_t pagina_elegida = -1;
+    int32_t pagina_actual;
 
     // se busca usado = false, modificado = false
 
     while(se_eligio_pagina == false && i < tabla_pointer->cantidad_paginas){
 
-        entrada_segundo_nivel_pointer = get_entrada_segundo_nivel(tabla_pointer, tabla_pointer->puntero_clock);
+        pagina_actual = get_pagina_apuntada_lista_paginas_cargadas(tabla_pointer);
+        entrada_segundo_nivel_pointer = get_entrada_segundo_nivel(tabla_pointer, pagina_actual);
 
         if((entrada_segundo_nivel_pointer-> presencia == true) && (entrada_segundo_nivel_pointer->usado == false)
             &&(entrada_segundo_nivel_pointer->modificado == false)){
 
-            pagina_elegida = tabla_pointer->puntero_clock;
+            pagina_elegida = pagina_actual;
             se_eligio_pagina = true;
         }
         
@@ -113,18 +123,20 @@ int32_t clock_mejorado_segundo_paso(tabla_primer_nivel * tabla_pointer){
     bool se_eligio_pagina = false;
 
     int32_t pagina_elegida = -1;
+    int32_t pagina_actual;
 
     // se busca usado = false, modificado = true
 
     while(se_eligio_pagina == false && i < tabla_pointer->cantidad_paginas){
 
-        entrada_segundo_nivel_pointer = get_entrada_segundo_nivel(tabla_pointer, tabla_pointer->puntero_clock);
+        pagina_actual = get_pagina_apuntada_lista_paginas_cargadas(tabla_pointer);
+        entrada_segundo_nivel_pointer = get_entrada_segundo_nivel(tabla_pointer, pagina_actual);
 
         if((entrada_segundo_nivel_pointer-> presencia == true) && (entrada_segundo_nivel_pointer->usado == false)
             &&(entrada_segundo_nivel_pointer->modificado == true)){
             
             //se eligio una pagina
-            pagina_elegida = tabla_pointer->puntero_clock;
+            pagina_elegida = pagina_actual;
             se_eligio_pagina = true;
         }
         else if((entrada_segundo_nivel_pointer-> presencia == true) && (entrada_segundo_nivel_pointer->usado == true)){
@@ -145,7 +157,7 @@ int32_t clock_mejorado_segundo_paso(tabla_primer_nivel * tabla_pointer){
 
 void algoritmo_reemplazo_actualizar_puntero(tabla_primer_nivel* tabla_pointer){
 
-    if (tabla_pointer->puntero_clock + 1 < tabla_pointer->cantidad_paginas){
+    if (tabla_pointer->puntero_clock + 1 < list_size(tabla_pointer->lista_paginas_cargadas)){
         tabla_pointer->puntero_clock++;
     }
     else{

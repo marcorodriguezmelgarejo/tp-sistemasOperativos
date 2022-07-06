@@ -102,6 +102,9 @@ t_queue* cola_instrucciones_swap;
 t_dictionary * diccionario_tabla_pointers;
 
 // Funciones
+void cambiar_puntero_clock(tabla_primer_nivel* tabla_pointer, int32_t indice_quitado);
+bool puntero_es_ultimo_elemento_o_excede_lista(tabla_primer_nivel *tabla_pointer);
+int32_t get_pagina_apuntada_lista_paginas_cargadas(tabla_primer_nivel* tabla_pointer);
 void escribir_ceros_archivo(FILE * archivo, int32_t cantidad_ceros);
 void inicializar_valores_tabla_primer_nivel(tabla_primer_nivel* tabla_primer_nivel_pointer, int32_t pid, int32_t cantidad_paginas, int32_t cantidad_entradas_primer_nivel);
 void entrada_segundo_nivel_setear_bits_al_traer_a_memoria(entrada_segundo_nivel* entrada_segundo_nivel_pointer, int32_t numero_marco);

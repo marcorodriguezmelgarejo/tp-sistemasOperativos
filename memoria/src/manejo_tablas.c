@@ -186,15 +186,50 @@ void agregar_pagina_lista_paginas_cargadas(tabla_primer_nivel *tabla_pointer, in
 }
 
 void quitar_pagina_lista_paginas_cargadas(tabla_primer_nivel *tabla_pointer, int32_t numero_pagina){
+    /*
+        Remueve la pagina indicada de la lista de paginas cargadas
+        y cambia el puntero de clock
+    */
     int32_t indice = get_indice_lista_int32(tabla_pointer->lista_paginas_cargadas, numero_pagina);
 
     int32_t *elemento_pointer = list_remove(tabla_pointer->lista_paginas_cargadas, indice);
 
     free(elemento_pointer);
+
+    cambiar_puntero_clock(tabla_pointer, indice);
+}
+
+void cambiar_puntero_clock(tabla_primer_nivel* tabla_pointer, int32_t indice_quitado){
+    
+    if (indice_quitado < tabla_pointer->puntero_clock){
+        tabla_pointer->puntero_clock -= 1;
+    }
+    else if(indice_quitado == tabla_pointer->puntero_clock
+    && puntero_es_ultimo_elemento_o_excede_lista(tabla_pointer)){
+        tabla_pointer->puntero_clock = 0;
+    }
+    //en caso de que el indice quitado sea mayor al puntero, este queda igual
+
+    //o en caso de que el indice quitado sea igual al puntero pero mientras que este
+    //no exceda ni sea el ultimo elemento de la lista, entonces tambien queda igual
+}
+
+bool puntero_es_ultimo_elemento_o_excede_lista(tabla_primer_nivel *tabla_pointer){
+    int32_t tamanio_lista = list_size(tabla_pointer->lista_paginas_cargadas);
+
+    return ((tabla_pointer->puntero_clock + 1) >= tamanio_lista);
 }
 
 void limpiar_lista_paginas_cargadas(tabla_primer_nivel* tabla_pointer){
     list_clean(tabla_pointer->lista_paginas_cargadas);
+}
+
+int32_t get_pagina_apuntada_lista_paginas_cargadas(tabla_primer_nivel* tabla_pointer){
+    int32_t *numero_pagina_pointer = list_get(tabla_pointer->lista_paginas_cargadas, tabla_pointer->puntero_clock);
+
+    int32_t numero_pagina = *numero_pagina_pointer;
+
+    return numero_pagina;
 }
 
 void entrada_segundo_nivel_setear_bits_al_traer_a_memoria(entrada_segundo_nivel* entrada_segundo_nivel_pointer, int32_t numero_marco){
