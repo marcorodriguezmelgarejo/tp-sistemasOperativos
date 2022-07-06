@@ -5,11 +5,12 @@
 
     funciones testeadas:
     inicializar_proceso()
+    acceder_tabla_primer_nivel()
+    acceder_espacio_usuario_lectura()
+    acceder_espacio_usuario_escritura()
 */
 
 tabla_primer_nivel* inicializar_proceso(int32_t pid, int32_t tamanio_proceso){
-
-    // TODO: agregar (tabla*, pid) al diccionario
 
     /*
         Inicializa el archivo swap y la tabla de paginas para el proceso
@@ -46,14 +47,6 @@ tabla_primer_nivel* inicializar_proceso(int32_t pid, int32_t tamanio_proceso){
     return tabla_primer_nivel_pointer;
 }
 
-void crear_entrada_diccionario_tabla_pointers(int32_t pid, tabla_primer_nivel* tabla_pointer){
-
-    char dictionary_key[MAX_STRING_SIZE];
-    
-    sprintf(dictionary_key, "%d", pid);
-
-    dictionary_put(diccionario_tabla_pointers, dictionary_key, tabla_pointer);
-}
 
 void suspender_proceso(tabla_primer_nivel* tabla_pointer){
     /*
@@ -112,14 +105,6 @@ void finalizar_proceso(tabla_primer_nivel* tabla_pointer){
     return;
 }
 
-void borrar_entrada_diccionario_tabla_pointers(int32_t pid){
-    char dictionary_key[MAX_STRING_SIZE];
-    
-    sprintf(dictionary_key, "%d", pid);
-
-    dictionary_remove(diccionario_tabla_pointers, dictionary_key);
-}
-
 int32_t acceder_tabla_primer_nivel(tabla_primer_nivel* tabla_pointer, int32_t numero_pagina){
 
     /*
@@ -140,7 +125,7 @@ int32_t acceder_tabla_primer_nivel(tabla_primer_nivel* tabla_pointer, int32_t nu
 
     indice_tabla_segundo_nivel = floor(numero_pagina / ENTRADAS_POR_TABLA);
 
-    log_debug(logger, "acceder_tabla_primer_nivel PID = %d, indice devuelto = %d", tabla_pointer->pid, indice_tabla_segundo_nivel);
+    //log_debug(logger, "acceder_tabla_primer_nivel PID = %d, indice devuelto = %d", tabla_pointer->pid, indice_tabla_segundo_nivel);
     
     return indice_tabla_segundo_nivel;
 }
@@ -221,61 +206,6 @@ int32_t acceder_tabla_segundo_nivel(tabla_primer_nivel* tabla_pointer, int32_t i
     return numero_marco;
 }
 
-void acciones_trasladar_pagina_a_disco(int32_t pid, int32_t numero_pagina, int32_t numero_marco){
-    /*
-        Envia instruccion a swap para trasladar la pagina numero 'numero_pagina' del proceso asociado a 'tabla_pointer' a disco.
-        La misma esta ubicada en el marco numero 'numero_marco'.
-        Espera que la accion en swap se realize.
-    */
-
-    instruccion_swap instruccion;
-    sem_t semaforo;
-
-    sem_init(&semaforo, 0, 0);
-
-    instruccion.numero_instruccion = TRASLADAR_PAGINA_A_DISCO;
-    instruccion.pid = pid;
-    instruccion.numero_pagina = numero_pagina;
-    instruccion.numero_marco = numero_marco;
-    instruccion.semaforo_pointer = &semaforo;
-
-    enviar_instruccion_swap(instruccion);
-
-    sem_wait(&semaforo);
-
-    sem_destroy(&semaforo);
-
-    return;
-}
-
-void acciones_trasladar_pagina_a_memoria(int32_t pid, int32_t numero_pagina, int32_t numero_marco){
-
-    /*
-        Envia instruccion a swap para trasladar la pagina numero 'numero_pagina' del proceso asociado a 'tabla_pointer' a memoria
-        en el marco numero 'numero_marco'.
-        Espera que la accion en swap se realize.
-    */
-
-    instruccion_swap instruccion;
-    sem_t semaforo;
-
-    sem_init(&semaforo, 0, 0);
-
-    instruccion.numero_instruccion = TRASLADAR_PAGINA_A_MEMORIA;
-    instruccion.pid = pid;
-    instruccion.numero_pagina = numero_pagina;
-    instruccion.numero_marco = numero_marco;
-    instruccion.semaforo_pointer = &semaforo;
-
-    enviar_instruccion_swap(instruccion);
-
-    sem_wait(&semaforo);
-
-    sem_destroy(&semaforo);
-
-    return;
-}
-
 int32_t acceder_espacio_usuario_lectura(tabla_primer_nivel* tabla_pointer, int32_t numero_pagina, int32_t numero_marco, int32_t desplazamiento){
     // ACLARACION: LA PAGINA SIEMPRE ESTA EN MEMORIA (LA TRAE acceder_tabla_segundo_nivel())
 
@@ -326,46 +256,3 @@ bool acceder_espacio_usuario_escritura(tabla_primer_nivel* tabla_pointer, int32_
     return true;
 }
 
-tabla_primer_nivel* obtener_tabla_con_pid(int32_t pid){
-    /*
-        Busca en el diccionario de tabla pointers el puntero correspondiente al pid.
-        Retorna NULL en caso de fallo.
-    */
-
-    // Paso el pid a string
-
-    char dictionary_key[MAX_STRING_SIZE];
-    
-    sprintf(dictionary_key, "%d", pid);
-
-    if (dictionary_has_key(diccionario_tabla_pointers, dictionary_key) == false){
-        log_error(logger, "Error en obtener_tabla_con_pid(): no se encuentra la entrada del diccionario correspondiente al pid = %d", pid);
-        return NULL;
-    }
-
-    return dictionary_get(diccionario_tabla_pointers, dictionary_key);
-}
-
-
-void enviar_instruccion_swap(instruccion_swap instruccion){
-    /*
-        Reserva memoria para una instruccion y la pushea
-        en la cola utilizando los semaforos correspondientes.
-    */
-
-    instruccion_swap* instruccion_pointer;
-
-    if ((instruccion_pointer = malloc(sizeof instruccion)) == NULL){
-        log_error(logger, "error al hacer malloc en enviar_instruccion_swap()");
-        return;
-    }
-    
-    *instruccion_pointer = instruccion;
-
-    pthread_mutex_lock(&mutex_cola_instrucciones_swap);
-    queue_push(cola_instrucciones_swap, instruccion_pointer);
-    pthread_mutex_unlock(&mutex_cola_instrucciones_swap);
-
-    sem_post(&contador_cola_instrucciones_swap);
-
-}

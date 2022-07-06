@@ -101,10 +101,12 @@ t_queue* cola_instrucciones_swap;
 t_dictionary * diccionario_tabla_pointers;
 
 // Funciones
+void iniciar_test(void);
+void test_acceder_tabla_primer_nivel(tabla_primer_nivel* tabla_pointer);
 void borrar_entrada_diccionario_tabla_pointers(int32_t pid);
 void crear_entrada_diccionario_tabla_pointers(int32_t pid, tabla_primer_nivel* tabla_pointer);
 int32_t milisegundos_a_microsegundos(int32_t milisegundos);
-void test_inicializar_proceso(void);
+tabla_primer_nivel* test_inicializar_proceso(void);
 t_log* crear_logger(void);
 void cargar_config();
 void leer_config_string(t_config* , char* , char* );

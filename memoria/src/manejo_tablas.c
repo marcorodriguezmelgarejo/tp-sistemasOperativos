@@ -144,3 +144,23 @@ bool excede_la_tabla(tabla_primer_nivel* tabla_pointer, int32_t indice){
 
     return (indice >= (tabla_pointer->cantidad_entradas-1) * ENTRADAS_POR_TABLA + ultima_tabla_segundo_nivel_pointer->cantidad_entradas);
 }
+
+tabla_primer_nivel* obtener_tabla_con_pid(int32_t pid){
+    /*
+        Busca en el diccionario de tabla pointers el puntero correspondiente al pid.
+        Retorna NULL en caso de fallo.
+    */
+
+    // Paso el pid a string
+
+    char dictionary_key[MAX_STRING_SIZE];
+    
+    sprintf(dictionary_key, "%d", pid);
+
+    if (dictionary_has_key(diccionario_tabla_pointers, dictionary_key) == false){
+        log_error(logger, "Error en obtener_tabla_con_pid(): no se encuentra la entrada del diccionario correspondiente al pid = %d", pid);
+        return NULL;
+    }
+
+    return dictionary_get(diccionario_tabla_pointers, dictionary_key);
+}

@@ -171,14 +171,14 @@ bool atender_acceso_lectura_espacio_usuario(){
     }
 
     tabla_del_proceso = obtener_tabla_con_pid(buffer_pid);
-    log_info(logger,"Leyendo marco %d desplazamiento %d", buffer_marco, buffer_desplazamiento);
+    
     valor_leido = acceder_espacio_usuario_lectura(tabla_del_proceso, buffer_num_pagina, buffer_marco, buffer_desplazamiento);
 
     if(!sockets_enviar_dato(cpu_socket, &valor_leido, sizeof valor_leido, logger)){
         log_error(logger, "Error al enviar el dato leido");
         return false;
     }
-    log_info(logger, "Enviado a cpu: %d", valor_leido);
+    log_info(logger, "Dato leido (%d) enviado a cpu", valor_leido);
 
     return true;
 }
@@ -220,12 +220,11 @@ bool atender_acceso_escritura_espacio_usuario(){
     }
 
     tabla_del_proceso = obtener_tabla_con_pid(buffer_pid);
-    log_info(logger,"Escribiendo en marco %d desplazamiento %d", buffer_marco, buffer_desplazamiento);
+    
     if(!acceder_espacio_usuario_escritura(tabla_del_proceso, buffer_num_pagina, buffer_marco, buffer_desplazamiento, buffer_valor)){
         log_error(logger, "Error al acceder al espacio de usuario para escritura. Marco: %d, desplazamiento: %d", buffer_marco, buffer_desplazamiento);
         return false;
     }
-    log_info(logger, "Valor escrito: %d", buffer_valor);
     
     sockets_enviar_string(cpu_socket, "OK", logger);
 
@@ -280,17 +279,15 @@ void* hilo_escuchar_kernel(void * arg){
             log_error(logger, "Error al recibir motivo de comunicacion por parte de kernel");
             continue;
         }
-        log_warning(logger, "hola1");
+        
         if(!sockets_recibir_dato(kernel_socket, &pid, sizeof pid, logger)){
             log_error(logger, "Error al recibir pid de kernel");
             continue;
         }
-        log_warning(logger, "hola2");
-
+        
         switch(motivo){
             case INICIALIZAR_PROCESO:
                 atender_inicializacion_proceso(pid);
-                log_warning(logger, "hola3");
                 break;
             case SUSPENDER_PROCESO:
                 atender_suspension_proceso(pid);
@@ -333,8 +330,6 @@ void atender_inicializacion_proceso(int32_t pid){
     if(!sockets_recibir_dato(kernel_socket, &tamanio_proceso, sizeof tamanio_proceso, logger)){
         log_error(logger, "Error al recibir tamanio_proceso de kernel");
     }
-
-    log_warning(logger, "Recibido tamanio");
 
     if(inicializar_proceso(pid, tamanio_proceso) == NULL){
         log_error(logger, "No se pudo inicializar el proceso pid %d", pid);

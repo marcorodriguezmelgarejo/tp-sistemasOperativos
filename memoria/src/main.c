@@ -50,8 +50,6 @@ void inicializar_variables_globales(void){
     bitarray_aux = malloc(tamanio_marcos_libres);
 
     marcos_libres = bitarray_create_with_mode(bitarray_aux, tamanio_marcos_libres, MSB_FIRST);
-
-    log_debug(logger, "Cantidad de marcos en espacio de usuario: %d", bitarray_get_max_bit(marcos_libres));
 }
 
 int main() {
@@ -66,16 +64,17 @@ int main() {
 
     espacio_usuario = malloc(TAM_MEMORIA);
 
-    log_info(logger, "Se ha alocado la memoria con posicion inicial en %p.", espacio_usuario);
-    log_info(logger, "Tamanio total de la memoria: %d Bytes.", TAM_MEMORIA);
-    log_info(logger, "Tamanio de cada pagina: %d Bytes.", TAM_PAGINA);
+    log_debug(logger, "Se aloco la memoria de usuario correspondiente.", TAM_MEMORIA);
+    log_debug(logger, "Tamanio total de la memoria: %d Bytes.", TAM_MEMORIA);
+    log_debug(logger, "Tamanio de cada pagina: %d Bytes.", TAM_PAGINA);
+    log_debug(logger, "Cantidad de marcos en espacio de usuario: %d", bitarray_get_max_bit(marcos_libres));
 
     if(TAM_MEMORIA%TAM_PAGINA != 0){ //Chequeamos que sea divisible (resto 0)
         log_error(logger, "El tamaño de la pagina no es utilizable para este tamanio de memoria.");
 		return ERROR_STATUS;
     }
 
-    //test_inicializar_proceso();
+    iniciar_test();
 
     conectar_cpu_y_kernel();
 

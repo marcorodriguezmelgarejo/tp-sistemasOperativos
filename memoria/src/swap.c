@@ -7,9 +7,6 @@
 
 */
 
-int32_t milisegundos_a_microsegundos(int32_t milisegundos){
-    return milisegundos * 1000;
-}
 
 void *hilo_swap(void *arg){
 
