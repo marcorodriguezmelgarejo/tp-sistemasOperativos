@@ -12,7 +12,7 @@
 
 tabla_primer_nivel* inicializar_proceso(int32_t pid, int32_t tamanio_proceso){
 
-    if (tamanio_proceso >= TAM_PAGINA * ENTRADAS_POR_TABLA * ENTRADAS_POR_TABLA){
+    if (tamanio_proceso > TAM_PAGINA * ENTRADAS_POR_TABLA * ENTRADAS_POR_TABLA){
         log_error(logger, "El tamanio de proceso excede la cantidad de paginas asignables");
     }
     
