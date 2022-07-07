@@ -83,6 +83,8 @@ int32_t acceder_tabla_primer_nivel(tabla_primer_nivel* tabla_pointer, int32_t nu
 
     indice_tabla_segundo_nivel = floor(numero_pagina / ENTRADAS_POR_TABLA);
 
+    log_info(logger, "ACCESO TABLA PRIMER NIVEL (PID = %d, numero de pagina= %d)", tabla_pointer->pid, numero_pagina);
+
     return indice_tabla_segundo_nivel;
 }
 
