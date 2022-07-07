@@ -296,6 +296,10 @@ void* hilo_escuchar_kernel(void * arg){
             case FINALIZAR_PROCESO:
                 atender_finalizacion_proceso(pid);
                 break;
+            case FIN_MEMORIA:
+                atender_fin_memoria();
+                return NULL;
+                break;
             default:
                 log_error(logger, "Motivo invalido");
         }
@@ -341,4 +345,8 @@ void atender_inicializacion_proceso(int32_t pid){
     if(!sockets_enviar_string(kernel_socket, "OK", logger)){
         log_error(logger, "Error al enviar mensaje de confirmacion a memoria");
     }
+}
+
+void atender_fin_memoria(void){
+    kill(getpid(), SIGINT);
 }

@@ -11,6 +11,8 @@ int32_t elegir_marco_libre(tabla_primer_nivel* tabla_pointer){
     int i = 0;
     int tamanio_bitarray = bitarray_get_max_bit(marcos_libres);
     int marco_elegido = -1;
+
+    mostrar_cantidad_marcos_libres();
     
     for(i = 0; i < tamanio_bitarray; i++){
         
@@ -21,6 +23,20 @@ int32_t elegir_marco_libre(tabla_primer_nivel* tabla_pointer){
     }
 
     return marco_elegido;
+}
+
+void mostrar_cantidad_marcos_libres(void){
+    int i = 0, marcos_libres_actualmente = 0;
+    int tamanio_bitarray = bitarray_get_max_bit(marcos_libres);
+    
+    for(i = 0; i < tamanio_bitarray; i++){
+        
+        if (bitarray_test_bit(marcos_libres, i) == false){
+            marcos_libres_actualmente += 1;
+        }
+    }
+
+    log_debug(logger, "Marcos libres actualmente: %d de %d", marcos_libres_actualmente, tamanio_bitarray);
 }
 
 void marcar_marcos_como_libres_proceso(tabla_primer_nivel* tabla_pointer){

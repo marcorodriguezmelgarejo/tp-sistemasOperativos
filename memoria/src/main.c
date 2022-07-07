@@ -1,6 +1,16 @@
 #include "memoria.h"
 
 void manejar_sigint(int signal){
+
+    sockets_cerrar(cpu_socket);
+    sockets_cerrar(kernel_socket);
+
+    sleep(2);
+
+    pthread_cancel(h1);
+    pthread_cancel(h2);
+    pthread_cancel(h3);
+
     liberar_memoria();
 }
 
@@ -8,17 +18,20 @@ void liberar_memoria(void){
     
     log_info(logger, "liberando memoria...");
 
-    free(bitarray_aux);
     free(espacio_usuario);
-
+    
+    bitarray_destroy(marcos_libres);
+   
+    free(bitarray_aux);
+    
     sem_destroy(&contador_cola_instrucciones_swap);
     pthread_mutex_destroy(&mutex_cola_instrucciones_swap);
-
-    bitarray_destroy(marcos_libres);
-    
-    log_destroy(logger);
-
+   
     dictionary_destroy(diccionario_tabla_pointers);
+    
+    queue_destroy(cola_instrucciones_swap);
+
+    log_destroy(logger);
 }
 
 void crear_hilos(void){
@@ -80,8 +93,8 @@ int main() {
 
     crear_hilos();
 	
-    pthread_join(h1, NULL);
-    pthread_join(h2, NULL);
+    pthread_detach(h1);
+    pthread_detach(h2);
     pthread_join(h3, NULL);
 
 	return SUCCESS_STATUS;

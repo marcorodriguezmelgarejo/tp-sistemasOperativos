@@ -102,6 +102,8 @@ t_queue* cola_instrucciones_swap;
 t_dictionary * diccionario_tabla_pointers;
 
 // Funciones
+void mostrar_cantidad_marcos_libres(void);
+void atender_fin_memoria(void);
 void test_algoritmo_reemplazo(void);
 void agregar_pagina(tabla_primer_nivel* tabla_pointer, int32_t numero_pagina, int32_t numero_marco, bool usado);
 void cambiar_puntero_clock(tabla_primer_nivel* tabla_pointer, int32_t indice_quitado);

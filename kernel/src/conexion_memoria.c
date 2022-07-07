@@ -69,3 +69,7 @@ void memoria_finalizar_proceso(pcb_t* pcb_pointer){
         log_error(logger, "Error en memoria al liberar la memoria de pid %d", pcb_pointer->pid);
     }
 }
+
+void enviar_fin_memoria(void){
+    solicitar_operacion_a_memoria(0, FIN_MEMORIA);
+}

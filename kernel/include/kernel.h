@@ -84,7 +84,7 @@ datos_tiempo_bloqueo en_IO; //se guarda los datos del proceso actualmente en IO
 bool ya_se_envio_interrupcion_cpu;
 
 // *FUNCIONES*
-
+void enviar_fin_memoria(void);
 void inicializar_variables_globales(void);
 void manejar_sigint(int);
 void crear_logger(void);

@@ -30,6 +30,7 @@
 #define INICIALIZAR_PROCESO 0
 #define SUSPENDER_PROCESO 1
 #define FINALIZAR_PROCESO 2
+#define FIN_MEMORIA 3
 
 //si se modifica la pcb se deben modificar las funciones que la envian y reciben
 typedef struct pcb_t{
