@@ -222,6 +222,7 @@ bool puntero_es_ultimo_elemento_o_excede_lista(tabla_primer_nivel *tabla_pointer
 
 void limpiar_lista_paginas_cargadas(tabla_primer_nivel* tabla_pointer){
     list_clean(tabla_pointer->lista_paginas_cargadas);
+    tabla_pointer->puntero_clock = 0;
 }
 
 int32_t get_pagina_apuntada_lista_paginas_cargadas(tabla_primer_nivel* tabla_pointer){

@@ -102,6 +102,8 @@ t_queue* cola_instrucciones_swap;
 t_dictionary * diccionario_tabla_pointers;
 
 // Funciones
+void test_algoritmo_reemplazo(void);
+void agregar_pagina(tabla_primer_nivel* tabla_pointer, int32_t numero_pagina, int32_t numero_marco, bool usado);
 void cambiar_puntero_clock(tabla_primer_nivel* tabla_pointer, int32_t indice_quitado);
 bool puntero_es_ultimo_elemento_o_excede_lista(tabla_primer_nivel *tabla_pointer);
 int32_t get_pagina_apuntada_lista_paginas_cargadas(tabla_primer_nivel* tabla_pointer);
@@ -116,7 +118,8 @@ void enviar_instruccion_swap_TRASLADAR_PROCESO_A_DISCO(tabla_primer_nivel * tabl
 void agregar_pagina_lista_paginas_cargadas(tabla_primer_nivel *tabla_pointer, int32_t numero_pagina);
 void quitar_pagina_lista_paginas_cargadas(tabla_primer_nivel *tabla_pointer, int32_t numero_pagina);
 void limpiar_lista_paginas_cargadas(tabla_primer_nivel* tabla_pointer);
-void iniciar_test(void);
+void iniciar_test_acciones(void);
+void iniciar_test_algoritmo_reemplazo(void);
 void test_acceder_tabla_primer_nivel(tabla_primer_nivel* tabla_pointer);
 void borrar_entrada_diccionario_tabla_pointers(int32_t pid);
 void crear_entrada_diccionario_tabla_pointers(int32_t pid, tabla_primer_nivel* tabla_pointer);

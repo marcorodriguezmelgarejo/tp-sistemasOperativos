@@ -40,7 +40,7 @@ void leer_config_string(t_config* config, char* key, char* value){
 	
 	if (config_has_property(config, key)){
 		strcpy(value, config_get_string_value(config, key));
-		log_info(logger, "%s: %s", key, value);
+		log_debug(logger, "%s: %s", key, value);
 	} else {
 		log_error(logger, "No se encontro el valor de %s. Finalizando ejecucion.", key);
 		return;
@@ -51,7 +51,7 @@ void leer_config_int(t_config* config, char* key, int32_t* value){
 	
 	if (config_has_property(config, key)){
 		*value = config_get_int_value(config, key);
-		log_info(logger, "%s: %d", key, *value);
+		log_debug(logger, "%s: %d", key, *value);
 	} else {
 		log_error(logger, "No se encontro el valor de %s. Finalizando ejecucion.", key);
 		return;

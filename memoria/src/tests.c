@@ -1,8 +1,7 @@
 #include "memoria.h"
 
-void iniciar_test(void){
+void iniciar_test_acciones(void){
     tabla_primer_nivel* tabla_pointer = test_inicializar_proceso();
-    test_acceder_tabla_primer_nivel(tabla_pointer);
 
     log_warning(logger, "-----------INICIO TEST LECTURA Y ESCRITURA-----------");
 
@@ -71,9 +70,28 @@ tabla_primer_nivel* test_inicializar_proceso(void){
     return tabla_pointer;
 }
 
-void test_acceder_tabla_primer_nivel(tabla_primer_nivel* tabla_pointer){
-    log_warning(logger, "-----------INICIO TEST acceder_tabla_primer_nivel-----------");
-    int32_t indice_primer_nivel = acceder_tabla_primer_nivel(tabla_pointer, 3);
-    log_warning(logger, "indice primer nivel: %d (tiene que ser '0')", indice_primer_nivel);
-    log_warning(logger, "-----------FIN TEST acceder_tabla_primer_nivel-----------");
+void iniciar_test_algoritmo_reemplazo(void){
+
+    tabla_primer_nivel* tabla_pointer = test_inicializar_proceso();
+    log_warning(logger, "-----------INICIO TEST ALGORITMO REEMPLAZO (%s)-----------",ALGORITMO_REEMPLAZO);
+    //el puntero clock esta inicializado en cero
+
+    agregar_pagina(tabla_pointer, 1, 0, true);
+    agregar_pagina(tabla_pointer, 0, 1, true);
+    agregar_pagina(tabla_pointer, 2, 2, false);
+    agregar_pagina(tabla_pointer, 4, 3, true);
+
+    log_warning(logger, "pagina elegida para reemplazar: %d (tendria que ser dos)", elegir_pagina_para_reemplazar(tabla_pointer));
+
+    log_warning(logger, "-----------FIN TEST ALGORITMO REEMPLAZO (%s)-----------", ALGORITMO_REEMPLAZO);
+}
+
+void agregar_pagina(tabla_primer_nivel* tabla_pointer, int32_t numero_pagina, int32_t numero_marco, bool usado){
+    entrada_segundo_nivel* entrada_pointer = get_entrada_segundo_nivel(tabla_pointer, numero_pagina);
+    entrada_pointer->presencia = true;
+    entrada_pointer->usado = usado;
+    entrada_pointer->modificado = true;
+    entrada_pointer->numero_marco = numero_marco;
+    marcar_marco_como_ocupado(numero_marco);
+    agregar_pagina_lista_paginas_cargadas(tabla_pointer, numero_pagina);
 }

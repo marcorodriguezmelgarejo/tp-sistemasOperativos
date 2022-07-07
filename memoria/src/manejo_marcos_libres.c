@@ -11,7 +11,7 @@ int32_t elegir_marco_libre(tabla_primer_nivel* tabla_pointer){
     int i = 0;
     int tamanio_bitarray = bitarray_get_max_bit(marcos_libres);
     int marco_elegido = -1;
-
+    
     for(i = 0; i < tamanio_bitarray; i++){
         
         if (bitarray_test_bit(marcos_libres, i) == false){

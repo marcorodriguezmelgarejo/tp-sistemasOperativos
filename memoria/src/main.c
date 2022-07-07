@@ -74,7 +74,7 @@ int main() {
 		return ERROR_STATUS;
     }
 
-    //iniciar_test();
+    //iniciar_test_algoritmo_reemplazo();
 
     conectar_cpu_y_kernel();
 

@@ -39,6 +39,8 @@ int32_t algoritmo_reemplazo_clock(tabla_primer_nivel* tabla_pointer){
 
     entrada_segundo_nivel* entrada_segundo_nivel_pointer;
 
+    log_debug(logger, "------INICIO DE ALGORITMO DE REEMPLAZO CLOCK------");
+
     while(se_eligio_pagina == false){
 
         // Veo si la pagina apuntada tiene el bit de usado en false
@@ -46,10 +48,14 @@ int32_t algoritmo_reemplazo_clock(tabla_primer_nivel* tabla_pointer){
         pagina_actual = get_pagina_apuntada_lista_paginas_cargadas(tabla_pointer);
         entrada_segundo_nivel_pointer = get_entrada_segundo_nivel(tabla_pointer, pagina_actual);
 
+        log_debug(logger, "Pagina actual: %d...", pagina_actual);
+
         if((entrada_segundo_nivel_pointer-> presencia == true) && (entrada_segundo_nivel_pointer->usado == true)){
+            log_debug(logger, "No es elegida.");
             entrada_segundo_nivel_pointer->usado = false;
         }
         else if ((entrada_segundo_nivel_pointer-> presencia == true) && (entrada_segundo_nivel_pointer->usado == false)){
+            log_debug(logger, "Es elegida.");
             pagina_elegida = pagina_actual;
             se_eligio_pagina = true;
         }
@@ -57,13 +63,15 @@ int32_t algoritmo_reemplazo_clock(tabla_primer_nivel* tabla_pointer){
         algoritmo_reemplazo_actualizar_puntero(tabla_pointer);
         
     }
-
+    log_debug(logger, "------FIN DE ALGORITMO DE REEMPLAZO CLOCK------");
     return pagina_elegida;
 }
 
 int32_t algoritmo_reemplazo_clock_mejorado(tabla_primer_nivel* tabla_pointer){
 
     int32_t pagina_elegida = -1;
+
+    log_debug(logger, "------INICIO DE ALGORITMO DE REEMPLAZO CLOCK-M------");
 
     if ((pagina_elegida = clock_mejorado_primer_paso(tabla_pointer)) != -1){
         return pagina_elegida;
@@ -77,6 +85,7 @@ int32_t algoritmo_reemplazo_clock_mejorado(tabla_primer_nivel* tabla_pointer){
     else{
         return clock_mejorado_segundo_paso(tabla_pointer);
     }
+    log_debug(logger, "------FIN DE ALGORITMO DE REEMPLAZO CLOCK-M------");
 
 }
 
@@ -93,16 +102,22 @@ int32_t clock_mejorado_primer_paso(tabla_primer_nivel* tabla_pointer){
 
     // se busca usado = false, modificado = false
 
-    while(se_eligio_pagina == false && i < tabla_pointer->cantidad_paginas){
-
+    log_debug(logger, "------PRIMER PASO CLOCK-M------");
+    while(se_eligio_pagina == false && i < MARCOS_POR_PROCESO){
+        
         pagina_actual = get_pagina_apuntada_lista_paginas_cargadas(tabla_pointer);
         entrada_segundo_nivel_pointer = get_entrada_segundo_nivel(tabla_pointer, pagina_actual);
 
+        log_debug(logger, "Pagina actual: %d...", pagina_actual);
+
         if((entrada_segundo_nivel_pointer-> presencia == true) && (entrada_segundo_nivel_pointer->usado == false)
             &&(entrada_segundo_nivel_pointer->modificado == false)){
-
+            log_debug(logger, "Es elegida.");
             pagina_elegida = pagina_actual;
             se_eligio_pagina = true;
+        }
+        else{
+            log_debug(logger, "No es elegida.");
         }
         
         algoritmo_reemplazo_actualizar_puntero(tabla_pointer);
@@ -126,11 +141,13 @@ int32_t clock_mejorado_segundo_paso(tabla_primer_nivel * tabla_pointer){
     int32_t pagina_actual;
 
     // se busca usado = false, modificado = true
-
-    while(se_eligio_pagina == false && i < tabla_pointer->cantidad_paginas){
+    log_debug(logger, "------SEGUNDO PASO CLOCK-M------");
+    while(se_eligio_pagina == false && i < MARCOS_POR_PROCESO){
 
         pagina_actual = get_pagina_apuntada_lista_paginas_cargadas(tabla_pointer);
         entrada_segundo_nivel_pointer = get_entrada_segundo_nivel(tabla_pointer, pagina_actual);
+
+        log_debug(logger, "Pagina actual: %d...", pagina_actual);
 
         if((entrada_segundo_nivel_pointer-> presencia == true) && (entrada_segundo_nivel_pointer->usado == false)
             &&(entrada_segundo_nivel_pointer->modificado == true)){
@@ -138,11 +155,16 @@ int32_t clock_mejorado_segundo_paso(tabla_primer_nivel * tabla_pointer){
             //se eligio una pagina
             pagina_elegida = pagina_actual;
             se_eligio_pagina = true;
+            log_debug(logger, "Es elegida.");
         }
         else if((entrada_segundo_nivel_pointer-> presencia == true) && (entrada_segundo_nivel_pointer->usado == true)){
             
             //seteo bit de usado en false
             entrada_segundo_nivel_pointer->usado = false;
+            log_debug(logger, "No es elegida.");
+        }
+        else{
+            log_debug(logger, "No es elegida.");
         }
         
         algoritmo_reemplazo_actualizar_puntero(tabla_pointer);
@@ -166,5 +188,10 @@ void algoritmo_reemplazo_actualizar_puntero(tabla_primer_nivel* tabla_pointer){
 }
 
 bool es_algoritmo_reemplazo_clock(void){
+
+    if ((strcmp(ALGORITMO_REEMPLAZO, "CLOCK") != 0) && (strcmp(ALGORITMO_REEMPLAZO, "CLOCK-M") != 0)){
+        log_error(logger, "EL ALGORITMO DE REEMPLAZO ESPECIFICADO EN CONFIG NO ES RECONOCIDO");
+    }
+
     return strcmp(ALGORITMO_REEMPLAZO, "CLOCK") == 0;
 }
