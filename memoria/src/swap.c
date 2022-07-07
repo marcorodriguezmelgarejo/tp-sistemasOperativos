@@ -28,18 +28,23 @@ void *hilo_swap(void *arg){
         switch (instruccion_pointer->numero_instruccion){
             case CREAR_ARCHIVO_SWAP:
                 crear_archivo_swap(instruccion_pointer->pid, instruccion_pointer->tamanio_proceso);
+                log_debug(logger, "SWAP: CREAR ARCHIVO (PID = %d)", instruccion_pointer->pid);
                 break;
             case TRASLADAR_PAGINA_A_DISCO:
                 trasladar_pagina_a_disco(instruccion_pointer->pid, instruccion_pointer->numero_pagina, instruccion_pointer->numero_marco);
+                log_debug(logger, "SWAP: TRASLADAR PAGINA A DISCO (PID = %d, numero de pagina = %d, numero de marco = %d)", instruccion_pointer->pid, instruccion_pointer->numero_pagina, instruccion_pointer->numero_marco);
                 break;
             case TRASLADAR_PAGINA_A_MEMORIA:
                 trasladar_pagina_a_memoria(instruccion_pointer->pid, instruccion_pointer->numero_pagina, instruccion_pointer->numero_marco);
+                log_debug(logger, "SWAP: TRASLADAR PAGINA A MEMORIA (PID = %d, numero de pagina = %d, numero de marco = %d)", instruccion_pointer->pid, instruccion_pointer->numero_pagina, instruccion_pointer->numero_marco);
                 break;
             case TRASLADAR_PROCESO_A_DISCO:
                 trasladar_proceso_a_disco(instruccion_pointer->tabla_primer_nivel_pointer);
+                log_debug(logger, "SWAP: TRASLADAR PROCESO A DISCO (PID = %d)", instruccion_pointer->tabla_primer_nivel_pointer->pid);
                 break;
             case BORRAR_ARCHIVO_SWAP:
                 borrar_archivo_swap(instruccion_pointer->pid);
+                log_debug(logger, "SWAP: BORRAR ARCHIVO (PID = %d)", instruccion_pointer->pid);
                 break;
             default:
                 log_error(logger, "No existe el codigo de instruccion");
@@ -89,26 +94,20 @@ void escribir_ceros_archivo(FILE * archivo, int32_t cantidad_ceros){
 void trasladar_pagina_a_disco(int32_t pid, int32_t numero_pagina, int32_t numero_marco){
     //TODO: CHECKEAR/TESTEAR
 
-    /*  
-        FIJATE QUE CAMBIE LOS PARAMETROS QUE RECIBE LA FUNCION
-        HAY QUE PASAR LO QUE ESTA EN EL MARCO A LA PAGINA DEL ARCHIVO SWAP
-        NO HAY QUE CAMBIAR NINGUN BIT DE PRESENCIA NI NADA
-        BY: LEAN
-    */
-   /*
     void* marco = espacio_usuario + numero_marco * TAM_PAGINA; // Puntero al marco indicado
-    void marco_temp[TAM_PAGINA]; // Marco temporal
+    void * marco_temp = malloc(TAM_PAGINA); // Marco temporal
     memcpy(marco_temp, marco, TAM_PAGINA); // Guardo el contenido del marco en el marco temporal
 
-    FILE f;
+    FILE * archivo;
     char swap_file[MAX_STRING_SIZE];
     sprintf(swap_file, "%s/%d.swap", PATH_SWAP, pid);
-    f = fopen(swap_file, "r+");
+    archivo = fopen(swap_file, "r+");
 
-    fseek(f, TAM_PAGINA * numero_pagina, SEEK_SET); //Si tenemos el marco y pid es simplemente buscar en la lista el match
-    fwrite(marco_temp, TAM_PAGINA, 1, f);
+    fseek(archivo, TAM_PAGINA * numero_pagina, SEEK_SET); //Si tenemos el marco y pid es simplemente buscar en la lista el match
+    fwrite(marco_temp, TAM_PAGINA, 1, archivo);
 
-    fclose(f);*/
+    free(marco_temp);
+    fclose(archivo);
 
     return;
 }
@@ -116,25 +115,17 @@ void trasladar_pagina_a_disco(int32_t pid, int32_t numero_pagina, int32_t numero
 void trasladar_pagina_a_memoria(int32_t pid, int32_t numero_pagina, int32_t numero_marco){
     //TODO: CHECKEAR/TESTEAR
     
-    /*  
-        FIJATE QUE CAMBIE LOS PARAMETROS QUE RECIBE LA FUNCION
-        EL NUMERO DE MARCO YA VIENE COMO PARAMETRO (la eleccion del marco se hace en alguna funcion en acciones.c)
-        NO HAY QUE CAMBIAR NINGUN BIT DE PRESENCIA NI NADA
-        BY: LEAN
-    */
-   /*
-    int pag_de_proceso = numero_pagina;
     void* marco = espacio_usuario + numero_marco * TAM_PAGINA; // Puntero al marco indicado
 
-    FILE f;
+    FILE* archivo;
     char swap_file[MAX_STRING_SIZE]; 
     sprintf(swap_file, "%s/%d.swap", PATH_SWAP, pid);
-    f = fopen(swap_file, "r+");
+    archivo = fopen(swap_file, "r");
 
-    fseek(f, TAM_PAGINA * numero_pagina, SEEK_SET); //Si tenemos el marco y pid es simplemente buscar en la lista el match
-    fread(marco, TAM_PAGINA, 1, f);
+    fseek(archivo, TAM_PAGINA * numero_pagina, SEEK_SET); //Si tenemos el marco y pid es simplemente buscar en la lista el match
+    fread(marco, TAM_PAGINA, 1, archivo);
     
-    fclose(f);*/
+    fclose(archivo);
 
     return;
 }
@@ -175,9 +166,7 @@ void borrar_archivo_swap(int32_t pid){
 
     sprintf(swap_file, "%s/%d.swap", PATH_SWAP, pid);
 
-    if(remove(swap_file) == 0){
-        log_debug(logger, "ELIMINAR ARCHIVO SWAP (PID = %d)", pid);
-    } else {
+    if(remove(swap_file) != 0){
         log_error(logger, "error al eliminar el archivo swap: %s",swap_file);
     }
 

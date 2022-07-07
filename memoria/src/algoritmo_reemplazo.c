@@ -74,18 +74,22 @@ int32_t algoritmo_reemplazo_clock_mejorado(tabla_primer_nivel* tabla_pointer){
     log_debug(logger, "------INICIO DE ALGORITMO DE REEMPLAZO CLOCK-M------");
 
     if ((pagina_elegida = clock_mejorado_primer_paso(tabla_pointer)) != -1){
+        log_debug(logger, "------FIN DE ALGORITMO DE REEMPLAZO CLOCK-M------");
         return pagina_elegida;
     }
     else if ((pagina_elegida = clock_mejorado_segundo_paso(tabla_pointer)) != -1){
+        log_debug(logger, "------FIN DE ALGORITMO DE REEMPLAZO CLOCK-M------");
         return pagina_elegida;
     }
     else if ((pagina_elegida = clock_mejorado_primer_paso(tabla_pointer)) != -1){
+        log_debug(logger, "------FIN DE ALGORITMO DE REEMPLAZO CLOCK-M------");
         return pagina_elegida;
     }
     else{
-        return clock_mejorado_segundo_paso(tabla_pointer);
+        pagina_elegida = clock_mejorado_segundo_paso(tabla_pointer);
+        log_debug(logger, "------FIN DE ALGORITMO DE REEMPLAZO CLOCK-M------");
+        return pagina_elegida;
     }
-    log_debug(logger, "------FIN DE ALGORITMO DE REEMPLAZO CLOCK-M------");
 
 }
 

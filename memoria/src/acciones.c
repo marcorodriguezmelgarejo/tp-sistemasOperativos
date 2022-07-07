@@ -28,7 +28,7 @@ tabla_primer_nivel* inicializar_proceso(int32_t pid, int32_t tamanio_proceso){
 
     crear_entrada_diccionario_tabla_pointers(pid, tabla_primer_nivel_pointer);
 
-    log_info(logger, "INICIALIZAR PROCESO (PID = %d) (tamanio de proceso = %d)", pid, tamanio_proceso);
+    log_info(logger, "INICIALIZAR PROCESO (PID = %d) (tamanio de proceso = %d) (cantidad de paginas = %d)", pid, tamanio_proceso, cantidad_paginas);
     
     return tabla_primer_nivel_pointer;
 }
@@ -93,8 +93,6 @@ int32_t acceder_tabla_segundo_nivel(tabla_primer_nivel* tabla_pointer, int32_t i
         Si la misma no se encuentra en memoria se trae, reemplazando una pagina si es necesario.
     */
 
-    bool se_reemplazo_pagina = false;
-
     int32_t numero_pagina_a_reemplazar;
 
     tabla_segundo_nivel * tabla_segundo_nivel_pointer;
@@ -126,8 +124,6 @@ int32_t acceder_tabla_segundo_nivel(tabla_primer_nivel* tabla_pointer, int32_t i
             }
 
             entrada_segundo_nivel_a_reemplazar_pointer->presencia = false;
-
-            se_reemplazo_pagina = true;
         }
         else{
             numero_marco = elegir_marco_libre(tabla_pointer);
@@ -142,18 +138,12 @@ int32_t acceder_tabla_segundo_nivel(tabla_primer_nivel* tabla_pointer, int32_t i
 
         entrada_segundo_nivel_setear_bits_al_traer_a_memoria(entrada_segundo_nivel_pointer, numero_marco);
 
-        if (se_reemplazo_pagina == true){
-            log_debug(logger, "REEMPLAZO PAGINA (PID = %d, numero de pagina reemplazada=%d, numero de pagina actual=%d, numero de marco=%d", tabla_pointer->pid, numero_pagina_a_reemplazar, numero_pagina_solicitada, numero_marco);
-        }
-        else{
-            log_debug(logger, "SE TRAJO PAGINA A MEMORIA (PID = %d, numero de pagina=%d, numero de marco=%d)", tabla_pointer->pid, numero_pagina_solicitada, numero_marco);
-        }
     }
     else{ //si la pagina ya esta en memoria
         numero_marco = entrada_segundo_nivel_pointer->numero_marco;
     }
 
-    log_info(logger, "ACCESO TABLA SEGUNDO NIVEL (PID = %d, numero de marco = %d)", tabla_pointer->pid, numero_marco);
+    log_info(logger, "ACCESO TABLA SEGUNDO NIVEL (PID = %d, numero de pagina del proceso = %d)", tabla_pointer->pid, numero_pagina_solicitada);
 
     return numero_marco;
 }
@@ -165,7 +155,7 @@ int32_t acceder_espacio_usuario_lectura(tabla_primer_nivel* tabla_pointer, int32
 
     int32_t * puntero_al_dato = get_puntero_a_entero_de_espacio_usuario(numero_marco, desplazamiento);
 
-    log_info(logger, "LECTURA (PID = %d, numero_marco = %d, desplazamiento = %d, valor leido = %d)",tabla_pointer->pid, numero_marco, desplazamiento, *puntero_al_dato);
+    log_info(logger, "LECTURA (PID = %d, numero_pagina = %d, numero_marco = %d, desplazamiento = %d, valor leido = %d)",tabla_pointer->pid, numero_pagina, numero_marco, desplazamiento, *puntero_al_dato);
 
     return *puntero_al_dato;
 }
@@ -193,7 +183,7 @@ bool acceder_espacio_usuario_escritura(tabla_primer_nivel* tabla_pointer, int32_
 
     *puntero_al_dato = valor;
 
-    log_info(logger, "ESCRITURA (PID = %d, numero_marco = %d, desplazamiento = %d, valor escrito = %d)", tabla_pointer->pid, numero_marco, desplazamiento, *puntero_al_dato);
+    log_info(logger, "ESCRITURA (PID = %d, numero_pagina = %d, numero_marco = %d, desplazamiento = %d, valor escrito = %d)", tabla_pointer->pid, numero_pagina, numero_marco, desplazamiento, *puntero_al_dato);
 
     return true;
 }
