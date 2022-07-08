@@ -4,22 +4,27 @@
 int32_t buscar_pagina(int32_t numero_pagina){//busca en la tlb o en memoria el marco necesario
     int32_t marco;
 
+    log_info(logger, "Buscando el marco de la pagina %d", numero_pagina);
+
     if(esta_pagina_en_tlb(numero_pagina)){ // Hit
         marco = obtener_de_tlb(numero_pagina);
-        log_info(logger, "TLB hit. Marco obtenido de tlb. Pagina: %d, marco %d.", numero_pagina, marco);
+        log_info(logger, "TLB hit. Marco obtenido de tlb");
+        log_info(logger, "Marco obtenido: %d", marco);
     }else{ // Miss
+        log_warning(logger, "TLB miss. Buscando marco en las tablas de paginas");
         marco = buscar_pagina_en_memoria(numero_pagina);
         if(marco == -1){
            log_error(logger, "Error en la comunicacion con memoria, no se pudo obtener el numero de marco");
            return -1;
         }
-        log_info(logger, "TLB miss. Marco obtenido de memoria. Pagina: %d, marco %d.", numero_pagina, marco);
+        log_info(logger, "Marco obtenido: %d. Agregando a TLB.", marco);
         agregar_a_tlb(numero_pagina, marco);
     }
 
     if(REEEMPLAZO_TLB == LRU) {
         mover_pagina_al_final_de_la_cola(numero_pagina);
     }
+    
     
     return marco;
 }
@@ -42,20 +47,14 @@ int32_t obtener_de_tlb(int32_t pagina){
 // ---- Modificar la TLB ----
 // Escribe (pagina, marco) en tlb, borrando una entrada segun el algoritmo si la tlb esta llena. Si ya hay una entrada con ese marco, la borra.
 void agregar_a_tlb(int32_t pagina, int32_t marco){ 
-    log_debug(logger, "Se agregara pagina %d, marco %d a la TLB.", pagina, marco);
 
-    log_debug(logger, "Buscando si ya hay en la TLB una entrada con el marco %d, esta se borrara ya que esta desactualizada.", marco);
     if(esta_marco_en_tlb(marco)){ // Si ya hay una entrada en la TLB con ese marco, la borra, porque quedo desactualizada.
-        log_debug(logger, "Sacando de la tlb la entrada que contenia la pagina del marco %d.", marco);
+        log_warning(logger, "Sacando de la tlb la entrada desactualizada del marco %d.", marco);
         sacar_marco_de_tlb(marco);
-    } else{
-        log_debug(logger, "No se encontro ese marco en la TLB. No fue necesario borrar ninguna entrada.");
     }
 
     if(tlb_esta_llena()){
         borrar_entrada_TLB_segun_alg();
-    } else{
-        log_debug(logger, "La TLB tiene un espacio disponible, no es necesario quitar paginas.");
     }
     
     agregar_pagina_al_final_de_la_cola(pagina);
@@ -66,21 +65,27 @@ void agregar_a_tlb(int32_t pagina, int32_t marco){
     *puntero_a_marco = marco;
     dictionary_put(tlb, clave, puntero_a_marco);
 
-    log_debug(logger, "Entrada agregada. Tamanio actual de la TLB: %d, tamanio actual lista de entradas en TLB: %d", 
-        dictionary_size(tlb), list_size(cola_entradas_a_quitar_de_tlb));
+    if(dictionary_size(tlb) != list_size(cola_entradas_a_quitar_de_tlb)){ // No deberia pasar, chequeo por las dudas. Si pasa, hice mal el programa.
+        log_error(logger, "Error, la cantidad de entradas en uso de la tlb no coincide con el tamanio de la lista de paginas presentes en la tlb");
+        log_error(logger, "Tamanio tlb: %d, tamanio lista de paginas presentes en la tlb: %d", 
+            dictionary_size(tlb), list_size(cola_entradas_a_quitar_de_tlb));
+    }
+
+    log_debug(logger, "Escrita pagina %d en el marco %d de la tlb", pagina, marco);
 }
 void sacar_pagina_de_tlb(int32_t pagina){
     // Saca la entrada de tlb que contiene la pagina pasada por parametro
-    log_debug(logger, "Se quitara una entrada. Tamanio actual de la TLB: %d, tamanio actual lista de entradas en TLB: %d", 
-        dictionary_size(tlb), list_size(cola_entradas_a_quitar_de_tlb));
     char clave[15];
     sprintf(clave, "%d", pagina);
-    log_debug(logger, "Removiendo pagina %s", clave);
     dictionary_remove_and_destroy(tlb, clave, free);
 
     sacar_pagina_de_la_cola(pagina);
-    log_debug(logger, "Entrada removida. Tamanio actual de la TLB: %d, tamanio actual lista de entradas en TLB: %d", 
-        dictionary_size(tlb), list_size(cola_entradas_a_quitar_de_tlb));
+
+    if(dictionary_size(tlb) != list_size(cola_entradas_a_quitar_de_tlb)){ // No deberia pasar, chequeo por las dudas. Si pasa, hice mal el programa.
+        log_error(logger, "Error, la cantidad de entradas en uso de la tlb no coincide con el tamanio de la lista de paginas presentes en la tlb");
+        log_error(logger, "Tamanio tlb: %d, tamanio lista de paginas presentes en la tlb: %d", 
+            dictionary_size(tlb), list_size(cola_entradas_a_quitar_de_tlb));
+    }
 }
 // ------------------------------------------------------
 
@@ -163,7 +168,6 @@ int32_t pagina_del_marco_en_tlb(int32_t marco){
         pagina = obtener_elemento_lista_int32(cola_entradas_a_quitar_de_tlb, i);
 
         if(obtener_de_tlb(pagina) == marco){
-            log_debug(logger, "Pagina retornada: %d", pagina);
             return pagina;
         }
     }

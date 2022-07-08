@@ -21,6 +21,7 @@ int32_t buscar_pagina_en_memoria(int32_t numero_pagina){
 bool leer_dir_logica(int32_t direccion_logica, int32_t *puntero_valor_leido){
     int32_t num_pagina = calcular_numero_pagina(direccion_logica);
     int32_t desplazamiento = calcular_desplazamiento(direccion_logica, num_pagina);
+    log_info(logger, "Leer direccion logica %d", direccion_logica);
     int32_t marco = buscar_pagina(num_pagina);
     if(marco == -1){
         log_error(logger, "Error al obtener el marco. No se ejecutara la operacion.");
@@ -31,7 +32,6 @@ bool leer_dir_logica(int32_t direccion_logica, int32_t *puntero_valor_leido){
         log_error(logger, "Error en el acceso a memoria");
         return false;
     }
-    log_info(logger, "Leido en memoria: %d", *puntero_valor_leido);
 
     return true;
 }
@@ -39,6 +39,7 @@ bool leer_dir_logica(int32_t direccion_logica, int32_t *puntero_valor_leido){
 bool escribir_dir_logica(int32_t direccion_logica, int32_t valor){
     int32_t num_pagina = calcular_numero_pagina(direccion_logica);
     int32_t desplazamiento = calcular_desplazamiento(direccion_logica, num_pagina);
+    log_info(logger, "Escribir %d en direccion logica %d", valor, direccion_logica);
     int32_t marco = buscar_pagina(num_pagina);
     if(marco == -1){
         log_error(logger, "Error al obtener el marco. No se ejecutara la operacion.");
@@ -49,7 +50,6 @@ bool escribir_dir_logica(int32_t direccion_logica, int32_t valor){
         log_error(logger, "Error en el acceso a memoria");
         return false;
     }
-    log_info(logger, "Valor escrito en memoria");
 
     return true;
 }
@@ -57,6 +57,8 @@ bool escribir_dir_logica(int32_t direccion_logica, int32_t valor){
 bool leer_dir_fisica(int32_t num_pag, int32_t marco, int32_t desplazamiento, int32_t *puntero_valor_leido){
     int32_t motivo = LECTURA_EN_ESPACIO_USUARIO;
     int32_t pid = en_ejecucion.pid;
+
+    log_info(logger, "Leyendo marco %d, desplazamiento %d", marco, desplazamiento);
 
     return(
         sockets_enviar_dato(memoria_socket, &motivo, sizeof motivo, logger)
@@ -79,6 +81,8 @@ bool escribir_dir_fisica(int32_t num_pag, int32_t marco, int32_t desplazamiento,
     char respuesta_memoria[10];
     int32_t motivo = ESCRITURA_EN_ESPACIO_USUARIO;
     int32_t pid = en_ejecucion.pid;
+
+    log_info(logger, "Escribiendo %d en marco %d, desplazamiento %d", dato, marco, desplazamiento);
 
     return(
         sockets_enviar_dato(memoria_socket, &motivo, sizeof motivo, logger)

@@ -140,7 +140,7 @@ operacion_t decode_operacion(char* string_instruccion){
 // TODO: que chequee la cant de parametros (como esta ahora si le mandamos mas parametros solo los)
 instruccion_t decode(char* string_instruccion){
 	instruccion_t instruccion;
-	log_info(logger, "Instruccion: '%s'", string_instruccion);
+	log_info(logger, "---- Comienzo instruccion: '%s' ----", string_instruccion);
 
 	if(string_instruccion[0] == '\0') {
 		log_error(logger, "Error instruccion cadena vacia");

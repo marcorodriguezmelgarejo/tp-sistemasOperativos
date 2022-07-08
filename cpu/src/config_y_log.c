@@ -1,7 +1,5 @@
 #include "cpu.h"
 
-// TODO: sincronizar el acceso a la variable logger?
-
 void crear_logger(void){
 
 	if((logger = log_create("./cfg/cpu.log", "cpu_log",1,LOG_LEVEL_TRACE)) == NULL){

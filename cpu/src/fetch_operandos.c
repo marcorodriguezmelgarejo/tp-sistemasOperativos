@@ -12,7 +12,7 @@ bool fetch_operandos(instruccion_t *instruccion){
         }
         
         instruccion->valor = buffer;
-        log_info(logger, "Operando obtenido en memoria: %d", instruccion->valor);
+        // log_info(logger, "Operando obtenido en memoria: %d", instruccion->valor);
     }
     return true;
 }

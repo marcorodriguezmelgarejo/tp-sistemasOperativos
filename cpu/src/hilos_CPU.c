@@ -76,13 +76,12 @@ void esperar_interrupcion(){
 }
 
 void recibir_interrupcion_del_kernel(){
-    log_info(logger, "Se recibio interrupcion del kernel");
+    log_info(logger, "Se recibio interrupcion del kernel. Se marco el flag interrupcion como True");
 
     pthread_mutex_lock(&mutex_interrupcion);
     interrupcion = true;
     pthread_mutex_unlock(&mutex_interrupcion);
-
-    log_info(logger, "Se marco el flag interrupcion como True");
+    
 }
 
 // un hilo
@@ -102,7 +101,7 @@ void ciclo_instruccion(){
             instruccion = decode(string_instruccion);
             fetch_operandos(&instruccion);
             if(execute(instruccion)){
-                log_info(logger, "Operacion ejecutada con exito");
+                log_info(logger, "---- Fin instruccion ----");
             }
             else{
                 log_error(logger, "Error en la ejecucion de la operacion");
