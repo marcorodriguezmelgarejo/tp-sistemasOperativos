@@ -26,6 +26,7 @@ void liberar_memoria(void){
     
     sem_destroy(&contador_cola_instrucciones_swap);
     pthread_mutex_destroy(&mutex_cola_instrucciones_swap);
+    pthread_mutex_destroy(&mutex_conexiones);
    
     dictionary_destroy(diccionario_tabla_pointers);
     
@@ -47,6 +48,7 @@ void inicializar_variables_globales(void){
     cola_instrucciones_swap = queue_create();
 
     pthread_mutex_init(&mutex_cola_instrucciones_swap, NULL);
+    pthread_mutex_init(&mutex_conexiones, NULL);
     
     sem_init(&contador_cola_instrucciones_swap, 0, 0);
 

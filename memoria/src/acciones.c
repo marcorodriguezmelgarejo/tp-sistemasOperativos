@@ -22,6 +22,10 @@ tabla_primer_nivel* inicializar_proceso(int32_t pid, int32_t tamanio_proceso){
     int32_t cantidad_entradas_primer_nivel = ceil((float)cantidad_paginas /(float) ENTRADAS_POR_TABLA); //de 1 a ENTRADAS_POR_TABLA
     int32_t cantidad_entradas_segundo_nivel_ultima_entrada = cantidad_paginas % ENTRADAS_POR_TABLA; //de 1 a ENTRADAS_POR_TABLA
 
+    if(cantidad_entradas_segundo_nivel_ultima_entrada == 0){
+        cantidad_entradas_segundo_nivel_ultima_entrada = ENTRADAS_POR_TABLA;
+    }
+
     enviar_instruccion_swap_CREAR_ARCHIVO_SWAP(pid, tamanio_proceso);
     
     tabla_primer_nivel_pointer = crear_tabla_paginas_proceso(pid, cantidad_paginas, cantidad_entradas_primer_nivel, cantidad_entradas_segundo_nivel_ultima_entrada);
@@ -40,6 +44,8 @@ void suspender_proceso(tabla_primer_nivel* tabla_pointer){
     enviar_instruccion_swap_TRASLADAR_PROCESO_A_DISCO(tabla_pointer);
 
     limpiar_lista_paginas_cargadas(tabla_pointer);
+
+    tabla_pointer->tamanio_conjunto_residente = 0;
 
     log_info(logger, "SUSPENDER PROCESO (PID = %d)", tabla_pointer->pid);
 
@@ -120,10 +126,19 @@ int32_t acceder_tabla_segundo_nivel(tabla_primer_nivel* tabla_pointer, int32_t i
 
             numero_marco = entrada_segundo_nivel_a_reemplazar_pointer->numero_marco;
 
-            //si fue modificada la traslado a disco
+            //si fue modificada la traslado a disco, si no no hace falta
             if (entrada_segundo_nivel_a_reemplazar_pointer->modificado == true){
-                acciones_trasladar_pagina_a_disco(tabla_pointer, numero_pagina_a_reemplazar, numero_marco);
+                enviar_instruccion_swap_TRASLADAR_PAGINA_A_DISCO(tabla_pointer->pid, numero_pagina_a_reemplazar, numero_marco);
             }
+            else{
+                log_debug(logger, "SE LLEVA PAGINA A DISCO PERO SIN ESCRIBIRLA (NO MODIFICADA) (PID = %d, numero de pagina = %d, numero de marco = %d)", tabla_pointer->pid, numero_pagina_a_reemplazar, numero_marco);
+            }
+            
+            quitar_pagina_lista_paginas_cargadas(tabla_pointer, numero_pagina_a_reemplazar);
+
+            marcar_marco_como_libre(numero_marco);
+    
+            tabla_pointer->tamanio_conjunto_residente -= 1;
 
             entrada_segundo_nivel_a_reemplazar_pointer->presencia = false;
         }

@@ -1,18 +1,5 @@
 #include "memoria.h"
 
-void acciones_trasladar_pagina_a_disco(tabla_primer_nivel* tabla_pointer, int32_t numero_pagina, int32_t numero_marco){
-
-    enviar_instruccion_swap_TRASLADAR_PAGINA_A_DISCO(tabla_pointer->pid, numero_pagina, numero_pagina);
-    
-    quitar_pagina_lista_paginas_cargadas(tabla_pointer, numero_pagina);
-
-    marcar_marco_como_libre(numero_marco);
-    
-    tabla_pointer->tamanio_conjunto_residente -= 1;
-
-    return;
-}
-
 void acciones_trasladar_pagina_a_memoria(tabla_primer_nivel* tabla_pointer, int32_t numero_pagina, int32_t numero_marco){
 
     enviar_instruccion_swap_TRASLADAR_PAGINA_A_MEMORIA(tabla_pointer->pid, numero_pagina, numero_marco);

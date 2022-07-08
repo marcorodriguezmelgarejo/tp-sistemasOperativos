@@ -154,7 +154,7 @@ int get_indice_lista_int32(t_list* lista, int32_t elemento_buscado){
 bool excede_la_tabla(tabla_primer_nivel* tabla_pointer, int32_t indice){
 
     tabla_segundo_nivel* ultima_tabla_segundo_nivel_pointer = list_get(tabla_pointer->lista_de_tabla_segundo_nivel, tabla_pointer->cantidad_entradas-1);
-
+    
     return (indice >= (tabla_pointer->cantidad_entradas-1) * ENTRADAS_POR_TABLA + ultima_tabla_segundo_nivel_pointer->cantidad_entradas);
 }
 
