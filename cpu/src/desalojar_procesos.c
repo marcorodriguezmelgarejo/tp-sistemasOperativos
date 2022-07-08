@@ -58,6 +58,7 @@ bool desalojar_y_devolver_pcb(char * motivo){
         return false;
     }
 
+    pid_anterior = pid;
     desalojar_pcb();
 
     if(sem_post(&CPU_vacia) != 0){

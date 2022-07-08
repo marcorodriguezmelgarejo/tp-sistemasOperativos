@@ -48,16 +48,10 @@ int32_t entrada_tabla_2do_nivel;
 int32_t desplazamiento;
 } dir_logica_t;
 
-typedef struct tlb_entrada_t{
-int32_t pagina;
-int32_t marco;
-} tlb_entrada_t;
-
-typedef struct tlb_t{
-t_list * entradas; 
-} tlb_t;
-
 // VARIABLES GLOBALES
+t_dictionary* tlb; //t_dictionary guarda punteros a void pero lo uso para guardar int32_t porque medio al pedo guardar un puntero a un int
+t_list* cola_entradas_a_quitar_de_tlb; //contiene las paginas que estan en la TLB. Siempre se quita la primera de esta lista
+int32_t pid_anterior; // para que la tlb sepa si se cambio de proceso y se pueda vaciar
 pcb_t en_ejecucion;
 t_log* logger;
 uint64_t timestamp_comienzo_rafaga;
@@ -128,7 +122,7 @@ bool escribir_dir_logica(int32_t direccion_logica, int32_t valor);
 bool leer_dir_fisica(int32_t num_pag, int32_t marco, int32_t desplazamiento, int32_t *puntero_valor_leido);
 bool escribir_dir_logica(int32_t direccion_logica, int32_t valor);
 bool escribir_dir_fisica(int32_t num_pag, int32_t marco, int32_t desplazamiento, int32_t dato);
-tlb_entrada_t buscar_pagina(int32_t pagina);
+int32_t buscar_pagina(int32_t pagina);
 int calcular_numero_pagina(int direccion_logica);
 int32_t calcular_entrada_tabla_1er_nivel(int numero_pagina);
 int32_t calcular_entrada_tabla_2do_nivel(int numero_pagina);
@@ -137,5 +131,24 @@ bool fetch_operandos(instruccion_t *instruccion);
 bool acceder_a_tabla_1_nivel(int32_t numero_pagina, int32_t *tabla_segundo_nivel);
 bool acceder_a_tabla_2_nivel(int32_t tabla_segundo_nivel, int32_t numero_pagina, int32_t *marco);
 int32_t tlb_get_marco(int32_t numero_pagina);
+int32_t buscar_pagina(int32_t numero_pagina);
+void borrar_entrada_TLB_segun_alg();
+int32_t obtener_de_tlb(int32_t pagina);
+void agregar_a_tlb(int32_t pagina, int32_t marco);
+void sacar_pagina_de_tlb(int32_t pagina);
+void agregar_pagina_al_final_de_la_cola(int32_t pagina);
+void mover_pagina_al_final_de_la_cola(int32_t pagina);
+void sacar_pagina_de_la_cola(int32_t pagina);
+int get_indice_lista_int32(t_list* lista, int32_t elemento_buscado);
+bool tlb_esta_llena();
+void sacar_marco_de_tlb(int32_t marco);
+bool esta_pagina_en_tlb(int32_t pagina);
+int32_t pagina_del_marco_en_tlb(int32_t marco);
+bool esta_marco_en_tlb(int32_t marco);
+void inicializar_tlb();
+void destruir_tlb();
+void vaciar_tlb();
+void si_cambio_el_proceso_vaciar_tlb(pcb_t pcb);
+int32_t buscar_pagina_en_memoria(int32_t numero_pagina);
 
 #endif
