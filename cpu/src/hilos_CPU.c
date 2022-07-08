@@ -34,6 +34,7 @@ void esperar_pcb(){
     while(true){
         // recibe el pcb en cualquier punto del ciclo de intruccion
         sockets_recibir_pcb(dispatch_socket, &pcb_buffer, logger);
+        si_cambio_el_proceso_vaciar_tlb(pcb_buffer);
         log_info(logger, "PCB recibido. Se introducira cuando la CPU este vacia.");
 
         // solamente introduce el PCB despues de que el anterior haya sido desalojado

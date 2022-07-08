@@ -20,6 +20,8 @@ void finalizar_CPU(int signal){
     sockets_cerrar(dispatch_socket);
     sockets_cerrar(interrupt_socket);
 
+    destruir_tlb();
+
     log_destroy(logger);
 }
 
@@ -28,6 +30,7 @@ int main(){
 
     crear_logger();
     cargar_config(logger);
+    inicializar_tlb();
     if(!inicializar_semaforos()){
         log_error(logger, "Error en la creacion de los semaforos");
     }
