@@ -49,8 +49,8 @@ int32_t desplazamiento;
 } dir_logica_t;
 
 // VARIABLES GLOBALES
-t_dictionary* tlb; //t_dictionary guarda punteros a void pero lo uso para guardar int32_t porque medio al pedo guardar un puntero a un int
-t_list* cola_entradas_a_quitar_de_tlb; //contiene las paginas que estan en la TLB. Siempre se quita la primera de esta lista
+t_dictionary* tlb; //t_dictionary guarda punteros a int32_t
+t_list* cola_entradas_a_quitar_de_tlb; //contiene las paginas que estan en la TLB. Siempre se quita la primera de esta lista. Guarda punteros a int32_t.
 int32_t pid_anterior; // para que la tlb sepa si se cambio de proceso y se pueda vaciar
 pcb_t en_ejecucion;
 t_log* logger;
@@ -150,5 +150,6 @@ void destruir_tlb();
 void vaciar_tlb();
 void si_cambio_el_proceso_vaciar_tlb(pcb_t pcb);
 int32_t buscar_pagina_en_memoria(int32_t numero_pagina);
+int32_t obtener_elemento_lista_int32(t_list* lista, int32_t indice);
 
 #endif

@@ -6,14 +6,14 @@ int32_t buscar_pagina(int32_t numero_pagina){//busca en la tlb o en memoria el m
 
     if(esta_pagina_en_tlb(numero_pagina)){ // Hit
         marco = obtener_de_tlb(numero_pagina);
-        log_info(logger, "TLB hit. La pagina %d esta en el marco %d", numero_pagina, marco);
+        log_info(logger, "TLB hit. Marco obtenido de tlb. Pagina: %d, marco %d.", numero_pagina, marco);
     }else{ // Miss
         marco = buscar_pagina_en_memoria(numero_pagina);
         if(marco == -1){
            log_error(logger, "Error en la comunicacion con memoria, no se pudo obtener el numero de marco");
            return -1;
         }
-        log_info(logger, "TLB miss. La pagina %d esta en el marco %d", numero_pagina, marco);
+        log_info(logger, "TLB miss. Marco obtenido de memoria. Pagina: %d, marco %d.", numero_pagina, marco);
         agregar_a_tlb(numero_pagina, marco);
     }
 
@@ -26,7 +26,8 @@ int32_t buscar_pagina(int32_t numero_pagina){//busca en la tlb o en memoria el m
 
 void borrar_entrada_TLB_segun_alg(){
     int32_t pagina_elegida;
-    pagina_elegida = (int32_t) list_get(cola_entradas_a_quitar_de_tlb, 0);
+    pagina_elegida = obtener_elemento_lista_int32(cola_entradas_a_quitar_de_tlb, 0);
+    log_info(logger, "TLB llena. Se quitara la pagina %d", pagina_elegida);
     sacar_pagina_de_tlb(pagina_elegida);
 }
 
@@ -34,56 +35,87 @@ void borrar_entrada_TLB_segun_alg(){
 int32_t obtener_de_tlb(int32_t pagina){
     char clave[15];
     sprintf(clave, "%d", pagina);
-    return (int32_t) dictionary_get(tlb, clave);
+    int32_t *puntero_a_marco = dictionary_get(tlb, clave);
+    return *puntero_a_marco;
 }
 
 // ---- Modificar la TLB ----
 // Escribe (pagina, marco) en tlb, borrando una entrada segun el algoritmo si la tlb esta llena. Si ya hay una entrada con ese marco, la borra.
 void agregar_a_tlb(int32_t pagina, int32_t marco){ 
-    
+    log_debug(logger, "Se agregara pagina %d, marco %d a la TLB.", pagina, marco);
+
+    log_debug(logger, "Buscando si ya hay en la TLB una entrada con el marco %d, esta se borrara ya que esta desactualizada.", marco);
     if(esta_marco_en_tlb(marco)){ // Si ya hay una entrada en la TLB con ese marco, la borra, porque quedo desactualizada.
+        log_debug(logger, "Sacando de la tlb la entrada que contenia la pagina del marco %d.", marco);
         sacar_marco_de_tlb(marco);
+    } else{
+        log_debug(logger, "No se encontro ese marco en la TLB. No fue necesario borrar ninguna entrada.");
     }
 
     if(tlb_esta_llena()){
         borrar_entrada_TLB_segun_alg();
+    } else{
+        log_debug(logger, "La TLB tiene un espacio disponible, no es necesario quitar paginas.");
     }
     
     agregar_pagina_al_final_de_la_cola(pagina);
 
     char clave[15];
     sprintf(clave, "%d", pagina);
-    dictionary_put(tlb, clave, (void*) marco);
+    int32_t *puntero_a_marco = malloc(sizeof marco);
+    *puntero_a_marco = marco;
+    dictionary_put(tlb, clave, puntero_a_marco);
+
+    log_debug(logger, "Entrada agregada. Tamanio actual de la TLB: %d, tamanio actual lista de entradas en TLB: %d", 
+        dictionary_size(tlb), list_size(cola_entradas_a_quitar_de_tlb));
 }
 void sacar_pagina_de_tlb(int32_t pagina){
     // Saca la entrada de tlb que contiene la pagina pasada por parametro
+    log_debug(logger, "Se quitara una entrada. Tamanio actual de la TLB: %d, tamanio actual lista de entradas en TLB: %d", 
+        dictionary_size(tlb), list_size(cola_entradas_a_quitar_de_tlb));
     char clave[15];
     sprintf(clave, "%d", pagina);
-    dictionary_remove(tlb, clave);
+    log_debug(logger, "Removiendo pagina %s", clave);
+    dictionary_remove_and_destroy(tlb, clave, free);
+
     sacar_pagina_de_la_cola(pagina);
+    log_debug(logger, "Entrada removida. Tamanio actual de la TLB: %d, tamanio actual lista de entradas en TLB: %d", 
+        dictionary_size(tlb), list_size(cola_entradas_a_quitar_de_tlb));
 }
 // ------------------------------------------------------
 
 // ----- MANEJO DE COLA DE PAGINAS -----
 // No chequea si la pagina ya esta en la cola. No deberia estar porque solo se usa cuando hay miss de TLB (la pag no esta).
 void agregar_pagina_al_final_de_la_cola(int32_t pagina){
-    list_add(cola_entradas_a_quitar_de_tlb, (void*) pagina);
+    int32_t *puntero_a_numero_pagina = malloc(sizeof pagina);
+    *puntero_a_numero_pagina = pagina;
+    list_add(cola_entradas_a_quitar_de_tlb, puntero_a_numero_pagina);
 }
 // Debe la pagina debe estar en la cola
 void mover_pagina_al_final_de_la_cola(int32_t pagina){
     sacar_pagina_de_la_cola(pagina);
-    list_add(cola_entradas_a_quitar_de_tlb, (void*) pagina);
+    agregar_pagina_al_final_de_la_cola(pagina);
 }
 void sacar_pagina_de_la_cola(int32_t pagina){
     int indice_a_remover = get_indice_lista_int32(cola_entradas_a_quitar_de_tlb, pagina);
-    list_remove(cola_entradas_a_quitar_de_tlb, indice_a_remover);
+    list_remove_and_destroy_element(cola_entradas_a_quitar_de_tlb, indice_a_remover, free);
+}
+int32_t obtener_elemento_lista_int32(t_list* lista, int32_t indice){
+    if(list_size(lista) <= indice){
+        log_error(logger, "Se intento obtener el elemento %d de una lista de tamanio %d", indice, list_size(lista));
+        return -1;
+    }
+
+    int32_t *puntero_elemento_actual;
+    puntero_elemento_actual = list_get(lista, indice);
+    return *puntero_elemento_actual;
 }
 int get_indice_lista_int32(t_list* lista, int32_t elemento_buscado){
 
     // Devuelve -1 si no se encuentra en la lista
 
     int i = 0;
-    int32_t *elemento_actual_pointer;
+    int32_t *puntero_elemento_actual;
 
     if (list_is_empty(lista)){
         return -1;
@@ -91,9 +123,9 @@ int get_indice_lista_int32(t_list* lista, int32_t elemento_buscado){
 
     for (i = 0; i < list_size(lista); i++){
 
-        elemento_actual_pointer = list_get(lista, i);
+        puntero_elemento_actual = list_get(lista, i);
 
-        if (*elemento_actual_pointer == elemento_buscado){
+        if ((*puntero_elemento_actual) == elemento_buscado){
             return i;
         }
     }
@@ -124,14 +156,14 @@ bool esta_pagina_en_tlb(int32_t pagina){
 }
 
 int32_t pagina_del_marco_en_tlb(int32_t marco){
-    int ultima_entrada_tlb = dictionary_size(tlb);
-    char clave[15];
+    int tamanio_tlb = dictionary_size(tlb);
     int32_t pagina;
 
-    for(int i = 0; i<=ultima_entrada_tlb; i++){
-        pagina = (int32_t) list_get(cola_entradas_a_quitar_de_tlb, i);
-        sprintf(clave, "%d", pagina);
-        if((int32_t) dictionary_get(tlb, clave) == marco){
+    for(int i = 0; i<tamanio_tlb; i++){
+        pagina = obtener_elemento_lista_int32(cola_entradas_a_quitar_de_tlb, i);
+
+        if(obtener_de_tlb(pagina) == marco){
+            log_debug(logger, "Pagina retornada: %d", pagina);
             return pagina;
         }
     }
@@ -149,18 +181,28 @@ void inicializar_tlb(){
 }
 
 void destruir_tlb(){
-    dictionary_destroy(tlb);
-    list_destroy(cola_entradas_a_quitar_de_tlb);
+    dictionary_destroy_and_destroy_elements(tlb, free);
+    list_destroy_and_destroy_elements(cola_entradas_a_quitar_de_tlb, free);
 }
 
 void vaciar_tlb(){
-    dictionary_clean(tlb);
-    list_destroy(cola_entradas_a_quitar_de_tlb);
+    dictionary_clean_and_destroy_elements(tlb, free);
+    list_destroy_and_destroy_elements(cola_entradas_a_quitar_de_tlb, free);
     cola_entradas_a_quitar_de_tlb = list_create();
 }
 
 void si_cambio_el_proceso_vaciar_tlb(pcb_t pcb){
-    if(pcb.pid == pid_anterior){
+    if(pcb.pid != pid_anterior){
         vaciar_tlb();
     }
+}
+
+void prueba_agregar_y_sacar_de_tlb(){
+    agregar_a_tlb(0,1000);
+    agregar_a_tlb(1,1000);
+    agregar_a_tlb(2,2000);
+
+    sacar_pagina_de_tlb(2);
+
+    log_error(logger, "TAMANIO DICCIONARIO: %d", dictionary_size(tlb));
 }

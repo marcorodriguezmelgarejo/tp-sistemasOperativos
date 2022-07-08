@@ -1,7 +1,7 @@
 #include "cpu.h"
 
 // TODO: no anda si se hace antes de recibir la conexion del Kernel o si se ejecutaron varias consolas en paralelo
-void finalizar_CPU(int signal){ 
+void finalizar_CPU(int signal){
 
     pthread_cancel(hilo_ciclo_instruccion);
     pthread_cancel(hilo_dispatch);
@@ -31,6 +31,10 @@ int main(){
     crear_logger();
     cargar_config(logger);
     inicializar_tlb();
+
+    // prueba_agregar_y_sacar_de_tlb();
+    // return 0;
+
     if(!inicializar_semaforos()){
         log_error(logger, "Error en la creacion de los semaforos");
     }
