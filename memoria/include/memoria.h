@@ -82,6 +82,7 @@ char PATH_SWAP[MAX_STRING_SIZE];
 
 pthread_t h1, h2, h3;
 pthread_mutex_t mutex_cola_instrucciones_swap;
+pthread_mutex_t mutex_conexiones;
 sem_t contador_cola_instrucciones_swap;
 
 t_config* config;
@@ -144,7 +145,6 @@ int32_t acceder_tabla_primer_nivel(tabla_primer_nivel* tabla_pointer, int32_t in
 entrada_segundo_nivel* get_entrada_segundo_nivel(tabla_primer_nivel* tabla_pointer, int32_t numero_pagina);
 int32_t elegir_pagina_para_reemplazar(tabla_primer_nivel* tabla_pointer);
 int32_t elegir_marco_libre(tabla_primer_nivel* tabla_pointer);
-void acciones_trasladar_pagina_a_disco(tabla_primer_nivel* tabla_pointer, int32_t numero_pagina, int32_t numero_marco);
 void acciones_trasladar_pagina_a_memoria(tabla_primer_nivel* tabla_pointer, int32_t numero_pagina, int32_t numero_marco);
 int32_t acceder_tabla_segundo_nivel(tabla_primer_nivel* tabla_pointer, int32_t numero_tabla_segundo_nivel, int32_t numero_pagina_solicitada);
 int32_t acceder_espacio_usuario_lectura(tabla_primer_nivel* tabla_pointer, int32_t numero_pagina, int32_t numero_marco, int32_t desplazamiento);
@@ -174,6 +174,10 @@ tabla_primer_nivel* obtener_tabla_con_pid(int32_t pid);
 void atender_finalizacion_proceso(int32_t pid);
 void atender_suspension_proceso(int32_t pid);
 void atender_inicializacion_proceso(int32_t pid);
+bool atender_acceso_tabla_segundo_nivel(void);
+bool atender_acceso_lectura_espacio_usuario(void);
+bool atender_acceso_escritura_espacio_usuario(void);
+bool atender_acceso_tabla_primer_nivel(void);
 void marcar_marcos_como_libres_proceso(tabla_primer_nivel* tabla_pointer);
 void marcar_marco_como_libre(int32_t numero_marco);
 void marcar_marco_como_ocupado(int32_t numero_marco);

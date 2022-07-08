@@ -30,7 +30,7 @@
 
 // *VARIABLES GLOBALES*
 
-pthread_t h1, h2;
+pthread_t h1, h2, h3;
 pthread_mutex_t mutex_cola_new;
 pthread_mutex_t mutex_lista_ready;
 pthread_mutex_t mutex_lista_bloqueado;
@@ -41,6 +41,8 @@ pthread_mutex_t mutex_grado_multiprogramacion_actual;
 pthread_mutex_t mutex_interrupcion_cpu;
 pthread_mutex_t mutex_cola_IO;
 pthread_mutex_t mutex_en_IO;
+pthread_mutex_t mutex_cola_instrucciones_memoria;
+sem_t contador_cola_instrucciones_memoria;
 
 t_log * logger;
 
@@ -83,7 +85,19 @@ datos_tiempo_bloqueo en_IO; //se guarda los datos del proceso actualmente en IO
 
 bool ya_se_envio_interrupcion_cpu;
 
+typedef struct instruccion_memoria{
+    pcb_t *pcb_pointer;
+    int32_t codigo_operacion;
+    sem_t * semaforo_pointer;
+} instruccion_memoria;
+
+t_queue* cola_instrucciones_memoria;
+
 // *FUNCIONES*
+bool recibir_respuesta_memoria(void);
+void solicitar_operacion_a_memoria(int32_t pid, int32_t motivo);
+void enviar_instruccion_memoria(pcb_t* pcb_pointer, int32_t codigo_operacion);
+void * hilo_memoria(void * arg);
 void enviar_fin_memoria(void);
 void inicializar_variables_globales(void);
 void manejar_sigint(int);

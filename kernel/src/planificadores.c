@@ -201,7 +201,7 @@ bool transicion_new_ready(void){
     if (!queue_is_empty(cola_new)){
         pcb_pointer = queue_peek(cola_new);
 
-        inicializar_estructuras_memoria(pcb_pointer);
+        enviar_instruccion_memoria(pcb_pointer, INICIALIZAR_PROCESO);
 
         list_add(lista_ready, queue_pop(cola_new));
 
@@ -229,7 +229,7 @@ void transicion_ejec_exit(void){
         return;
     }
 
-    memoria_finalizar_proceso(en_ejecucion);
+    enviar_instruccion_memoria(en_ejecucion, FINALIZAR_PROCESO);
 
     log_info(logger, "EJEC->EXIT (PID=%d)", en_ejecucion->pid);
 
@@ -445,7 +445,7 @@ void transicion_bloqueado_bloqueado_suspendido(pcb_t *pcb_pointer){
     //ACLARACION: no espera un mutex de la lista de bloqueado porque ya lo hace hilo_timer
     //y es la unica funcion que llama a esta
 
-    memoria_suspender_proceso(pcb_pointer);
+    enviar_instruccion_memoria(pcb_pointer, SUSPENDER_PROCESO);
 
     pthread_mutex_lock(&mutex_lista_bloqueado_suspendido);
     pthread_mutex_lock(&mutex_grado_multiprogramacion_actual);
