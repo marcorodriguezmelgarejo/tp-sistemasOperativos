@@ -29,6 +29,8 @@ void* hilo_escuchar_cpu(void * arg){
 
         pthread_mutex_lock(&mutex_conexiones);
 
+        usleep(milisegundos_a_microsegundos(RETARDO_MEMORIA)); // Retardo para simular un acceso a una memoria
+
         switch(motivo){
             case ACCESO_TABLA_PRIMER_NIVEL:
                 if(!atender_acceso_tabla_primer_nivel()){
