@@ -23,10 +23,19 @@ int32_t buscar_pagina(int32_t numero_pagina){//busca en la tlb o en memoria el m
 
     if(REEEMPLAZO_TLB == LRU) {
         mover_pagina_al_final_de_la_cola(numero_pagina);
+        // imprimir_cola_pags();
     }
     
     
     return marco;
+}
+
+void imprimir_cola_pags(){
+    printf("\n");
+    for(int i = 0; i < list_size(cola_entradas_a_quitar_de_tlb); i++){
+        printf("%d", obtener_elemento_lista_int32(cola_entradas_a_quitar_de_tlb, i));
+    }
+    printf("\n");
 }
 
 void borrar_entrada_TLB_segun_alg(){
@@ -71,7 +80,7 @@ void agregar_a_tlb(int32_t pagina, int32_t marco){
             dictionary_size(tlb), list_size(cola_entradas_a_quitar_de_tlb));
     }
 
-    log_debug(logger, "Escrita pagina %d en el marco %d de la tlb", pagina, marco);
+    // log_info(logger, "Escrito en tlb pagina %d, marco %d", pagina, marco);
 }
 void sacar_pagina_de_tlb(int32_t pagina){
     // Saca la entrada de tlb que contiene la pagina pasada por parametro

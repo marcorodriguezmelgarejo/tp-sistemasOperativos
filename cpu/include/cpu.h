@@ -151,5 +151,6 @@ void vaciar_tlb();
 void si_cambio_el_proceso_vaciar_tlb(pcb_t pcb);
 int32_t buscar_pagina_en_memoria(int32_t numero_pagina);
 int32_t obtener_elemento_lista_int32(t_list* lista, int32_t indice);
+void imprimir_cola_pags();
 
 #endif

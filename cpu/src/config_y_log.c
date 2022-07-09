@@ -35,17 +35,17 @@ void leer_int_config(t_config* config, char* value, int *return_value, t_log* lo
 	}
 }
 
-void leer_algoritmo_reemplazo_config(t_config* config, alg_reemplazo_tlb_t return_value, t_log* logger){
+void leer_algoritmo_reemplazo_config(t_config* config, alg_reemplazo_tlb_t *return_value, t_log* logger){
 	char string_algoritmo[20];
 	if (config_has_property(config, "REEMPLAZO_TLB")){
 		strcpy(string_algoritmo, config_get_string_value(config, "REEMPLAZO_TLB"));
 		if (!strcmp("FIFO" , string_algoritmo)){
-			return_value = FIFO;
+			(*return_value) = FIFO;
 			log_info(logger, "REEMPLAZO_TLB: FIFO");
 		}
 		else{
 			if (!strcmp("LRU" , string_algoritmo)){
-				return_value = LRU;
+				(*return_value) = LRU;
 				log_info(logger, "REEMPLAZO_TLB: LRU");
 			}
 			else{
@@ -75,7 +75,7 @@ void cargar_config(t_log* logger){
 	leer_string_config(config, "PUERTO_ESCUCHA_INTERRUPT", PUERTO_ESCUCHA_INTERRUPT, logger);
 	leer_int_config(config, "ENTRADAS_TLB", &ENTRADAS_TLB, logger);
 	leer_int_config(config, "RETARDO_NOOP", &RETARDO_NOOP, logger);
-	leer_algoritmo_reemplazo_config(config, REEEMPLAZO_TLB, logger);
+	leer_algoritmo_reemplazo_config(config, &REEEMPLAZO_TLB, logger);
 
 	log_debug(logger, "Se ha leido el archivo de config con exito.");
 
