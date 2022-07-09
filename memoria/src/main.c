@@ -16,7 +16,7 @@ void manejar_sigint(int signal){
 
 void liberar_memoria(void){
     
-    log_info(logger, "liberando memoria...");
+    //log_info(logger, "liberando memoria...");
 
     free(espacio_usuario);
     
