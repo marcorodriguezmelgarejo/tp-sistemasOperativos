@@ -89,5 +89,5 @@ void loguear_PC(){
 	pc = en_ejecucion.program_counter;
 	pthread_mutex_unlock(&mutex_PCB);
 
-	log_info(logger, "Puntero instruccion: %d", pc);
+	log_debug(logger, "Puntero instruccion: %d", pc);
 }

@@ -35,7 +35,7 @@ void esperar_pcb(){
         // recibe el pcb en cualquier punto del ciclo de intruccion
         sockets_recibir_pcb(dispatch_socket, &pcb_buffer, logger);
         si_cambio_el_proceso_vaciar_tlb(pcb_buffer);
-        log_info(logger, "PCB recibido. Se introducira cuando la CPU este vacia.");
+        //log_info(logger, "PCB recibido. Se introducira cuando la CPU este vacia.");
 
         // solamente introduce el PCB despues de que el anterior haya sido desalojado
         sem_wait(&CPU_vacia);
@@ -49,7 +49,7 @@ void esperar_pcb(){
         free(pcb_buffer.lista_instrucciones);
         pcb_buffer.lista_instrucciones = NULL;
 
-        log_debug(logger, "PCB introducido a ejecuccion, pid: %d ", en_ejecucion.pid);
+        log_info(logger, "EN EJECUCION: PID = %d ", en_ejecucion.pid);
 
         sem_post(&PCB_en_CPU);
     }
@@ -101,7 +101,7 @@ void ciclo_instruccion(){
             instruccion = decode(string_instruccion);
             fetch_operandos(&instruccion);
             if(execute(instruccion)){
-                log_info(logger, "---- Fin instruccion ----");
+                log_debug(logger, "---- FIN INSTRUCCION ----");
             }
             else{
                 log_error(logger, "Error en la ejecucion de la operacion");

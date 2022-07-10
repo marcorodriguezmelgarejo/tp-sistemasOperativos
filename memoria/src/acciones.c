@@ -89,7 +89,7 @@ int32_t acceder_tabla_primer_nivel(tabla_primer_nivel* tabla_pointer, int32_t nu
 
     indice_tabla_segundo_nivel = floor(numero_pagina / ENTRADAS_POR_TABLA);
 
-    log_info(logger, "ACCESO TABLA PRIMER NIVEL (PID = %d, numero de pagina= %d)", tabla_pointer->pid, numero_pagina);
+    log_info(logger, "ACCESO TABLA PRIMER NIVEL (PID = %d, numero de pagina= %d, indice tabla segundo nivel = %d)", tabla_pointer->pid, numero_pagina, indice_tabla_segundo_nivel);
 
     return indice_tabla_segundo_nivel;
 }
@@ -160,7 +160,7 @@ int32_t acceder_tabla_segundo_nivel(tabla_primer_nivel* tabla_pointer, int32_t i
         numero_marco = entrada_segundo_nivel_pointer->numero_marco;
     }
 
-    log_info(logger, "ACCESO TABLA SEGUNDO NIVEL (PID = %d, numero de pagina del proceso = %d)", tabla_pointer->pid, numero_pagina_solicitada);
+    log_info(logger, "ACCESO TABLA SEGUNDO NIVEL (PID = %d, numero de pagina del proceso = %d, numero marco = %d)", tabla_pointer->pid, numero_pagina_solicitada, numero_marco);
 
     return numero_marco;
 }

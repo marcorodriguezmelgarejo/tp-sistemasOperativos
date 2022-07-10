@@ -34,7 +34,7 @@ bool leer(int32_t destino){
         return false;
     }
 
-    printf("VALOR LEIDO DE MEMORIA: %d\n", valor_leido);
+    log_info(logger, "VALOR LEIDO DE MEMORIA: %d\n", valor_leido);
     return true;
 }
 
