@@ -9,7 +9,6 @@ void manejar_sigint(int signal){
 
     pthread_cancel(h1);
     pthread_cancel(h2);
-    pthread_cancel(h3);
 
     liberar_memoria();
 }
@@ -23,14 +22,11 @@ void liberar_memoria(void){
     bitarray_destroy(marcos_libres);
    
     free(bitarray_aux);
-    
-    sem_destroy(&contador_cola_instrucciones_swap);
+
     pthread_mutex_destroy(&mutex_cola_instrucciones_swap);
     pthread_mutex_destroy(&mutex_conexiones);
    
     dictionary_destroy(diccionario_tabla_pointers);
-    
-    queue_destroy(cola_instrucciones_swap);
 
     log_destroy(logger);
 }
@@ -38,19 +34,15 @@ void liberar_memoria(void){
 void crear_hilos(void){
     pthread_create(&h1, NULL, hilo_escuchar_cpu, NULL);
     pthread_create(&h2, NULL, hilo_escuchar_kernel, NULL);
-    pthread_create(&h3, NULL, hilo_swap, NULL);
 }
 
 void inicializar_variables_globales(void){
 
     //primero cargar config antes de llamar a esta funcion
 
-    cola_instrucciones_swap = queue_create();
 
     pthread_mutex_init(&mutex_cola_instrucciones_swap, NULL);
     pthread_mutex_init(&mutex_conexiones, NULL);
-    
-    sem_init(&contador_cola_instrucciones_swap, 0, 0);
 
     diccionario_tabla_pointers = dictionary_create();
 
@@ -89,15 +81,12 @@ int main() {
 		return ERROR_STATUS;
     }
 
-    //iniciar_test_algoritmo_reemplazo();
-
     conectar_cpu_y_kernel();
 
     crear_hilos();
 	
     pthread_detach(h1);
-    pthread_detach(h2);
-    pthread_join(h3, NULL);
+    pthread_join(h2, NULL);
 
 	return SUCCESS_STATUS;
 }

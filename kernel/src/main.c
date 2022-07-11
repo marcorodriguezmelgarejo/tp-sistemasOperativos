@@ -8,11 +8,9 @@ void manejar_sigint(int signal){
     enviar_fin_memoria();
     sleep(1);
     enviar_fin_cpu();
-    
 
     pthread_cancel(h1);
     pthread_cancel(h2);
-    pthread_cancel(h3);
     liberar_memoria();
 }
 
@@ -38,8 +36,6 @@ void liberar_memoria(void){
     liberar_memoria_cola_pcb(cola_IO);
     queue_destroy(cola_IO);
 
-    queue_destroy(cola_instrucciones_memoria);
-
     log_destroy(logger);
 
     pthread_mutex_destroy(&mutex_cola_new);
@@ -54,7 +50,6 @@ void liberar_memoria(void){
     pthread_mutex_destroy(&mutex_en_IO);
     pthread_mutex_destroy(&mutex_cola_instrucciones_memoria);
 
-    sem_destroy(&contador_cola_instrucciones_memoria);
 }
 
 void liberar_threads_cola(t_queue* cola){
@@ -111,8 +106,6 @@ void inicializar_estructuras(void){
     pthread_mutex_init(&mutex_en_IO, NULL);
     pthread_mutex_init(&mutex_cola_instrucciones_memoria, NULL);
 
-    sem_init(&contador_cola_instrucciones_memoria, 0, 0);
-
     cola_new = queue_create();
     lista_ready = list_create();
     lista_bloqueado = list_create();
@@ -120,8 +113,6 @@ void inicializar_estructuras(void){
     cola_ready_suspendido = queue_create();
 
     cola_IO = queue_create();
-
-    cola_instrucciones_memoria = queue_create();
 
     crear_logger();
 }
@@ -166,13 +157,9 @@ int main(void)
 
     pthread_create(&h1, NULL, gestionar_dispatch, NULL);
     pthread_create(&h2, NULL, gestionar_nuevas_consolas, NULL);
-    pthread_create(&h3, NULL, hilo_memoria, NULL);
-    
-    pthread_detach(h3);
 
     pthread_join(h1, NULL);
     pthread_join(h2, NULL);
-    
         
     return 0;
 }

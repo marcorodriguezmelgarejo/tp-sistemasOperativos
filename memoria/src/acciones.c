@@ -15,7 +15,7 @@ tabla_primer_nivel* inicializar_proceso(int32_t pid, int32_t tamanio_proceso){
     if (tamanio_proceso > TAM_PAGINA * ENTRADAS_POR_TABLA * ENTRADAS_POR_TABLA){
         log_error(logger, "El tamanio de proceso excede la cantidad de paginas asignables");
     }
-    
+
     tabla_primer_nivel* tabla_primer_nivel_pointer;
     
     int32_t cantidad_paginas = ceil((float)tamanio_proceso /(float) TAM_PAGINA); //de 1 a ENTRADAS_POR_TABLA * ENTRADAS_POR_TABLA
@@ -27,7 +27,7 @@ tabla_primer_nivel* inicializar_proceso(int32_t pid, int32_t tamanio_proceso){
     }
 
     enviar_instruccion_swap_CREAR_ARCHIVO_SWAP(pid, tamanio_proceso);
-    
+
     tabla_primer_nivel_pointer = crear_tabla_paginas_proceso(pid, cantidad_paginas, cantidad_entradas_primer_nivel, cantidad_entradas_segundo_nivel_ultima_entrada);
 
     crear_entrada_diccionario_tabla_pointers(pid, tabla_primer_nivel_pointer);

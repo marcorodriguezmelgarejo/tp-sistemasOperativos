@@ -51,9 +51,13 @@ void si_es_necesario_enviar_interrupcion_o_ready_ejec(void){
     pthread_mutex_lock(&mutex_en_ejecucion);
     pthread_mutex_lock(&mutex_lista_ready);
 
-    if (es_algoritmo_srt() && en_ejecucion != NULL) enviar_interrupcion_cpu();
-    else if (en_ejecucion == NULL) transicion_ready_ejec();
-    
+    if (es_algoritmo_srt() && en_ejecucion != NULL){
+        enviar_interrupcion_cpu();
+    }
+    else if (en_ejecucion == NULL){
+        transicion_ready_ejec();
+    }
+
     pthread_mutex_unlock(&mutex_en_ejecucion);
     pthread_mutex_unlock(&mutex_lista_ready);
 }
@@ -99,12 +103,12 @@ void transicion_ejec_ready(int32_t tiempo_ejecucion){
         log_error(logger, "error en transicion_ejec_ready(): 'en_ejecucion' es NULL");
         return;
     }
-    
+
     if (es_algoritmo_srt()) sumar_duracion_rafaga(en_ejecucion, tiempo_ejecucion);
-
+    
     list_add(lista_ready, en_ejecucion);
-
-    log_info(logger, "EJEC->READY (pid = %d)", en_ejecucion->pid);
+    
+    log_info(logger, "EJEC->READY (PID = %d)", en_ejecucion->pid);
 
     en_ejecucion = NULL;
 
@@ -194,14 +198,13 @@ bool transicion_new_ready(void){
     pcb_t *pcb_pointer;
 
     bool resultado = false;
-    
     pthread_mutex_lock(&mutex_cola_new);
     pthread_mutex_lock(&mutex_lista_ready);
     
     if (!queue_is_empty(cola_new)){
         pcb_pointer = queue_peek(cola_new);
 
-        enviar_instruccion_memoria(pcb_pointer, INICIALIZAR_PROCESO);
+        inicializar_estructuras_memoria(pcb_pointer);
 
         list_add(lista_ready, queue_pop(cola_new));
 
@@ -229,7 +232,7 @@ void transicion_ejec_exit(void){
         return;
     }
 
-    enviar_instruccion_memoria(en_ejecucion, FINALIZAR_PROCESO);
+    memoria_finalizar_proceso(en_ejecucion);
 
     log_info(logger, "EJEC->EXIT (PID=%d)", en_ejecucion->pid);
 
@@ -445,7 +448,7 @@ void transicion_bloqueado_bloqueado_suspendido(pcb_t *pcb_pointer){
     //ACLARACION: no espera un mutex de la lista de bloqueado porque ya lo hace hilo_timer
     //y es la unica funcion que llama a esta
 
-    enviar_instruccion_memoria(pcb_pointer, SUSPENDER_PROCESO);
+    memoria_suspender_proceso(pcb_pointer);
 
     pthread_mutex_lock(&mutex_lista_bloqueado_suspendido);
     pthread_mutex_lock(&mutex_grado_multiprogramacion_actual);

@@ -1,67 +1,5 @@
 #include "memoria.h"
 
-/*
-
-    Funciones testeadas:
-    crear_archivo_swap()
-
-*/
-
-
-void *hilo_swap(void *arg){
-
-    // Implementa un productor-consumidor con todas las instrucciones que debe hacer
-
-    instruccion_swap *instruccion_pointer;
-    
-    while(1){
-        sem_wait(&contador_cola_instrucciones_swap);
-
-        pthread_mutex_lock(&mutex_cola_instrucciones_swap);
-        instruccion_pointer = queue_pop(cola_instrucciones_swap);
-        pthread_mutex_unlock(&mutex_cola_instrucciones_swap);
-
-        usleep(milisegundos_a_microsegundos(RETARDO_SWAP)); //retardo intencional para emular un swap real
-
-        // Llamo a la instruccion correspondiente pasandole los parametros que correspondan
-
-        switch (instruccion_pointer->numero_instruccion){
-            case CREAR_ARCHIVO_SWAP:
-                crear_archivo_swap(instruccion_pointer->pid, instruccion_pointer->tamanio_proceso);
-                log_debug(logger, "SWAP: CREAR ARCHIVO (PID = %d)", instruccion_pointer->pid);
-                break;
-            case TRASLADAR_PAGINA_A_DISCO:
-                trasladar_pagina_a_disco(instruccion_pointer->pid, instruccion_pointer->numero_pagina, instruccion_pointer->numero_marco);
-                log_debug(logger, "SWAP: TRASLADAR PAGINA A DISCO (PID = %d, numero de pagina = %d, numero de marco = %d)", instruccion_pointer->pid, instruccion_pointer->numero_pagina, instruccion_pointer->numero_marco);
-                break;
-            case TRASLADAR_PAGINA_A_MEMORIA:
-                trasladar_pagina_a_memoria(instruccion_pointer->pid, instruccion_pointer->numero_pagina, instruccion_pointer->numero_marco);
-                log_debug(logger, "SWAP: TRASLADAR PAGINA A MEMORIA (PID = %d, numero de pagina = %d, numero de marco = %d)", instruccion_pointer->pid, instruccion_pointer->numero_pagina, instruccion_pointer->numero_marco);
-                break;
-            case TRASLADAR_PROCESO_A_DISCO:
-                trasladar_proceso_a_disco(instruccion_pointer->tabla_primer_nivel_pointer);
-                log_debug(logger, "SWAP: TRASLADAR PROCESO A DISCO (PID = %d)", instruccion_pointer->tabla_primer_nivel_pointer->pid);
-                break;
-            case BORRAR_ARCHIVO_SWAP:
-                borrar_archivo_swap(instruccion_pointer->pid);
-                log_debug(logger, "SWAP: BORRAR ARCHIVO (PID = %d)", instruccion_pointer->pid);
-                break;
-            default:
-                log_error(logger, "No existe el codigo de instruccion");
-                break;
-        }
-
-        //indico a memoria que termine de ejecutar una instruccion swap
-        if (instruccion_pointer->semaforo_pointer != NULL){
-            sem_post(instruccion_pointer->semaforo_pointer);
-        }
-
-        free(instruccion_pointer);
-    }
-
-    return NULL;
-}
-
 void crear_archivo_swap(int32_t pid, int32_t tamanio_proceso){
     /*
         Crea un archivo con el nombre <pid>.swap y escribe ceros con cantidad 'tamanio_proceso'
@@ -70,6 +8,8 @@ void crear_archivo_swap(int32_t pid, int32_t tamanio_proceso){
     char filename[MAX_STRING_SIZE];
     FILE * archivo_swap;
     
+    usleep(milisegundos_a_microsegundos(RETARDO_SWAP));
+
     sprintf(filename, "%s/%d.swap", PATH_SWAP, pid);
 
     if ((archivo_swap = fopen(filename, "w")) == NULL){
@@ -81,6 +21,8 @@ void crear_archivo_swap(int32_t pid, int32_t tamanio_proceso){
 
     fclose(archivo_swap);
 
+    log_debug(logger, "SWAP: CREAR ARCHIVO (PID = %d)", pid);
+
     return;
 }
 
@@ -91,8 +33,11 @@ void escribir_ceros_archivo(FILE * archivo, int32_t cantidad_ceros){
     free(ceros);
 }
 
-void trasladar_pagina_a_disco(int32_t pid, int32_t numero_pagina, int32_t numero_marco){
-    //TODO: CHECKEAR/TESTEAR
+void trasladar_pagina_a_disco(int32_t pid, int32_t numero_pagina, int32_t numero_marco, bool esperar){
+
+    if (esperar == true){
+        usleep(milisegundos_a_microsegundos(RETARDO_SWAP));
+    }
 
     void* marco = espacio_usuario + numero_marco * TAM_PAGINA; // Puntero al marco indicado
     void * marco_temp = malloc(TAM_PAGINA); // Marco temporal
@@ -109,11 +54,14 @@ void trasladar_pagina_a_disco(int32_t pid, int32_t numero_pagina, int32_t numero
     free(marco_temp);
     fclose(archivo);
 
+    log_debug(logger, "SWAP: TRASLADAR PAGINA A DISCO (PID = %d, numero de pagina = %d, numero de marco = %d)", pid, numero_pagina, numero_marco);
+
     return;
 }
 
 void trasladar_pagina_a_memoria(int32_t pid, int32_t numero_pagina, int32_t numero_marco){
-    //TODO: CHECKEAR/TESTEAR
+
+    usleep(milisegundos_a_microsegundos(RETARDO_SWAP));
     
     void* marco = espacio_usuario + numero_marco * TAM_PAGINA; // Puntero al marco indicado
 
@@ -127,15 +75,19 @@ void trasladar_pagina_a_memoria(int32_t pid, int32_t numero_pagina, int32_t nume
     
     fclose(archivo);
 
+    log_debug(logger, "SWAP: TRASLADAR PAGINA A MEMORIA (PID = %d, numero de pagina = %d, numero de marco = %d)", pid, numero_pagina, numero_marco);
+
     return;
 }
 
 void trasladar_proceso_a_disco(tabla_primer_nivel* tabla_pointer){
     /*
         Itero en todas las paginas de la tabla buscando las que tengan presencia
-        y las mando a disco.
+        y las mando a disco.//TODO: CHECKEAR/TESTEAR
         IMPORTANTE: CAMBIA EL VALOR DE PRESENCIA A FALSE DE LAS PAGINAS CON PRESENCIA
     */
+
+    usleep(milisegundos_a_microsegundos(RETARDO_SWAP));
 
     int i = 0, j = 0;
     tabla_segundo_nivel* tabla_segundo_nivel_pointer;
@@ -150,17 +102,21 @@ void trasladar_proceso_a_disco(tabla_primer_nivel* tabla_pointer){
 
             // si la pagina forma parte del conjunto residente la mando a disco
             if (pagina_actual_pointer->presencia == true){
-                trasladar_pagina_a_disco(tabla_pointer->pid, i * ENTRADAS_POR_TABLA + j, pagina_actual_pointer->numero_marco);
+                trasladar_pagina_a_disco(tabla_pointer->pid, i * ENTRADAS_POR_TABLA + j, pagina_actual_pointer->numero_marco, false);
                 pagina_actual_pointer->presencia = false;
             }
         }
 
     }
 
+    log_debug(logger, "SWAP: TRASLADAR PROCESO A DISCO (PID = %d)", tabla_pointer->pid);
+
     return;
 }
 
 void borrar_archivo_swap(int32_t pid){
+
+    usleep(milisegundos_a_microsegundos(RETARDO_SWAP));
 
     char swap_file[MAX_STRING_SIZE];
 
@@ -169,5 +125,7 @@ void borrar_archivo_swap(int32_t pid){
     if(remove(swap_file) != 0){
         log_error(logger, "error al eliminar el archivo swap: %s",swap_file);
     }
-
+    else{
+        log_debug(logger, "SWAP: BORRAR ARCHIVO (PID = %d)", pid);
+    }
 }

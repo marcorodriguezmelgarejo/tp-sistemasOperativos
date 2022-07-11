@@ -25,8 +25,9 @@ void* hilo_escuchar_cpu(void * arg){
     int32_t motivo;
 
     while(true){
+        
         sockets_recibir_dato(cpu_socket, &motivo, sizeof(motivo), logger);
-
+        
         pthread_mutex_lock(&mutex_conexiones);
 
         usleep(milisegundos_a_microsegundos(RETARDO_MEMORIA)); // Retardo para simular un acceso a una memoria

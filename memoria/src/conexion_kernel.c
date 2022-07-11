@@ -16,18 +16,17 @@ void* hilo_escuchar_kernel(void * arg){
     int32_t pid;
 
     while(true){
-
         if(!sockets_recibir_dato(kernel_socket, &motivo, sizeof motivo, logger)){
             log_error(logger, "Error al recibir motivo de comunicacion por parte de kernel");
             continue;
         }
         
+        pthread_mutex_lock(&mutex_conexiones);
+        
         if(!sockets_recibir_dato(kernel_socket, &pid, sizeof pid, logger)){
             log_error(logger, "Error al recibir pid de kernel");
             continue;
         }
-        
-        pthread_mutex_lock(&mutex_conexiones);
 
         switch(motivo){
             case INICIALIZAR_PROCESO:
