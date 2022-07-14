@@ -4,6 +4,9 @@
 //TODO: implementar semaforos, si hace falta, cuando se llama a un planificador que sea llamado por varias funciones
 
 bool es_algoritmo_srt(void){
+    if ((strcmp(ALGORITMO_PLANIFICACION, "SRT") != 0) && (strcmp(ALGORITMO_PLANIFICACION, "FIFO") != 0)){
+        log_error(logger, "El algoritmo de planificacion determinado por configuracion no es correcto.");
+    }
     return strcmp(ALGORITMO_PLANIFICACION, "SRT") == 0;
 }
 
@@ -36,7 +39,7 @@ void ingresar_proceso_a_ready(int signal){
 
     }
     else{
-        log_info(logger, "El grado de multiprogramacion actual es el maximo posible");
+        log_warning(logger, "Se intento llevar algun proceso a ready pero el grado de multiprogramacion actual es el maximo posible");
     }
 
     pthread_mutex_unlock(&mutex_grado_multiprogramacion_actual);
@@ -164,7 +167,7 @@ void transicion_ready_ejec(void){
     }
 
     if (list_size(lista_ready) == 0){
-        log_info(logger, "No hay procesos en READY para llevar a EJEC");
+        log_warning(logger, "No hay procesos en READY para llevar a EJEC");
         return;
     }
 
@@ -415,6 +418,8 @@ void terminar_IO(void){
     int indice_bloqueado = get_indice_pcb_pointer(lista_bloqueado, en_IO.pcb_pointer);
     int indice_bloqueado_suspendido = 0;
 
+    log_debug(logger, "I/O -> (PID = %d)", en_IO.pcb_pointer->pid);
+
     //si el pcb esta en lista_bloqueado
     if ( indice_bloqueado != -1){
         transicion_bloqueado_ready(en_IO.pcb_pointer);
@@ -426,8 +431,6 @@ void terminar_IO(void){
         log_error(logger, "Error en terminar_IO(): el pcb no esta ni en BLOQUEADO ni en BLOQUEADO_SUSPENDIDO");
         return;
     }
-
-    log_debug(logger, "I/O -> (PID = %d)", en_IO.pcb_pointer->pid);
 
     en_IO.pcb_pointer = NULL;
 
