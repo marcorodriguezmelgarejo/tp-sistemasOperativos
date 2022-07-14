@@ -56,6 +56,8 @@ void inicializar_variables_globales(void){
 
     bitarray_aux = malloc(tamanio_marcos_libres);
 
+    memset(bitarray_aux, 0, tamanio_marcos_libres);
+
     marcos_libres = bitarray_create_with_mode(bitarray_aux, tamanio_marcos_libres, MSB_FIRST);
 }
 
