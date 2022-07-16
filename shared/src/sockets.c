@@ -195,13 +195,13 @@ bool sockets_recibir_string(int sockfd, char * buffer, t_log* logger){
 
     int numbytes = 0;
 
-    if ((numbytes = recv( sockfd , &buflen, sizeof(int32_t),  0 )) == -1  )//recibe largo de string
+    if ((numbytes = recv( sockfd , &buflen, sizeof(int32_t),  MSG_WAITALL )) == -1  )//recibe largo de string
     {
         if (logger != NULL)log_error(logger, "Error al recibir string: %s", strerror(errno));
         return false;
     }
 
-    if ((numbytes = recv(sockfd, buffer, buflen, 0)) == -1  )//recibo el string
+    if ((numbytes = recv(sockfd, buffer, buflen, MSG_WAITALL)) == -1  )//recibo el string
     {
         if (logger != NULL)log_error(logger, "Error al recibir string: %s", strerror(errno));
         return false;
@@ -234,7 +234,7 @@ bool sockets_recibir_dato(int sockfd, void* data_pointer, size_t data_size, t_lo
 
     int numbytes = 0;
 
-    if ( ( numbytes = recv(sockfd, data_pointer, data_size, 0) ) == -1 )
+    if ( ( numbytes = recv(sockfd, data_pointer, data_size, MSG_WAITALL) ) == -1 )
     {
         if (logger != NULL)log_error(logger, "Error al recibir dato: %s", strerror(errno));
         return false;
