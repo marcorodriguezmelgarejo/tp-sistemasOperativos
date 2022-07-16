@@ -10,7 +10,7 @@ bool es_algoritmo_srt(void){
     return strcmp(ALGORITMO_PLANIFICACION, "SRT") == 0;
 }
 
-void ingresar_proceso_a_ready(int signal){
+void ingresar_proceso_a_ready(void){
     /*
         Escucha la signal SIGUSR1. Intenta ingresar un proceso a ready.
         La signal se activa cuando:
@@ -43,10 +43,6 @@ void ingresar_proceso_a_ready(int signal){
     }
 
     pthread_mutex_unlock(&mutex_grado_multiprogramacion_actual);
-}
-
-void invocar_ingresar_proceso_a_ready(void){
-    kill(getpid(), SIGUSR1);
 }
 
 void si_es_necesario_enviar_interrupcion_o_ready_ejec(void){
@@ -91,7 +87,7 @@ void transicion_consola_new(char *lista_instrucciones, int32_t tamanio_proceso, 
 
     log_info(logger, "-> NEW (PID = %d)", pcb_pointer->pid);
 
-    invocar_ingresar_proceso_a_ready();
+    ingresar_proceso_a_ready();
 }
 
 void transicion_ejec_ready(int32_t tiempo_ejecucion){
@@ -250,7 +246,7 @@ void transicion_ejec_exit(void){
     pthread_mutex_unlock(&mutex_en_ejecucion);
     pthread_mutex_unlock(&mutex_grado_multiprogramacion_actual);
 
-    invocar_ingresar_proceso_a_ready();
+    ingresar_proceso_a_ready();
 }
 
 void transicion_ejec_bloqueado(int32_t tiempo_bloqueo, int32_t tiempo_ejecucion){
@@ -465,7 +461,7 @@ void transicion_bloqueado_bloqueado_suspendido(pcb_t *pcb_pointer){
     pthread_mutex_unlock(&mutex_lista_bloqueado_suspendido);
     pthread_mutex_unlock(&mutex_grado_multiprogramacion_actual);
 
-    invocar_ingresar_proceso_a_ready(); 
+    ingresar_proceso_a_ready(); 
 }
 
 void transicion_bloqueado_suspendido_ready_suspendido(pcb_t* pcb_pointer){
@@ -485,7 +481,7 @@ void transicion_bloqueado_suspendido_ready_suspendido(pcb_t* pcb_pointer){
 
     pthread_mutex_unlock(&mutex_cola_ready_suspendido);
     
-    invocar_ingresar_proceso_a_ready();
+    ingresar_proceso_a_ready();
 }
 
 void transicion_bloqueado_ready(pcb_t* pcb_pointer){

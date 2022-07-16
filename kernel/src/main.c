@@ -141,8 +141,6 @@ int main(void)
 
     signal(SIGINT, manejar_sigint);
 
-    signal(SIGUSR1, ingresar_proceso_a_ready);
-
     inicializar_estructuras();
 
     cargar_config();
