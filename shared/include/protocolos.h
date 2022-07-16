@@ -45,7 +45,7 @@ typedef struct pcb_t{
     int32_t consola_socket; //el fd del socket mediante el cual el kernel se conecta a la consola del proceso
 } pcb_t;
 
-#define TAMANIO_PCB_SERIALIZADA 40 //sin contar la lista de instrucciones
+#define TAMANIO_PCB_SERIALIZADA 32 //sin contar la lista de instrucciones
 
 // ACLARACION: todas las funciones devuelven 'true' en caso de exito. 'false' si hubo un error
 
