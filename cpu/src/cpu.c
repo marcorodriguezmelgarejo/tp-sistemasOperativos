@@ -7,8 +7,6 @@ void finalizar_CPU(int signal){
     pthread_cancel(hilo_dispatch);
     pthread_cancel(hilo_interrupcion);
 
-    matar_kernel(); // manda a kernel la string FIN_CPU
-
     pthread_mutex_destroy(&mutex_interrupcion);
     pthread_mutex_destroy(&mutex_PCB);
 

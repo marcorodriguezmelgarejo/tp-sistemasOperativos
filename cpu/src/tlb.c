@@ -206,6 +206,7 @@ void vaciar_tlb(){
 
 void si_cambio_el_proceso_vaciar_tlb(pcb_t pcb){
     if(pcb.pid != pid_anterior){
+        log_warning(logger, "Hubo un cambio de proceso, vaciando tlb...");
         vaciar_tlb();
     }
 }
