@@ -7,8 +7,6 @@ void crear_archivo_swap(int32_t pid, int32_t tamanio_proceso){
 
     char filename[MAX_STRING_SIZE];
     FILE * archivo_swap;
-    
-    usleep(milisegundos_a_microsegundos(RETARDO_SWAP));
 
     sprintf(filename, "%s/%d.swap", PATH_SWAP, pid);
 
@@ -87,8 +85,6 @@ void trasladar_proceso_a_disco(tabla_primer_nivel* tabla_pointer){
         IMPORTANTE: CAMBIA EL VALOR DE PRESENCIA A FALSE DE LAS PAGINAS CON PRESENCIA
     */
 
-    usleep(milisegundos_a_microsegundos(RETARDO_SWAP));
-
     int i = 0, j = 0;
     tabla_segundo_nivel* tabla_segundo_nivel_pointer;
     entrada_segundo_nivel* pagina_actual_pointer;
@@ -115,8 +111,6 @@ void trasladar_proceso_a_disco(tabla_primer_nivel* tabla_pointer){
 }
 
 void borrar_archivo_swap(int32_t pid){
-
-    usleep(milisegundos_a_microsegundos(RETARDO_SWAP));
 
     char swap_file[MAX_STRING_SIZE];
 
